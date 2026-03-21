@@ -4,8 +4,8 @@
 
 - [x] **Phase 1: Secure Connectivity & Basic Messaging** - Establish secure IMAP/SMTP connections and enable basic read/send capabilities.
 - [x] **Phase 2: Discovery & Organization** - Implement advanced search, folder management, and mailbox organization.
-- [ ] **Phase 3: Context & Resources** - Add thread reconstruction and attachment handling for deeper reasoning.
-- [ ] **Phase 4: Efficiency & Scale** - Optimize with batch operations and performance improvements.
+- [x] **Phase 3: Context & Resources** - Add thread reconstruction and attachment handling for deeper reasoning.
+- [x] **Phase 4: Efficiency & Scale** - Optimize with batch operations and performance improvements.
 
 ## Phase Details
 
@@ -48,8 +48,8 @@
 3. User can list attachment metadata and download content via MCP Resource URIs.
 4. User can see extracted text from PDF and common document attachments.
 **Plans**: 2
-- [ ] 03-01-PLAN.md — Thread Reconstruction & Conversations.
-- [ ] 03-02-PLAN.md — Attachment Resources & Text Extraction.
+- [x] 03-01-PLAN.md — Thread Reconstruction & Conversations.
+- [x] 03-02-PLAN.md — Attachment Resources & Text Extraction.
 
 ### Phase 4: Efficiency & Scale
 **Goal**: Perform high-volume actions efficiently.
@@ -57,7 +57,8 @@
 **Requirements**: ORG-03
 **Success Criteria**:
 1. User can perform batch operations (move, delete, label) on many emails in a single request.
-**Plans**: TBD
+**Plans**: 1
+- [x] 04-01-PLAN.md — Implement batch operations (move, delete, label).
 
 ## Progress
 
@@ -65,5 +66,5 @@
 |-------|----------------|--------|-----------|
 | 1. Secure Connectivity & Basic Messaging | 4/4 | Complete | 2026-03-21 |
 | 2. Discovery & Organization | 2/2 | Complete | 2026-03-21 |
-| 3. Context & Resources | 0/2 | In Progress | - |
-| 4. Efficiency & Scale | 0/1 | Not started | - |
+| 3. Context & Resources | 2/2 | Complete | 2026-03-21 |
+| 4. Efficiency & Scale | 1/1 | Complete | 2026-03-21 |
