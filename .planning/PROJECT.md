@@ -22,13 +22,10 @@ Empower AI agents to act as a personal mail assistant by providing structured, t
 
 ### Active
 
-- [ ] **IMAP-01**: Access mailbox via IMAP (list folders, fetch messages)
-- [ ] **IMAP-02**: Search and filter emails based on criteria (sender, date, subject)
-- [ ] **SMTP-01**: Send emails via SMTP with support for attachments
-- [ ] **THRD-01**: Thread/Conversation support (grouping related messages)
-- [ ] **WORK-01**: Smart workflows (summarization, action item extraction)
-- [ ] **ORG-01**: Mailbox organization (moving, tagging, bulk actions)
-- [ ] **RES-01**: Resource access (mailbox structure, contacts)
+- [ ] **ROM-01**: Server can be started with a `--read-only` flag
+- [ ] **ROM-02**: In read-only mode, write tools return a clear refusal error
+- [ ] **ROM-03**: In read-only mode, all read/search tools function normally
+- [ ] **ROM-04**: Server exposes its current mode so MCP clients can adapt
 
 ### Out of Scope
 
@@ -54,9 +51,32 @@ Empower AI agents to act as a personal mail assistant by providing structured, t
 |----------|-----------|---------|
 | Language Choice | TypeScript/Node.js selected for rich MCP SDK support and async handling | ✓ Good |
 
-## Current State
+## Current Milestone: v1.1 Read-Only Mode
 
-Phase 4 complete — all 4 milestone phases delivered. Full IMAP/SMTP MCP server operational with batch operations.
+**Goal:** Add a startup flag that restricts the server to read-only operations, preventing any email mutations.
+
+**Target features:**
+- `--read-only` startup flag
+- Write tools blocked with clear error in read-only mode
+- Read/search tools unaffected
+- Mode discoverable by MCP clients
+
+## Evolution
+
+This document evolves at phase transitions and milestone boundaries.
+
+**After each phase transition** (via `/gsd:transition`):
+1. Requirements invalidated? → Move to Out of Scope with reason
+2. Requirements validated? → Move to Validated with phase reference
+3. New requirements emerged? → Add to Active
+4. Decisions to log? → Add to Key Decisions
+5. "What This Is" still accurate? → Update if drifted
+
+**After each milestone** (via `/gsd:complete-milestone`):
+1. Full review of all sections
+2. Core Value check — still the right priority?
+3. Audit Out of Scope — reasons still valid?
+4. Update Context with current state
 
 ---
-*Last updated: 2026-03-21 after Phase 4: Efficiency & Scale*
+*Last updated: 2026-03-21 — Milestone v1.1 started*
