@@ -69,14 +69,18 @@ export class ImapClient {
       const start = Math.max(1, total - count + 1);
       const range = `${start}:*`;
       
-      for await (const msg of this.client.fetch(range, { envelope: true, flags: true, internalDate: true })) {
+      for await (const msg of this.client.fetch(range, { envelope: true, flags: true, internalDate: true, bodyParts: ['TEXT'] })) {
+        const textBuf = (msg as any).bodyParts?.get('TEXT');
+        const snippet = textBuf
+          ? textBuf.toString('utf-8').replace(/\s+/g, ' ').slice(0, 200).trim()
+          : '';
         messages.push({
           id: msg.uid.toString(),
           uid: msg.uid,
           subject: msg.envelope?.subject,
           from: msg.envelope?.from?.[0]?.address || 'Unknown',
           date: msg.envelope?.date || (msg.internalDate instanceof Date ? msg.internalDate : (msg.internalDate ? new Date(msg.internalDate) : undefined)),
-          snippet: '', // Snippet placeholder
+          snippet,
           threadId: (msg as any).threadId?.toString(),
         });
       }
@@ -101,14 +105,18 @@ export class ImapClient {
       const lastUids = uidsArray.slice(-count);
       const messages: MessageMetadata[] = [];
       
-      for await (const msg of this.client.fetch(lastUids.join(','), { envelope: true, flags: true, internalDate: true }, { uid: true })) {
+      for await (const msg of this.client.fetch(lastUids.join(','), { envelope: true, flags: true, internalDate: true, bodyParts: ['TEXT'] }, { uid: true })) {
+        const textBuf = (msg as any).bodyParts?.get('TEXT');
+        const snippet = textBuf
+          ? textBuf.toString('utf-8').replace(/\s+/g, ' ').slice(0, 200).trim()
+          : '';
         messages.push({
           id: msg.uid.toString(),
           uid: msg.uid,
           subject: msg.envelope?.subject,
           from: msg.envelope?.from?.[0]?.address || 'Unknown',
           date: msg.envelope?.date || (msg.internalDate instanceof Date ? msg.internalDate : (msg.internalDate ? new Date(msg.internalDate) : undefined)),
-          snippet: '', // Snippet placeholder
+          snippet,
           threadId: (msg as any).threadId?.toString(),
         });
       }
