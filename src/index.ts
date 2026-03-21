@@ -7,14 +7,24 @@ import {
   ErrorCode,
   McpError,
 } from '@modelcontextprotocol/sdk/types.js';
+import { parseArgs } from 'node:util';
 import { getAccounts } from './config.js';
 import { MailService } from './services/mail.js';
 
-class MailMCPServer {
+const WRITE_TOOLS = new Set<string>([
+  'send_email',
+  'create_draft',
+  'move_email',
+  'modify_labels',
+  'register_oauth2_account',
+  'batch_operations',
+]);
+
+export class MailMCPServer {
   private server: Server;
   private services: Map<string, MailService> = new Map();
 
-  constructor() {
+  constructor(private readonly readOnly: boolean = false) {
     this.server = new Server(
       {
         name: 'mail-mcp-server',
@@ -47,213 +57,273 @@ class MailMCPServer {
     return service;
   }
 
+  getTools(readOnly: boolean) {
+    const allTools = [
+      {
+        name: 'list_accounts',
+        description: 'List configured mail accounts',
+        annotations: { readOnlyHint: true, destructiveHint: false },
+        inputSchema: {
+          type: 'object',
+          properties: {},
+        },
+      },
+      {
+        name: 'list_emails',
+        description: 'List recent emails from a specific folder',
+        annotations: { readOnlyHint: true, destructiveHint: false },
+        inputSchema: {
+          type: 'object',
+          properties: {
+            accountId: { type: 'string', description: 'The ID of the account to use' },
+            folder: { type: 'string', description: 'The folder to list emails from (default: INBOX)' },
+            count: { type: 'number', description: 'The number of emails to retrieve (default: 10)' }
+          },
+          required: ['accountId']
+        }
+      },
+      {
+        name: 'search_emails',
+        description: 'Search for emails based on various criteria',
+        annotations: { readOnlyHint: true, destructiveHint: false },
+        inputSchema: {
+          type: 'object',
+          properties: {
+            accountId: { type: 'string', description: 'The ID of the account to use' },
+            folder: { type: 'string', description: 'The folder to search in (default: INBOX)' },
+            from: { type: 'string', description: 'Filter by sender' },
+            subject: { type: 'string', description: 'Filter by subject' },
+            since: { type: 'string', description: 'Filter by date (ISO format)' },
+            before: { type: 'string', description: 'Filter by date (ISO format)' },
+            keywords: { type: 'string', description: 'Filter by keywords in body' },
+            count: { type: 'number', description: 'The number of emails to retrieve (default: 10)' }
+          },
+          required: ['accountId']
+        }
+      },
+      {
+        name: 'read_email',
+        description: 'Read the content of a specific email',
+        annotations: { readOnlyHint: true, destructiveHint: false },
+        inputSchema: {
+          type: 'object',
+          properties: {
+            accountId: { type: 'string', description: 'The ID of the account to use' },
+            uid: { type: 'string', description: 'The UID of the email to read' },
+            folder: { type: 'string', description: 'The folder containing the email (default: INBOX)' }
+          },
+          required: ['accountId', 'uid']
+        }
+      },
+      {
+        name: 'send_email',
+        description: 'Send an email and save it to the Sent folder',
+        annotations: { readOnlyHint: false, destructiveHint: true },
+        inputSchema: {
+          type: 'object',
+          properties: {
+            accountId: { type: 'string', description: 'The ID of the account to use' },
+            to: { type: 'string', description: 'Recipient email address' },
+            subject: { type: 'string', description: 'Email subject' },
+            body: { type: 'string', description: 'Email body content' },
+            isHtml: { type: 'boolean', description: 'Whether the body is HTML (default: false)' },
+            cc: { type: 'string', description: 'CC recipients' },
+            bcc: { type: 'string', description: 'BCC recipients' }
+          },
+          required: ['accountId', 'to', 'subject', 'body']
+        }
+      },
+      {
+        name: 'create_draft',
+        description: 'Create a draft email in the Drafts folder',
+        annotations: { readOnlyHint: false, destructiveHint: true },
+        inputSchema: {
+          type: 'object',
+          properties: {
+            accountId: { type: 'string', description: 'The ID of the account to use' },
+            to: { type: 'string', description: 'Recipient email address' },
+            subject: { type: 'string', description: 'Email subject' },
+            body: { type: 'string', description: 'Email body content' },
+            isHtml: { type: 'boolean', description: 'Whether the body is HTML (default: false)' },
+            cc: { type: 'string', description: 'CC recipients' },
+            bcc: { type: 'string', description: 'BCC recipients' }
+          },
+          required: ['accountId', 'to', 'subject', 'body']
+        }
+      },
+      {
+        name: 'list_folders',
+        description: 'List all available IMAP folders',
+        annotations: { readOnlyHint: true, destructiveHint: false },
+        inputSchema: {
+          type: 'object',
+          properties: {
+            accountId: { type: 'string', description: 'The ID of the account to use' }
+          },
+          required: ['accountId']
+        }
+      },
+      {
+        name: 'move_email',
+        description: 'Move an email from one folder to another',
+        annotations: { readOnlyHint: false, destructiveHint: true },
+        inputSchema: {
+          type: 'object',
+          properties: {
+            accountId: { type: 'string', description: 'The ID of the account to use' },
+            uid: { type: 'string', description: 'The UID of the email to move' },
+            sourceFolder: { type: 'string', description: 'The current folder of the email' },
+            targetFolder: { type: 'string', description: 'The destination folder' }
+          },
+          required: ['accountId', 'uid', 'sourceFolder', 'targetFolder']
+        }
+      },
+      {
+        name: 'modify_labels',
+        description: 'Add or remove IMAP flags/labels on an email',
+        annotations: { readOnlyHint: false, destructiveHint: true },
+        inputSchema: {
+          type: 'object',
+          properties: {
+            accountId: { type: 'string', description: 'The ID of the account to use' },
+            uid: { type: 'string', description: 'The UID of the email' },
+            folder: { type: 'string', description: 'The folder containing the email' },
+            addLabels: { type: 'array', items: { type: 'string' }, description: 'Labels to add (e.g. \\Seen, \\Flagged)' },
+            removeLabels: { type: 'array', items: { type: 'string' }, description: 'Labels to remove' }
+          },
+          required: ['accountId', 'uid', 'folder']
+        }
+      },
+      {
+        name: 'get_thread',
+        description: 'Get all emails in a specific conversation/thread',
+        annotations: { readOnlyHint: true, destructiveHint: false },
+        inputSchema: {
+          type: 'object',
+          properties: {
+            accountId: { type: 'string', description: 'The ID of the account to use' },
+            threadId: { type: 'string', description: 'The ID of the thread to retrieve' },
+            folder: { type: 'string', description: 'The folder containing the thread (default: INBOX)' }
+          },
+          required: ['accountId', 'threadId']
+        }
+      },
+      {
+        name: 'get_attachment',
+        description: 'Download an attachment from a specific email',
+        annotations: { readOnlyHint: true, destructiveHint: false },
+        inputSchema: {
+          type: 'object',
+          properties: {
+            accountId: { type: 'string', description: 'The ID of the account to use' },
+            uid: { type: 'string', description: 'The UID of the email' },
+            filename: { type: 'string', description: 'The name of the attachment file' },
+            folder: { type: 'string', description: 'The folder containing the email (default: INBOX)' }
+          },
+          required: ['accountId', 'uid', 'filename']
+        }
+      },
+      {
+        name: 'extract_attachment_text',
+        description: 'Extract text content from a PDF or text attachment',
+        annotations: { readOnlyHint: true, destructiveHint: false },
+        inputSchema: {
+          type: 'object',
+          properties: {
+            accountId: { type: 'string', description: 'The ID of the account to use' },
+            uid: { type: 'string', description: 'The UID of the email' },
+            filename: { type: 'string', description: 'The name of the attachment file' },
+            folder: { type: 'string', description: 'The folder containing the email (default: INBOX)' }
+          },
+          required: ['accountId', 'uid', 'filename']
+        }
+      },
+      {
+        name: 'register_oauth2_account',
+        description: 'Store OAuth2 credentials for an account in the keychain',
+        annotations: { readOnlyHint: false, destructiveHint: true },
+        inputSchema: {
+          type: 'object',
+          properties: {
+            accountId: { type: 'string', description: 'The ID of the account' },
+            clientId: { type: 'string', description: 'OAuth2 Client ID' },
+            clientSecret: { type: 'string', description: 'OAuth2 Client Secret' },
+            refreshToken: { type: 'string', description: 'OAuth2 Refresh Token' },
+            tokenEndpoint: { type: 'string', description: 'OAuth2 Token Endpoint URL' }
+          },
+          required: ['accountId', 'clientId', 'clientSecret', 'refreshToken', 'tokenEndpoint']
+        }
+      },
+      {
+        name: 'batch_operations',
+        description: 'Perform batch operations (move, delete, label) on multiple emails',
+        annotations: { readOnlyHint: false, destructiveHint: true },
+        inputSchema: {
+          type: 'object',
+          properties: {
+            accountId: { type: 'string', description: 'The ID of the account to use' },
+            uids: { type: 'array', items: { type: 'string' }, description: 'Array of email UIDs to operate on (max 100)' },
+            folder: { type: 'string', description: 'The folder containing the emails' },
+            action: { type: 'string', enum: ['move', 'delete', 'label'], description: 'The batch action to perform' },
+            targetFolder: { type: 'string', description: 'Target folder (required for move action)' },
+            addLabels: { type: 'array', items: { type: 'string' }, description: 'Labels to add (for label action)' },
+            removeLabels: { type: 'array', items: { type: 'string' }, description: 'Labels to remove (for label action)' }
+          },
+          required: ['accountId', 'uids', 'folder', 'action']
+        }
+      },
+    ];
+    return readOnly ? allTools.filter(t => !WRITE_TOOLS.has(t.name)) : allTools;
+  }
+
+  async dispatchTool(name: string, readOnly: boolean, args: Record<string, unknown>) {
+    if (readOnly && WRITE_TOOLS.has(name)) {
+      return {
+        content: [{
+          type: 'text',
+          text: `Tool '${name}' is not available: server is running in read-only mode. Use a server without --read-only to perform write operations.`,
+        }],
+        isError: true,
+      };
+    }
+
+    if (name === 'list_accounts') {
+      const accounts = getAccounts();
+      return {
+        content: [{
+          type: 'text',
+          text: JSON.stringify(
+            accounts.map((a) => ({ id: a.id, name: a.name, user: a.user })),
+            null,
+            2
+          ),
+        }],
+      };
+    }
+
+    // For test purposes — other tools require a real service connection
+    throw new McpError(ErrorCode.MethodNotFound, `Tool not found: ${name}`);
+  }
+
   private setupToolHandlers() {
     this.server.setRequestHandler(ListToolsRequestSchema, async () => ({
-      tools: [
-        {
-          name: 'list_accounts',
-          description: 'List configured mail accounts',
-          inputSchema: {
-            type: 'object',
-            properties: {},
-          },
-        },
-        {
-          name: 'list_emails',
-          description: 'List recent emails from a specific folder',
-          inputSchema: {
-            type: 'object',
-            properties: {
-              accountId: { type: 'string', description: 'The ID of the account to use' },
-              folder: { type: 'string', description: 'The folder to list emails from (default: INBOX)' },
-              count: { type: 'number', description: 'The number of emails to retrieve (default: 10)' }
-            },
-            required: ['accountId']
-          }
-        },
-        {
-          name: 'search_emails',
-          description: 'Search for emails based on various criteria',
-          inputSchema: {
-            type: 'object',
-            properties: {
-              accountId: { type: 'string', description: 'The ID of the account to use' },
-              folder: { type: 'string', description: 'The folder to search in (default: INBOX)' },
-              from: { type: 'string', description: 'Filter by sender' },
-              subject: { type: 'string', description: 'Filter by subject' },
-              since: { type: 'string', description: 'Filter by date (ISO format)' },
-              before: { type: 'string', description: 'Filter by date (ISO format)' },
-              keywords: { type: 'string', description: 'Filter by keywords in body' },
-              count: { type: 'number', description: 'The number of emails to retrieve (default: 10)' }
-            },
-            required: ['accountId']
-          }
-        },
-        {
-          name: 'read_email',
-          description: 'Read the content of a specific email',
-          inputSchema: {
-            type: 'object',
-            properties: {
-              accountId: { type: 'string', description: 'The ID of the account to use' },
-              uid: { type: 'string', description: 'The UID of the email to read' },
-              folder: { type: 'string', description: 'The folder containing the email (default: INBOX)' }
-            },
-            required: ['accountId', 'uid']
-          }
-        },
-        {
-          name: 'send_email',
-          description: 'Send an email and save it to the Sent folder',
-          inputSchema: {
-            type: 'object',
-            properties: {
-              accountId: { type: 'string', description: 'The ID of the account to use' },
-              to: { type: 'string', description: 'Recipient email address' },
-              subject: { type: 'string', description: 'Email subject' },
-              body: { type: 'string', description: 'Email body content' },
-              isHtml: { type: 'boolean', description: 'Whether the body is HTML (default: false)' },
-              cc: { type: 'string', description: 'CC recipients' },
-              bcc: { type: 'string', description: 'BCC recipients' }
-            },
-            required: ['accountId', 'to', 'subject', 'body']
-          }
-        },
-        {
-          name: 'create_draft',
-          description: 'Create a draft email in the Drafts folder',
-          inputSchema: {
-            type: 'object',
-            properties: {
-              accountId: { type: 'string', description: 'The ID of the account to use' },
-              to: { type: 'string', description: 'Recipient email address' },
-              subject: { type: 'string', description: 'Email subject' },
-              body: { type: 'string', description: 'Email body content' },
-              isHtml: { type: 'boolean', description: 'Whether the body is HTML (default: false)' },
-              cc: { type: 'string', description: 'CC recipients' },
-              bcc: { type: 'string', description: 'BCC recipients' }
-            },
-            required: ['accountId', 'to', 'subject', 'body']
-          }
-        },
-        {
-          name: 'list_folders',
-          description: 'List all available IMAP folders',
-          inputSchema: {
-            type: 'object',
-            properties: {
-              accountId: { type: 'string', description: 'The ID of the account to use' }
-            },
-            required: ['accountId']
-          }
-        },
-        {
-          name: 'move_email',
-          description: 'Move an email from one folder to another',
-          inputSchema: {
-            type: 'object',
-            properties: {
-              accountId: { type: 'string', description: 'The ID of the account to use' },
-              uid: { type: 'string', description: 'The UID of the email to move' },
-              sourceFolder: { type: 'string', description: 'The current folder of the email' },
-              targetFolder: { type: 'string', description: 'The destination folder' }
-            },
-            required: ['accountId', 'uid', 'sourceFolder', 'targetFolder']
-          }
-        },
-        {
-          name: 'modify_labels',
-          description: 'Add or remove IMAP flags/labels on an email',
-          inputSchema: {
-            type: 'object',
-            properties: {
-              accountId: { type: 'string', description: 'The ID of the account to use' },
-              uid: { type: 'string', description: 'The UID of the email' },
-              folder: { type: 'string', description: 'The folder containing the email' },
-              addLabels: { type: 'array', items: { type: 'string' }, description: 'Labels to add (e.g. \\Seen, \\Flagged)' },
-              removeLabels: { type: 'array', items: { type: 'string' }, description: 'Labels to remove' }
-            },
-            required: ['accountId', 'uid', 'folder']
-          }
-        },
-        {
-          name: 'get_thread',
-          description: 'Get all emails in a specific conversation/thread',
-          inputSchema: {
-            type: 'object',
-            properties: {
-              accountId: { type: 'string', description: 'The ID of the account to use' },
-              threadId: { type: 'string', description: 'The ID of the thread to retrieve' },
-              folder: { type: 'string', description: 'The folder containing the thread (default: INBOX)' }
-            },
-            required: ['accountId', 'threadId']
-          }
-        },
-        {
-          name: 'get_attachment',
-          description: 'Download an attachment from a specific email',
-          inputSchema: {
-            type: 'object',
-            properties: {
-              accountId: { type: 'string', description: 'The ID of the account to use' },
-              uid: { type: 'string', description: 'The UID of the email' },
-              filename: { type: 'string', description: 'The name of the attachment file' },
-              folder: { type: 'string', description: 'The folder containing the email (default: INBOX)' }
-            },
-            required: ['accountId', 'uid', 'filename']
-          }
-        },
-        {
-          name: 'extract_attachment_text',
-          description: 'Extract text content from a PDF or text attachment',
-          inputSchema: {
-            type: 'object',
-            properties: {
-              accountId: { type: 'string', description: 'The ID of the account to use' },
-              uid: { type: 'string', description: 'The UID of the email' },
-              filename: { type: 'string', description: 'The name of the attachment file' },
-              folder: { type: 'string', description: 'The folder containing the email (default: INBOX)' }
-            },
-            required: ['accountId', 'uid', 'filename']
-          }
-        },
-        {
-          name: 'register_oauth2_account',
-          description: 'Store OAuth2 credentials for an account in the keychain',
-          inputSchema: {
-            type: 'object',
-            properties: {
-              accountId: { type: 'string', description: 'The ID of the account' },
-              clientId: { type: 'string', description: 'OAuth2 Client ID' },
-              clientSecret: { type: 'string', description: 'OAuth2 Client Secret' },
-              refreshToken: { type: 'string', description: 'OAuth2 Refresh Token' },
-              tokenEndpoint: { type: 'string', description: 'OAuth2 Token Endpoint URL' }
-            },
-            required: ['accountId', 'clientId', 'clientSecret', 'refreshToken', 'tokenEndpoint']
-          }
-        },
-        {
-          name: 'batch_operations',
-          description: 'Perform batch operations (move, delete, label) on multiple emails',
-          inputSchema: {
-            type: 'object',
-            properties: {
-              accountId: { type: 'string', description: 'The ID of the account to use' },
-              uids: { type: 'array', items: { type: 'string' }, description: 'Array of email UIDs to operate on (max 100)' },
-              folder: { type: 'string', description: 'The folder containing the emails' },
-              action: { type: 'string', enum: ['move', 'delete', 'label'], description: 'The batch action to perform' },
-              targetFolder: { type: 'string', description: 'Target folder (required for move action)' },
-              addLabels: { type: 'array', items: { type: 'string' }, description: 'Labels to add (for label action)' },
-              removeLabels: { type: 'array', items: { type: 'string' }, description: 'Labels to remove (for label action)' }
-            },
-            required: ['accountId', 'uids', 'folder', 'action']
-          }
-        }
-      ],
+      tools: this.getTools(this.readOnly),
     }));
 
     this.server.setRequestHandler(CallToolRequestSchema, async (request) => {
       try {
+        const toolName = request.params.name;
+
+        if (this.readOnly && WRITE_TOOLS.has(toolName)) {
+          return {
+            content: [{
+              type: 'text',
+              text: `Tool '${toolName}' is not available: server is running in read-only mode. Use a server without --read-only to perform write operations.`,
+            }],
+            isError: true,
+          };
+        }
+
         if (request.params.name === 'list_accounts') {
           const accounts = getAccounts();
           return {
@@ -518,5 +588,13 @@ class MailMCPServer {
   }
 }
 
-const server = new MailMCPServer();
+const { values } = parseArgs({
+  args: process.argv.slice(2),
+  options: {
+    'read-only': { type: 'boolean', default: false },
+  },
+  strict: false,
+});
+
+const server = new MailMCPServer((values['read-only'] as boolean | undefined) ?? false);
 server.run().catch(console.error);
