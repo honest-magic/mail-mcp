@@ -68,12 +68,12 @@ Initial release focusing on secure connectivity, comprehensive mailbox access, a
 | AUTH-02 | Phase 1 | Pending |
 | AUTH-03 | Phase 1 | Pending |
 | AUTH-04 | Phase 1 | Pending |
-| IMAP-01 | Phase 2 | Pending |
-| IMAP-02 | Phase 2 | Pending |
+| IMAP-01 | Phase 1 | Pending |
+| IMAP-02 | Phase 1 | Pending |
 | IMAP-03 | Phase 2 | Pending |
 | IMAP-04 | Phase 2 | Pending |
 | SMTP-01 | Phase 1 | Pending |
-| SMTP-02 | Phase 1 | Pending |
+| SMTP-02 | Phase 2 | Pending |
 | SMTP-03 | Phase 1 | Pending |
 | SMTP-04 | Phase 1 | Pending |
 | THRD-01 | Phase 3 | Pending |
