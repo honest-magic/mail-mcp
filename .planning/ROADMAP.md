@@ -6,7 +6,7 @@
 - [x] **Phase 2: Discovery & Organization** - Implement advanced search, folder management, and mailbox organization.
 - [x] **Phase 3: Context & Resources** - Add thread reconstruction and attachment handling for deeper reasoning.
 - [x] **Phase 4: Efficiency & Scale** - Optimize with batch operations and performance improvements.
-- [ ] **Phase 5: Read-Only Enforcement** - Add `--read-only` startup flag, write-tool guard, tool filtering, and MCP annotations.
+- [x] **Phase 5: Read-Only Enforcement** - Add `--read-only` startup flag, write-tool guard, tool filtering, and MCP annotations. (completed 2026-03-21)
 - [ ] **Phase 6: Mode Discoverability & Connection Hygiene** - Expose mode to MCP clients at handshake and skip unnecessary SMTP authentication.
 
 ## Phase Details
@@ -72,7 +72,7 @@
 3. All read and search tools (`list_emails`, `read_email`, `search_emails`, `list_folders`, `get_thread`, `list_attachments`, `get_attachment`) function normally with no change in behavior.
 4. Every tool definition in the server declares `readOnlyHint` and `destructiveHint` annotations visible to MCP clients.
 **Plans**: 1
-- [ ] 05-01-PLAN.md — Implement WRITE_TOOLS, readOnly flag, call/list guards, and tool annotations.
+- [x] 05-01-PLAN.md — Implement WRITE_TOOLS, readOnly flag, call/list guards, and tool annotations.
 
 ### Phase 6: Mode Discoverability & Connection Hygiene
 **Goal**: MCP clients receive the server's active mode automatically at handshake, and no unnecessary SMTP authentication occurs when the server is read-only.
@@ -91,5 +91,5 @@
 | 2. Discovery & Organization | 2/2 | Complete | 2026-03-21 |
 | 3. Context & Resources | 2/2 | Complete | 2026-03-21 |
 | 4. Efficiency & Scale | 1/1 | Complete | 2026-03-21 |
-| 5. Read-Only Enforcement | 0/1 | Not started | - |
+| 5. Read-Only Enforcement | 1/1 | Complete   | 2026-03-21 |
 | 6. Mode Discoverability & Connection Hygiene | 0/? | Not started | - |
