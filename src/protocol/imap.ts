@@ -142,12 +142,27 @@ export class ImapClient {
 
     const lock = await this.client.getMailboxLock(folder);
     try {
-      // Use GM-THRID for Gmail
+      // Use GM-THRID for Gmail, fall back to References/Message-ID header search
       let uids: number[] = [];
       try {
         uids = await this.client.search({ 'x-gm-thrid': threadId } as any) as number[];
       } catch (e) {
-        return [];
+        // x-gm-thrid not supported — fall through to header search below
+      }
+
+      if (!uids || uids.length === 0) {
+        try {
+          const refUids = await this.client.search(
+            { header: ['References', threadId] }
+          ) as number[];
+          const rootUids = await this.client.search(
+            { header: ['Message-ID', threadId] }
+          ) as number[];
+          uids = [...new Set([...(refUids || []), ...(rootUids || [])])];
+        } catch (e2) {
+          // header search not supported — return empty
+          return [];
+        }
       }
 
       if (!uids || uids.length === 0) return [];

@@ -126,7 +126,13 @@ export class MailService {
     if (threadId) {
       header += `**Thread ID:** ${threadId}\n`;
     }
-    
+
+    // Expose Message-ID so non-Gmail callers have a threadId for get_thread
+    const messageId = parsed.messageId || parsed.headers.get('message-id');
+    if (messageId) {
+      header += `**Message-ID:** ${messageId}\n`;
+    }
+
     header += `\n---\n\n`;
 
     return header + content + attachmentInfo;
