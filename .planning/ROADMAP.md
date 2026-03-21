@@ -2,8 +2,8 @@
 
 ## Phases
 
-- [ ] **Phase 1: Secure Connectivity & Basic Messaging** - Establish secure IMAP/SMTP connections and enable basic read/send capabilities.
-- [ ] **Phase 2: Discovery & Organization** - Implement advanced search, folder management, and mailbox organization.
+- [x] **Phase 1: Secure Connectivity & Basic Messaging** - Establish secure IMAP/SMTP connections and enable basic read/send capabilities.
+- [x] **Phase 2: Discovery & Organization** - Implement advanced search, folder management, and mailbox organization.
 - [ ] **Phase 3: Context & Resources** - Add thread reconstruction and attachment handling for deeper reasoning.
 - [ ] **Phase 4: Efficiency & Scale** - Optimize with batch operations and performance improvements.
 
@@ -19,7 +19,11 @@
 3. User can list recent messages and read their content sanitized as Markdown.
 4. User can send a new email and verify it appears in the "Sent" folder via IMAP APPEND.
 5. User can create a draft in the "Drafts" folder for human-in-the-loop safety.
-**Plans**: TBD
+**Plans**: 4
+- [x] 01-01-PLAN.md — Setup project structure and basic keychain security.
+- [x] 01-02-PLAN.md — Implement IMAP connection and basic reading.
+- [x] 01-03-PLAN.md — Implement SMTP sending and sync to Sent folder.
+- [x] 01-04-PLAN.md — Implement OAuth2 support.
 
 ### Phase 2: Discovery & Organization
 **Goal**: Find specific information and manage mailbox structure.
@@ -30,7 +34,9 @@
 2. User can list all available folders/labels and move messages between them.
 3. User can add or remove labels/tags on messages (supporting provider-specific extensions).
 4. User can send emails with CC and BCC recipients.
-**Plans**: TBD
+**Plans**: 2
+- [x] 02-01-PLAN.md — Advanced Search & SMTP CC/BCC.
+- [x] 02-02-PLAN.md — Folders & Label Management.
 
 ### Phase 3: Context & Resources
 **Goal**: Reason over full conversations and supplementary files.
@@ -41,7 +47,9 @@
 2. User can view a token-efficient, summarization-friendly representation of a conversation.
 3. User can list attachment metadata and download content via MCP Resource URIs.
 4. User can see extracted text from PDF and common document attachments.
-**Plans**: TBD
+**Plans**: 2
+- [ ] 03-01-PLAN.md — Thread Reconstruction & Conversations.
+- [ ] 03-02-PLAN.md — Attachment Resources & Text Extraction.
 
 ### Phase 4: Efficiency & Scale
 **Goal**: Perform high-volume actions efficiently.
@@ -55,7 +63,7 @@
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Secure Connectivity & Basic Messaging | 0/1 | Not started | - |
-| 2. Discovery & Organization | 0/1 | Not started | - |
-| 3. Context & Resources | 0/1 | Not started | - |
+| 1. Secure Connectivity & Basic Messaging | 4/4 | Complete | 2026-03-21 |
+| 2. Discovery & Organization | 2/2 | Complete | 2026-03-21 |
+| 3. Context & Resources | 0/2 | In Progress | - |
 | 4. Efficiency & Scale | 0/1 | Not started | - |
