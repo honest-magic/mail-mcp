@@ -22,10 +22,13 @@ Empower AI agents to act as a personal mail assistant by providing structured, t
 
 ### Active
 
-- [ ] **ROM-01**: Server can be started with a `--read-only` flag
-- [ ] **ROM-02**: In read-only mode, write tools return a clear refusal error
-- [ ] **ROM-03**: In read-only mode, all read/search tools function normally
+- [x] **ROM-01**: Server can be started with a `--read-only` flag — *Validated in Phase 5: Read-Only Enforcement*
+- [x] **ROM-02**: In read-only mode, write tools return a clear refusal error — *Validated in Phase 5*
+- [x] **ROM-03**: In read-only mode, all read/search tools function normally — *Validated in Phase 5*
+- [x] **ROM-05**: Write tools filtered from tools/list in read-only mode — *Validated in Phase 5*
+- [x] **ROM-06**: All 14 tools annotated with readOnlyHint/destructiveHint — *Validated in Phase 5*
 - [ ] **ROM-04**: Server exposes its current mode so MCP clients can adapt
+- [ ] **ROM-07**: SMTP connection skipped when server starts with --read-only
 
 ### Out of Scope
 
