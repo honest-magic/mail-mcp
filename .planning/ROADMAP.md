@@ -6,6 +6,8 @@
 - [x] **Phase 2: Discovery & Organization** - Implement advanced search, folder management, and mailbox organization.
 - [x] **Phase 3: Context & Resources** - Add thread reconstruction and attachment handling for deeper reasoning.
 - [x] **Phase 4: Efficiency & Scale** - Optimize with batch operations and performance improvements.
+- [ ] **Phase 5: Read-Only Enforcement** - Add `--read-only` startup flag, write-tool guard, tool filtering, and MCP annotations.
+- [ ] **Phase 6: Mode Discoverability & Connection Hygiene** - Expose mode to MCP clients at handshake and skip unnecessary SMTP authentication.
 
 ## Phase Details
 
@@ -60,6 +62,26 @@
 **Plans**: 1
 - [x] 04-01-PLAN.md — Implement batch operations (move, delete, label).
 
+### Phase 5: Read-Only Enforcement
+**Goal**: Users can start the server in read-only mode where write operations are blocked at both list-time and call-time, and all read operations remain fully functional.
+**Depends on**: Phase 4
+**Requirements**: ROM-01, ROM-02, ROM-03, ROM-05, ROM-06
+**Success Criteria**:
+1. User can start the server with `--read-only` and no write-capable tools appear in the MCP tool list.
+2. Any attempt to call a write tool in read-only mode returns a descriptive error naming the blocked tool and the active mode.
+3. All read and search tools (`list_emails`, `read_email`, `search_emails`, `list_folders`, `get_thread`, `list_attachments`, `get_attachment`) function normally with no change in behavior.
+4. Every tool definition in the server declares `readOnlyHint` and `destructiveHint` annotations visible to MCP clients.
+**Plans**: TBD
+
+### Phase 6: Mode Discoverability & Connection Hygiene
+**Goal**: MCP clients receive the server's active mode automatically at handshake, and no unnecessary SMTP authentication occurs when the server is read-only.
+**Depends on**: Phase 5
+**Requirements**: ROM-04, ROM-07
+**Success Criteria**:
+1. An MCP client that connects to the server in read-only mode receives the mode in the `instructions` field of `InitializeResult` without making any tool call.
+2. When the server starts with `--read-only`, no SMTP connection or authentication attempt is made.
+**Plans**: TBD
+
 ## Progress
 
 | Phase | Plans Complete | Status | Completed |
@@ -68,3 +90,5 @@
 | 2. Discovery & Organization | 2/2 | Complete | 2026-03-21 |
 | 3. Context & Resources | 2/2 | Complete | 2026-03-21 |
 | 4. Efficiency & Scale | 1/1 | Complete | 2026-03-21 |
+| 5. Read-Only Enforcement | 0/? | Not started | - |
+| 6. Mode Discoverability & Connection Hygiene | 0/? | Not started | - |

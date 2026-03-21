@@ -105,10 +105,10 @@ All 21 v1 requirements validated and shipped. See ROADMAP.md and individual phas
 | ROM-01 | Phase 5 | Pending |
 | ROM-02 | Phase 5 | Pending |
 | ROM-03 | Phase 5 | Pending |
-| ROM-04 | Phase 5 | Pending |
 | ROM-05 | Phase 5 | Pending |
 | ROM-06 | Phase 5 | Pending |
-| ROM-07 | Phase 5 | Pending |
+| ROM-04 | Phase 6 | Pending |
+| ROM-07 | Phase 6 | Pending |
 
 **Coverage:**
 - v1.1 requirements: 7 total
@@ -117,4 +117,4 @@ All 21 v1 requirements validated and shipped. See ROADMAP.md and individual phas
 
 ---
 *Requirements defined: 2026-03-21*
-*Last updated: 2026-03-21 after v1.1 milestone definition*
+*Last updated: 2026-03-21 — v1.1 traceability corrected (ROM-04, ROM-07 assigned to Phase 6)*
