@@ -161,10 +161,10 @@ export class ImapClient {
       if (!uids || uids.length === 0) {
         try {
           const refUids = await this.client.search(
-            { header: ['References', threadId] }
+            { header: { References: threadId } }
           ) as number[];
           const rootUids = await this.client.search(
-            { header: ['Message-ID', threadId] }
+            { header: { 'Message-ID': threadId } }
           ) as number[];
           uids = [...new Set([...(refUids || []), ...(rootUids || [])])];
         } catch (e2) {
