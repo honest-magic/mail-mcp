@@ -12,7 +12,13 @@ Empower AI agents to act as a personal mail assistant by providing structured, t
 
 ### Validated
 
-(None yet — ship to validate)
+- [x] **AUTH-01–04**: Secure credential storage via macOS Keychain; TLS/SSL + OAuth2 — *Validated in Phase 1: Secure Connectivity & Basic Messaging*
+- [x] **IMAP-01–04**: IMAP connection, message listing, reading, searching, folder management — *Validated in Phase 1 & 2*
+- [x] **SMTP-01–04**: SMTP send, draft creation, CC/BCC — *Validated in Phase 1 & 2*
+- [x] **ORG-01–02**: Move messages, label/flag management — *Validated in Phase 2: Discovery & Organization*
+- [x] **THRD-01–03**: Thread reconstruction, conversation view — *Validated in Phase 3: Context & Resources*
+- [x] **RES-01–03**: Attachment metadata, content on-demand, PDF extraction — *Validated in Phase 3: Context & Resources*
+- [x] **ORG-03**: Batch operations (move, delete, label) up to 100 emails — *Validated in Phase 4: Efficiency & Scale*
 
 ### Active
 
@@ -48,5 +54,9 @@ Empower AI agents to act as a personal mail assistant by providing structured, t
 |----------|-----------|---------|
 | Language Choice | TypeScript/Node.js selected for rich MCP SDK support and async handling | ✓ Good |
 
+## Current State
+
+Phase 4 complete — all 4 milestone phases delivered. Full IMAP/SMTP MCP server operational with batch operations.
+
 ---
-*Last updated: 2026-03-21 after initial questioning*
+*Last updated: 2026-03-21 after Phase 4: Efficiency & Scale*
