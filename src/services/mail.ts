@@ -40,13 +40,24 @@ export class MailService {
   }
 
   async sendEmail(to: string, subject: string, body: string, isHtml: boolean = false, cc?: string, bcc?: string): Promise<any> {
+    // Build raw message before sending so we can append to Sent folder
+    const rawMessage = [
+      `From: ${this.account.user}`,
+      `To: ${to}`,
+      ...(cc ? [`Cc: ${cc}`] : []),
+      ...(bcc ? [`Bcc: ${bcc}`] : []),
+      `Subject: ${subject}`,
+      'MIME-Version: 1.0',
+      `Content-Type: ${isHtml ? 'text/html' : 'text/plain'}; charset=utf-8`,
+      '',
+      body
+    ].join('\r\n');
+
     const info = await this.smtpClient.send(to, subject, body, isHtml, cc, bcc);
-    // Append to Sent folder
-    const rawMessage = info.message.toString();
     try {
       await this.imapClient.appendMessage('Sent', rawMessage, ['\\Seen']);
     } catch (e) {
-      console.error('Failed to append to Sent folder, might be named differently:', e);
+      console.error('Failed to append to Sent folder:', e);
     }
     return info;
   }
