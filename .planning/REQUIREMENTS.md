@@ -58,24 +58,24 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| CONN-01 | — | Pending |
-| CONN-02 | — | Pending |
-| CONN-03 | — | Pending |
-| VAL-01 | — | Pending |
-| VAL-02 | — | Pending |
-| VAL-03 | — | Pending |
-| VAL-04 | — | Pending |
-| SAFE-01 | — | Pending |
-| SAFE-02 | — | Pending |
-| SAFE-03 | — | Pending |
-| QUAL-01 | — | Pending |
-| QUAL-02 | — | Pending |
+| CONN-01 | Phase 10 | Pending |
+| CONN-02 | Phase 12 | Pending |
+| CONN-03 | Phase 12 | Pending |
+| VAL-01 | Phase 10 | Pending |
+| VAL-02 | Phase 11 | Pending |
+| VAL-03 | Phase 10 | Pending |
+| VAL-04 | Phase 10 | Pending |
+| SAFE-01 | Phase 11 | Pending |
+| SAFE-02 | Phase 10 | Pending |
+| SAFE-03 | Phase 11 | Pending |
+| QUAL-01 | Phase 12 | Pending |
+| QUAL-02 | Phase 13 | Pending |
 
 **Coverage:**
 - v1.1.0 requirements: 12 total
-- Mapped to phases: 0
-- Unmapped: 12 ⚠️
+- Mapped to phases: 12
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-03-22*
-*Last updated: 2026-03-22 after initial definition*
+*Last updated: 2026-03-22 — traceability populated after roadmap creation*
