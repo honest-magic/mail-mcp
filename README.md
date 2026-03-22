@@ -24,13 +24,26 @@ mail-mcp
 
 ## Configuration
 
-### 1. Define accounts
-
-Create `~/.config/mail-mcp/accounts.json`:
+### 1. Add an account (interactive)
 
 ```bash
-mkdir -p ~/.config/mail-mcp
-cat > ~/.config/mail-mcp/accounts.json << 'EOF'
+npx @honest-magic/mail-mcp accounts add
+```
+
+This prompts for IMAP/SMTP settings, stores the account in `~/.config/mail-mcp/accounts.json`, and saves the password in macOS Keychain.
+
+### Manage accounts
+
+```bash
+mail-mcp accounts list       # show configured accounts
+mail-mcp accounts remove ID  # remove an account and its keychain entry
+```
+
+### Manual setup
+
+Alternatively, create `~/.config/mail-mcp/accounts.json` by hand:
+
+```json
 [
   {
     "id": "work",
@@ -44,10 +57,19 @@ cat > ~/.config/mail-mcp/accounts.json << 'EOF'
     "useTLS": true
   }
 ]
-EOF
 ```
 
-Fields:
+Then store the password in macOS Keychain:
+
+```bash
+security add-generic-password \
+  -s ch.honest-magic.config.mail-server \
+  -a <account-id> \
+  -w <password-or-app-password>
+```
+
+### Account fields
+
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | `id` | string | yes | Unique identifier used by MCP tools |
@@ -58,20 +80,7 @@ Fields:
 | `smtpPort` | number | no | SMTP port (587 for STARTTLS, 465 for TLS) |
 | `user` | string | yes | Login username / email address |
 | `authType` | string | yes | `login` or `oauth2` |
-| `useTLS` | boolean | yes | `true` for implicit TLS; `false` for STARTTLS |
-
-### 2. Store credentials
-
-**Password / app password** — add to macOS Keychain once:
-
-```bash
-security add-generic-password \
-  -s ch.honest-magic.config.mail-server \
-  -a <account-id> \
-  -w <password-or-app-password>
-```
-
-Replace `<account-id>` with the `id` from your `accounts.json` (e.g. `work`).
+| `useTLS` | boolean | yes | `true` for implicit TLS on IMAP; `false` for STARTTLS |
 
 **OAuth2** — after starting the server, call the `register_oauth2_account` MCP tool:
 

@@ -26,10 +26,11 @@ export class SmtpClient {
       authConfig.pass = password;
     }
 
+    const smtpPort = this.account.smtpPort || 465;
     this.transporter = nodemailer.createTransport({
       host: this.account.smtpHost || this.account.host,
-      port: this.account.smtpPort || 465,
-      secure: this.account.useTLS,
+      port: smtpPort,
+      secure: smtpPort === 465,
       auth: authConfig
     });
 

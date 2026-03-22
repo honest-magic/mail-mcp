@@ -8,6 +8,8 @@ export class MailService {
   private smtpClient: SmtpClient;
   private account: EmailAccount;
 
+  private smtpConnected = false;
+
   constructor(account: EmailAccount, private readonly readOnly: boolean = false) {
     this.account = account;
     this.imapClient = new ImapClient(account);
@@ -16,8 +18,12 @@ export class MailService {
 
   async connect() {
     await this.imapClient.connect();
-    if (!this.readOnly) {
+  }
+
+  private async ensureSmtp(): Promise<void> {
+    if (!this.smtpConnected) {
       await this.smtpClient.connect();
+      this.smtpConnected = true;
     }
   }
 
@@ -55,6 +61,7 @@ export class MailService {
       body
     ].join('\r\n');
 
+    await this.ensureSmtp();
     const info = await this.smtpClient.send(to, subject, body, isHtml, cc, bcc);
     try {
       await this.imapClient.appendMessage('Sent', rawMessage, ['\\Seen']);

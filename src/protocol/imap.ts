@@ -97,7 +97,7 @@ export class ImapClient {
 
     const lock = await this.client.getMailboxLock(folder);
     try {
-      const uids = await this.client.search(criteria);
+      const uids = await this.client.search(criteria, { uid: true });
       if (!uids || typeof uids === 'boolean' || uids.length === 0) return [];
 
       // Take only the last 'count' messages
