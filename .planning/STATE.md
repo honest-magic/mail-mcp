@@ -5,7 +5,7 @@ milestone_name: public-release-cicd
 status: active
 last_updated: "2026-03-22T00:00:00.000Z"
 progress:
-  total_phases: 0
+  total_phases: 3
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -20,14 +20,20 @@ progress:
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: 7 — npm Package Setup
 Plan: —
-Status: Defining requirements
-Last activity: 2026-03-22 — Milestone v1.2 started
+Status: Ready to plan
+Last activity: 2026-03-22 — Roadmap created for v1.2
+
+```
+Phase 7 [          ] 0%   npm Package Setup
+Phase 8 [          ] 0%   GitHub Repository
+Phase 9 [          ] 0%   GitHub Actions
+```
 
 ## Performance Metrics
 
-- **Phases Completed:** 0/TBD
+- **Phases Completed:** 0/3 (v1.2)
 - **Requirements Covered:** 0/9 (v1.2 requirements pending)
 - **Current Velocity:** 1 phase/session
 
@@ -49,6 +55,10 @@ Last activity: 2026-03-22 — Milestone v1.2 started
 - **Write Refusal Message Format:** Must name the blocked tool and state the mode — e.g. `"Tool 'send_email' is not available: server is running in read-only mode. Use a server without --read-only to perform write operations."`
 - **Mode Discovery:** Delivered via `InitializeResult.instructions` at MCP handshake — no extra tool or resource required.
 - **SMTP Skip:** Skip `smtpClient.connect()` in `MailService` when `readOnly === true`; IMAP EXAMINE deferred to v2 (ROM-08).
+- **npm Package Name:** `@honest-magic/mail-mcp`, version `1.0.0`, scoped public under `honest-magic` org.
+- **bin Entry:** `"mail-mcp": "dist/index.js"` — enables `npx @honest-magic/mail-mcp` and `npm install -g @honest-magic/mail-mcp`.
+- **Publish Strategy:** Simple tag-based (push `v*` tag → publish). No semantic-release or changesets.
+- **CI Gate:** Publish workflow has `needs: ci` — broken builds cannot publish.
 
 ### Critical Blockers
 
@@ -68,6 +78,6 @@ Last activity: 2026-03-22 — Milestone v1.2 started
 
 ## Session Continuity
 
-**Last Action:** Milestone v1.2 started. Requirements defined (GH-01/02, PKG-01–04, GHA-01–03). Roadmap pending.
-**Next Step:** Run `/gsd:plan-phase 7` after roadmap is created.
-**Context for Next Agent:** v1.1 complete (6 phases, 28 requirements). v1.2 targets public GitHub repo under `honest-magic` org, npm package `@honest-magic/mail-mcp` at version 1.0.0 with `bin` entry for npx/global-install, and GH Actions for CI (test+typecheck) and tag-based npm publish. No new runtime dependencies expected.
+**Last Action:** Roadmap created for v1.2 (Phases 7–9 defined, 9/9 requirements mapped).
+**Next Step:** Run `/gsd:plan-phase 7` to plan npm package setup.
+**Context for Next Agent:** v1.1 complete (6 phases, 28 requirements). v1.2 adds 3 phases (7–9). Phase 7 configures package.json for `@honest-magic/mail-mcp` (name, version, bin, files, publishConfig) and verifies `npm run build` produces a self-contained dist/index.js with shebang. Phase 8 creates the public GitHub repo at `github.com/honest-magic/mail-mcp` and writes the consumer-facing README. Phase 9 adds `.github/workflows/ci.yml` (tsc + test on push/PR to main) and `.github/workflows/publish.yml` (npm publish on v* tag, needs: ci).

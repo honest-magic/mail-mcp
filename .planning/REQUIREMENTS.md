@@ -98,7 +98,7 @@ All 21 v1 requirements validated and shipped. See ROADMAP.md and individual phas
 | RES-02 | Phase 3 | Complete |
 | RES-03 | Phase 3 | Complete |
 
-### v1.1 (Active)
+### v1.1 (Complete)
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
@@ -148,21 +148,21 @@ All 21 v1 requirements validated and shipped. See ROADMAP.md and individual phas
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| GH-01 | TBD | Pending |
-| GH-02 | TBD | Pending |
-| PKG-01 | TBD | Pending |
-| PKG-02 | TBD | Pending |
-| PKG-03 | TBD | Pending |
-| PKG-04 | TBD | Pending |
-| GHA-01 | TBD | Pending |
-| GHA-02 | TBD | Pending |
-| GHA-03 | TBD | Pending |
+| GH-01 | Phase 8 | Pending |
+| GH-02 | Phase 8 | Pending |
+| PKG-01 | Phase 7 | Pending |
+| PKG-02 | Phase 7 | Pending |
+| PKG-03 | Phase 7 | Pending |
+| PKG-04 | Phase 7 | Pending |
+| GHA-01 | Phase 9 | Pending |
+| GHA-02 | Phase 9 | Pending |
+| GHA-03 | Phase 9 | Pending |
 
 **Coverage:**
 - v1.2 requirements: 9 total
-- Mapped to phases: TBD (roadmap pending)
-- Unmapped: 9 ⚠
+- Mapped to phases: 9
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-03-21*
-*Last updated: 2026-03-22 — v1.2 requirements added (public release & CI/CD)*
+*Last updated: 2026-03-22 — v1.2 traceability mapped (Phases 7–9)*
