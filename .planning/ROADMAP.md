@@ -28,7 +28,7 @@ Full archive: `.planning/milestones/v1.0.0-ROADMAP.md`
 
 - [x] **Phase 10: Connection Lifecycle & Error Infrastructure** — Graceful shutdown, config validation, SMTP TLS derivation, config caching, typed errors (completed 2026-03-22)
 - [x] **Phase 11: Input Validation & Safety Limits** — Email address validation, attachment size cap, per-account rate limiting (completed 2026-03-22)
-- [ ] **Phase 12: Pagination, Health Check & Reconnect** — Large mailbox pagination, startup account probing, auto-reconnect on drop
+- [x] **Phase 12: Pagination, Health Check & Reconnect** — Large mailbox pagination, startup account probing, auto-reconnect on drop (completed 2026-03-22)
 - [ ] **Phase 13: Integration Test Suite** — Real-protocol SMTP and IMAP integration tests with CI support
 
 ## Phase Details
@@ -72,11 +72,11 @@ Plans:
   1. Calling `list_emails` or `search_emails` with an `offset` parameter returns the correct subsequent page of results without re-fetching earlier messages
   2. Running the server with `--validate-accounts` probes IMAP CAPABILITY and SMTP EHLO for every configured account and prints a pass/fail result per account before exiting
   3. When an IMAP connection drops mid-session, the next tool call against that account automatically attempts one reconnect with exponential backoff before succeeding or surfacing a `NetworkError`
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 
 Plans:
 - [x] 12-01-PLAN.md — Pagination offset parameter for list_emails and search_emails
-- [ ] 12-02-PLAN.md — IMAP reconnect on connection drop and --validate-accounts health check CLI
+- [x] 12-02-PLAN.md — IMAP reconnect on connection drop and --validate-accounts health check CLI
 
 ### Phase 13: Integration Test Suite
 **Goal**: The full hardened server is validated end-to-end against real mail protocols in both local and CI environments
@@ -103,7 +103,7 @@ Plans:
 | 9. GitHub Actions | v1.0.0 | 2/2 | Complete | 2026-03-22 |
 | 10. Connection Lifecycle & Error Infrastructure | v1.1.0 | 3/3 | Complete    | 2026-03-22 |
 | 11. Input Validation & Safety Limits | v1.1.0 | 2/2 | Complete    | 2026-03-22 |
-| 12. Pagination, Health Check & Reconnect | v1.1.0 | 1/2 | In Progress|  |
+| 12. Pagination, Health Check & Reconnect | v1.1.0 | 2/2 | Complete   | 2026-03-22 |
 | 13. Integration Test Suite | v1.1.0 | 0/? | Not started | - |
 
 ---
