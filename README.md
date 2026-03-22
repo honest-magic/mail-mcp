@@ -26,9 +26,11 @@ mail-mcp
 
 ### 1. Define accounts
 
-Set the `ACCOUNTS_JSON` environment variable to a JSON array of account objects:
+Create `~/.config/mail-mcp/accounts.json`:
 
-```json
+```bash
+mkdir -p ~/.config/mail-mcp
+cat > ~/.config/mail-mcp/accounts.json << 'EOF'
 [
   {
     "id": "work",
@@ -42,6 +44,7 @@ Set the `ACCOUNTS_JSON` environment variable to a JSON array of account objects:
     "useTLS": true
   }
 ]
+EOF
 ```
 
 Fields:
@@ -68,7 +71,7 @@ security add-generic-password \
   -w <password-or-app-password>
 ```
 
-Replace `<account-id>` with the `id` from your `ACCOUNTS_JSON` (e.g. `work`).
+Replace `<account-id>` with the `id` from your `accounts.json` (e.g. `work`).
 
 **OAuth2** — after starting the server, call the `register_oauth2_account` MCP tool:
 
@@ -96,10 +99,7 @@ The credentials are stored in Keychain under the same service name. Token refres
   "mcpServers": {
     "mail": {
       "command": "npx",
-      "args": ["-y", "@honest-magic/mail-mcp"],
-      "env": {
-        "ACCOUNTS_JSON": "[{\"id\":\"work\",\"name\":\"Work\",\"host\":\"imap.example.com\",\"port\":993,\"user\":\"you@example.com\",\"authType\":\"login\",\"useTLS\":true}]"
-      }
+      "args": ["-y", "@honest-magic/mail-mcp"]
     }
   }
 }
@@ -111,10 +111,7 @@ The credentials are stored in Keychain under the same service name. Token refres
 {
   "mcpServers": {
     "mail": {
-      "command": "mail-mcp",
-      "env": {
-        "ACCOUNTS_JSON": "..."
-      }
+      "command": "mail-mcp"
     }
   }
 }
@@ -161,10 +158,7 @@ Claude Desktop read-only config:
   "mcpServers": {
     "mail-readonly": {
       "command": "npx",
-      "args": ["-y", "@honest-magic/mail-mcp", "--read-only"],
-      "env": {
-        "ACCOUNTS_JSON": "..."
-      }
+      "args": ["-y", "@honest-magic/mail-mcp", "--read-only"]
     }
   }
 }
