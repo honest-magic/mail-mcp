@@ -9,7 +9,7 @@ Requirements for hardening & reliability milestone. Each maps to roadmap phases.
 
 ### Connection Lifecycle
 
-- [ ] **CONN-01**: Server gracefully disconnects all IMAP/SMTP connections on SIGTERM/SIGINT with 10s forced exit timeout
+- [x] **CONN-01**: Server gracefully disconnects all IMAP/SMTP connections on SIGTERM/SIGINT with 10s forced exit timeout
 - [ ] **CONN-02**: IMAP client automatically attempts one reconnect with exponential backoff when connection drops
 - [ ] **CONN-03**: User can run `--validate-accounts` to probe IMAP CAPABILITY and SMTP EHLO for all accounts at startup
 
@@ -58,7 +58,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| CONN-01 | Phase 10 | Pending |
+| CONN-01 | Phase 10 | Complete |
 | CONN-02 | Phase 12 | Pending |
 | CONN-03 | Phase 12 | Pending |
 | VAL-01 | Phase 10 | Pending |

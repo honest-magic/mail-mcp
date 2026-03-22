@@ -43,12 +43,12 @@ Full archive: `.planning/milestones/v1.0.0-ROADMAP.md`
   3. An account config with `port: 465` and no explicit `secure` setting connects over TLS without error; `port: 587` connects via STARTTLS
   4. The accounts config is read once and served from an in-memory cache; editing `accounts.json` on disk invalidates the cache so the next tool call picks up the change
   5. Tool errors returned to the MCP client carry a typed error code (`AuthError`, `NetworkError`, `ValidationError`, `QuotaError`) and a human-readable contextual message
-**Plans:** 1/3 plans executed
+**Plans:** 2/3 plans executed
 
 Plans:
 - [x] 10-01-PLAN.md — Typed error hierarchy (MailMCPError + subclasses) and catch block update
 - [ ] 10-02-PLAN.md — Zod account validation, config caching with fs.watch, SMTP TLS derivation
-- [ ] 10-03-PLAN.md — Graceful shutdown with signal handlers and in-flight request draining
+- [x] 10-03-PLAN.md — Graceful shutdown with signal handlers and in-flight request draining
 
 ### Phase 11: Input Validation & Safety Limits
 **Goal**: Malformed inputs and resource-exhausting requests are rejected before any network I/O occurs
@@ -93,7 +93,7 @@ Plans:
 | 7. npm Package Setup | v1.0.0 | 1/1 | Complete | 2026-03-22 |
 | 8. GitHub Repository | v1.0.0 | 2/2 | Complete | 2026-03-22 |
 | 9. GitHub Actions | v1.0.0 | 2/2 | Complete | 2026-03-22 |
-| 10. Connection Lifecycle & Error Infrastructure | v1.1.0 | 1/3 | In Progress|  |
+| 10. Connection Lifecycle & Error Infrastructure | v1.1.0 | 2/3 | In Progress|  |
 | 11. Input Validation & Safety Limits | v1.1.0 | 0/? | Not started | - |
 | 12. Pagination, Health Check & Reconnect | v1.1.0 | 0/? | Not started | - |
 | 13. Integration Test Suite | v1.1.0 | 0/? | Not started | - |
