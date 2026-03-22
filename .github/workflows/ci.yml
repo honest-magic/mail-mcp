@@ -27,3 +27,28 @@ jobs:
 
       - name: Test
         run: npm test
+
+  integration:
+    runs-on: ubuntu-latest
+    needs: ci
+    if: ${{ vars.TEST_IMAP_HOST != '' }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Integration tests
+        run: npm run test:integration
+        env:
+          TEST_IMAP_HOST: ${{ vars.TEST_IMAP_HOST }}
+          TEST_IMAP_PORT: ${{ vars.TEST_IMAP_PORT }}
+          TEST_IMAP_USER: ${{ secrets.TEST_IMAP_USER }}
+          TEST_IMAP_PASS: ${{ secrets.TEST_IMAP_PASS }}
