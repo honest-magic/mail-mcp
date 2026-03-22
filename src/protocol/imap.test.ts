@@ -167,4 +167,91 @@ describe('ImapClient', () => {
     const messages = await emptyClient.searchMessages({ from: 'nobody@example.com' });
     expect(messages).toHaveLength(0);
   });
+
+  describe('disconnect() liveness check', () => {
+    it('calls logout() when client exists and client.usable is true', async () => {
+      const { ImapFlow } = await import('imapflow');
+      const MockImapFlow = ImapFlow as any;
+      const logoutMock = vi.fn().mockResolvedValue(undefined);
+      MockImapFlow.mockImplementationOnce(function() {
+        return {
+          connect: vi.fn().mockResolvedValue(undefined),
+          logout: logoutMock,
+          usable: true,
+          getMailboxLock: vi.fn().mockResolvedValue({ release: vi.fn() }),
+          fetch: vi.fn().mockImplementation(async function* () {}),
+          mailbox: { exists: 0 }
+        };
+      });
+      const client = new ImapClient(account);
+      await client.connect();
+      await client.disconnect();
+      expect(logoutMock).toHaveBeenCalledOnce();
+    });
+
+    it('does NOT call logout() when client exists but client.usable is false', async () => {
+      const { ImapFlow } = await import('imapflow');
+      const MockImapFlow = ImapFlow as any;
+      const logoutMock = vi.fn().mockResolvedValue(undefined);
+      MockImapFlow.mockImplementationOnce(function() {
+        return {
+          connect: vi.fn().mockResolvedValue(undefined),
+          logout: logoutMock,
+          usable: false,
+          getMailboxLock: vi.fn().mockResolvedValue({ release: vi.fn() }),
+          fetch: vi.fn().mockImplementation(async function* () {}),
+          mailbox: { exists: 0 }
+        };
+      });
+      const client = new ImapClient(account);
+      await client.connect();
+      await client.disconnect();
+      expect(logoutMock).not.toHaveBeenCalled();
+    });
+
+    it('sets this.client to null after successful logout', async () => {
+      const { ImapFlow } = await import('imapflow');
+      const MockImapFlow = ImapFlow as any;
+      MockImapFlow.mockImplementationOnce(function() {
+        return {
+          connect: vi.fn().mockResolvedValue(undefined),
+          logout: vi.fn().mockResolvedValue(undefined),
+          usable: true,
+          getMailboxLock: vi.fn().mockResolvedValue({ release: vi.fn() }),
+          fetch: vi.fn().mockImplementation(async function* () {}),
+          mailbox: { exists: 0 }
+        };
+      });
+      const client = new ImapClient(account);
+      await client.connect();
+      await client.disconnect();
+      expect((client as any).client).toBeNull();
+    });
+
+    it('sets this.client to null even when client.usable is false (cleanup)', async () => {
+      const { ImapFlow } = await import('imapflow');
+      const MockImapFlow = ImapFlow as any;
+      MockImapFlow.mockImplementationOnce(function() {
+        return {
+          connect: vi.fn().mockResolvedValue(undefined),
+          logout: vi.fn().mockResolvedValue(undefined),
+          usable: false,
+          getMailboxLock: vi.fn().mockResolvedValue({ release: vi.fn() }),
+          fetch: vi.fn().mockImplementation(async function* () {}),
+          mailbox: { exists: 0 }
+        };
+      });
+      const client = new ImapClient(account);
+      await client.connect();
+      await client.disconnect();
+      expect((client as any).client).toBeNull();
+    });
+
+    it('does nothing when client is null (no throw)', async () => {
+      const client = new ImapClient(account);
+      // client is null since we never called connect()
+      await expect(client.disconnect()).resolves.toBeUndefined();
+      expect((client as any).client).toBeNull();
+    });
+  });
 });

@@ -49,7 +49,9 @@ export class ImapClient {
 
   async disconnect(): Promise<void> {
     if (this.client) {
-      await this.client.logout();
+      if (this.client.usable) {
+        await this.client.logout();
+      }
       this.client = null;
     }
   }
