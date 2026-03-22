@@ -107,7 +107,10 @@
 1. `github.com/honest-magic/mail-mcp` is publicly accessible and all existing local commits are present in `main`.
 2. The README covers installation (`npx` and global), MCP client configuration (JSON snippet), all available tools, and the `--read-only` flag.
 3. A visitor to the repo page can follow the README alone to connect the server to an MCP client without consulting any other document.
-**Plans**: TBD
+**Plans**: 2
+Plans:
+- [ ] 08-01-PLAN.md — Write consumer-facing README.md
+- [ ] 08-02-PLAN.md — Create GitHub repo, push commits, set topics and branch protection
 
 ### Phase 9: GitHub Actions
 **Goal**: Every push to `main` is automatically type-checked and tested, and pushing a `v*` tag publishes a verified build of `@honest-magic/mail-mcp` to npm only after CI passes.
@@ -117,7 +120,10 @@
 1. Pushing a commit to `main` triggers the CI workflow and the Actions tab shows `tsc --noEmit` and `npm test` both completing successfully.
 2. Pushing a `v1.0.0` tag triggers the publish workflow, which publishes `@honest-magic/mail-mcp@1.0.0` to the public npm registry.
 3. If the CI job fails, the publish job does not run (enforced via `needs: ci` in the publish workflow).
-**Plans**: TBD
+**Plans**: 2
+Plans:
+- [ ] 08-01-PLAN.md — Write consumer-facing README.md
+- [ ] 08-02-PLAN.md — Create GitHub repo, push commits, set topics and branch protection
 
 ## Progress
 
