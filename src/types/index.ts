@@ -1,16 +1,8 @@
-export type AuthType = 'login' | 'oauth2';
+// EmailAccount is now defined in src/config.ts as z.infer<typeof emailAccountSchema>
+// Re-exported here for backward compatibility with all existing import sites.
+export type { EmailAccount } from '../config.js';
 
-export interface EmailAccount {
-  id: string;
-  name: string;
-  host: string;
-  port: number;
-  smtpHost?: string;
-  smtpPort?: number;
-  user: string;
-  authType: AuthType;
-  useTLS: boolean;
-}
+export type AuthType = 'login' | 'oauth2';
 
 export interface Credentials {
   password?: string;
