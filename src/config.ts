@@ -5,7 +5,7 @@ import { EmailAccount } from './types/index.js';
 dotenv.config();
 
 const configSchema = z.object({
-  serviceName: z.string().default('com.mcp.mail-server'),
+  serviceName: z.string().default('ch.honest-magic.config.mail-server'),
   logLevel: z.string().default('info'),
 });
 

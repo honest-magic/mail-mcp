@@ -63,7 +63,7 @@ Fields:
 
 ```bash
 security add-generic-password \
-  -s com.mcp.mail-server \
+  -s ch.honest-magic.config.mail-server \
   -a <account-id> \
   -w <password-or-app-password>
 ```
