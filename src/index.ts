@@ -11,6 +11,7 @@ import { parseArgs } from 'node:util';
 import { getAccounts } from './config.js';
 import { handleAccountsCommand } from './cli/accounts.js';
 import { MailService } from './services/mail.js';
+import { MailMCPError } from './errors.js';
 
 const WRITE_TOOLS = new Set<string>([
   'send_email',
@@ -281,32 +282,46 @@ export class MailMCPServer {
   }
 
   async dispatchTool(name: string, readOnly: boolean, args: Record<string, unknown>) {
-    if (readOnly && WRITE_TOOLS.has(name)) {
+    try {
+      if (readOnly && WRITE_TOOLS.has(name)) {
+        return {
+          content: [{
+            type: 'text',
+            text: `Tool '${name}' is not available: server is running in read-only mode. Use a server without --read-only to perform write operations.`,
+          }],
+          isError: true,
+        };
+      }
+
+      if (name === 'list_accounts') {
+        const accounts = getAccounts();
+        return {
+          content: [{
+            type: 'text',
+            text: JSON.stringify(
+              accounts.map((a) => ({ id: a.id, name: a.name, user: a.user })),
+              null,
+              2
+            ),
+          }],
+        };
+      }
+
+      // Tools beyond list_accounts require an account connection.
+      // Attempt to fetch the service so auth errors surface via the catch block.
+      await this.getService(args.accountId as string);
+      throw new McpError(ErrorCode.MethodNotFound, `Tool not found: ${name}`);
+    } catch (error: unknown) {
+      const message = error instanceof MailMCPError
+        ? `[${error.code}] ${error.message}`
+        : error instanceof Error
+          ? error.message
+          : String(error);
       return {
-        content: [{
-          type: 'text',
-          text: `Tool '${name}' is not available: server is running in read-only mode. Use a server without --read-only to perform write operations.`,
-        }],
+        content: [{ type: 'text', text: message }],
         isError: true,
       };
     }
-
-    if (name === 'list_accounts') {
-      const accounts = getAccounts();
-      return {
-        content: [{
-          type: 'text',
-          text: JSON.stringify(
-            accounts.map((a) => ({ id: a.id, name: a.name, user: a.user })),
-            null,
-            2
-          ),
-        }],
-      };
-    }
-
-    // For test purposes — other tools require a real service connection
-    throw new McpError(ErrorCode.MethodNotFound, `Tool not found: ${name}`);
   }
 
   private setupToolHandlers() {
@@ -571,15 +586,15 @@ export class MailMCPServer {
         }
 
         throw new McpError(ErrorCode.MethodNotFound, `Tool not found: ${request.params.name}`);
-      } catch (error: any) {
+      } catch (error: unknown) {
+        const message = error instanceof MailMCPError
+          ? `[${error.code}] ${error.message}`
+          : error instanceof Error
+            ? error.message
+            : String(error);
         return {
-          content: [
-            {
-              type: 'text',
-              text: `Error: ${error.message}`
-            }
-          ],
-          isError: true
+          content: [{ type: 'text', text: message }],
+          isError: true,
         };
       }
     });

@@ -331,3 +331,32 @@ describe('SMTP-02: send_email CC/BCC support', () => {
     expect(props.bcc).toBeDefined();
   });
 });
+
+describe('SAFE-02: typed error formatting in catch block', () => {
+  it('when getService throws AuthError, dispatchTool response text is "[AuthError] bad credentials"', async () => {
+    const { AuthError } = await import('./errors.js');
+    const server = new MailMCPServer(false);
+    vi.spyOn(server as any, 'getService').mockRejectedValue(new AuthError('bad credentials'));
+    const result = await (server as any).dispatchTool('read_email', false, { accountId: 'test' });
+    expect(result.isError).toBe(true);
+    expect(result.content[0].text).toBe('[AuthError] bad credentials');
+  });
+
+  it('when getService throws a generic Error, response text does NOT contain brackets', async () => {
+    const server = new MailMCPServer(false);
+    vi.spyOn(server as any, 'getService').mockRejectedValue(new Error('connection refused'));
+    const result = await (server as any).dispatchTool('read_email', false, { accountId: 'test' });
+    expect(result.isError).toBe(true);
+    expect(result.content[0].text).toBe('connection refused');
+    expect(result.content[0].text).not.toMatch(/^\[/);
+  });
+
+  it('when getService throws NetworkError, response text starts with "[NetworkError]"', async () => {
+    const { NetworkError } = await import('./errors.js');
+    const server = new MailMCPServer(false);
+    vi.spyOn(server as any, 'getService').mockRejectedValue(new NetworkError('timeout'));
+    const result = await (server as any).dispatchTool('read_email', false, { accountId: 'test' });
+    expect(result.isError).toBe(true);
+    expect(result.content[0].text).toBe('[NetworkError] timeout');
+  });
+});
