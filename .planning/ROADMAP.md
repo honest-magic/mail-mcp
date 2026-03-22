@@ -27,7 +27,7 @@ Full archive: `.planning/milestones/v1.0.0-ROADMAP.md`
 ### v1.1.0 Hardening & Reliability
 
 - [x] **Phase 10: Connection Lifecycle & Error Infrastructure** — Graceful shutdown, config validation, SMTP TLS derivation, config caching, typed errors (completed 2026-03-22)
-- [ ] **Phase 11: Input Validation & Safety Limits** — Email address validation, attachment size cap, per-account rate limiting
+- [x] **Phase 11: Input Validation & Safety Limits** — Email address validation, attachment size cap, per-account rate limiting (completed 2026-03-22)
 - [ ] **Phase 12: Pagination, Health Check & Reconnect** — Large mailbox pagination, startup account probing, auto-reconnect on drop
 - [ ] **Phase 13: Integration Test Suite** — Real-protocol SMTP and IMAP integration tests with CI support
 
@@ -58,11 +58,11 @@ Plans:
   1. Calling `send_email` with a syntactically invalid recipient address (e.g. `notanemail`) returns a `ValidationError` without any SMTP connection being opened
   2. Requesting attachment content for an attachment whose BODYSTRUCTURE-reported size exceeds 50 MB returns a clear error before any bytes are downloaded
   3. An AI agent issuing more than 100 tool calls in 60 seconds against a single account receives a `QuotaError` response; subsequent calls within the window continue to be rejected until the window resets
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 
 Plans:
 - [x] 11-01-PLAN.md — Email validation utility and per-account rate limiter with tests
-- [ ] 11-02-PLAN.md — Attachment size guard, wire all guards into dispatch layer
+- [x] 11-02-PLAN.md — Attachment size guard, wire all guards into dispatch layer
 
 ### Phase 12: Pagination, Health Check & Reconnect
 **Goal**: Users can navigate large mailboxes, validate credentials at startup, and the server recovers automatically from dropped connections
@@ -98,7 +98,7 @@ Plans:
 | 8. GitHub Repository | v1.0.0 | 2/2 | Complete | 2026-03-22 |
 | 9. GitHub Actions | v1.0.0 | 2/2 | Complete | 2026-03-22 |
 | 10. Connection Lifecycle & Error Infrastructure | v1.1.0 | 3/3 | Complete    | 2026-03-22 |
-| 11. Input Validation & Safety Limits | v1.1.0 | 1/2 | In Progress|  |
+| 11. Input Validation & Safety Limits | v1.1.0 | 2/2 | Complete   | 2026-03-22 |
 | 12. Pagination, Health Check & Reconnect | v1.1.0 | 0/? | Not started | - |
 | 13. Integration Test Suite | v1.1.0 | 0/? | Not started | - |
 
