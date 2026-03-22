@@ -68,6 +68,7 @@ Plan: Not started
 |---|-------------|------|--------|-----------|
 | 260321 | Fix 3 audit gaps: SMTP-04, THRD non-Gmail, IMAP-01 snippet | 2026-03-21 | c6f1bf2 | [260321-fix-audit-gaps](.planning/quick/260321-fix-audit-gaps/) |
 | 260322-l1d | Replace ACCOUNTS_JSON env var with ~/.config/mail-mcp/accounts.json | 2026-03-22 | d066b29 | [260322-l1d-replace-accounts-json-env-var-with-confi](.planning/quick/260322-l1d-replace-accounts-json-env-var-with-confi/) |
+| 260322-ms9 | Add CLI helper commands for managing accounts (add/list/remove) | 2026-03-22 | 26f07bc | [260322-ms9-add-cli-helper-commands-for-managing-acc](.planning/quick/260322-ms9-add-cli-helper-commands-for-managing-acc/) |
 | Phase 05-read-only-enforcement P01 | 137 | 2 tasks | 2 files |
 | Phase 06-mode-discoverability-connection-hygiene P01 | 1 | 2 tasks | 4 files |
 | Phase 07-npm-package-setup P01 | 10 | 2 tasks | 2 files |
@@ -83,5 +84,5 @@ Plan: Not started
 
 **Last Action:** Completed Phase 7 (npm-package-setup) — package.json configured as @honest-magic/mail-mcp with bin, files, publishConfig, MIT LICENSE created. PKG-01 through PKG-04 validated.
 **Next Step:** Execute Phase 8 (github-readme) — create public GitHub repo at github.com/honest-magic/mail-mcp and write consumer-facing README.
-**Stopped At:** Completed quick-260322-l1d (replace ACCOUNTS_JSON with accounts.json config file)
+**Stopped At:** Completed quick-260322-ms9 (add CLI account management commands)
 **Context for Next Agent:** Phase 7 complete. package.json is @honest-magic/mail-mcp, bin=mail-mcp->dist/index.js, files=[dist,README.md,LICENSE], publishConfig.access=public, MIT LICENSE exists. npm pack --dry-run confirms correct tarball. Phase 8 creates GitHub repo and README.md (which is already referenced in files field). Phase 9 adds .github/workflows/ci.yml and publish.yml.
