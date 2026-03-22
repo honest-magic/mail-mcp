@@ -8,6 +8,9 @@ const mockSearchEmails = vi.fn().mockResolvedValue([
   { id: '42', uid: 42, subject: 'Found Email', from: 'sender@example.com' }
 ]);
 const mockSendEmail = vi.fn().mockResolvedValue(undefined);
+const mockListFolders = vi.fn().mockResolvedValue(['INBOX', 'Sent', 'Drafts', 'Trash']);
+const mockMoveMessage = vi.fn().mockResolvedValue(undefined);
+const mockModifyLabels = vi.fn().mockResolvedValue(undefined);
 
 vi.mock('./services/mail.js', () => ({
   MailService: vi.fn().mockImplementation(() => ({
@@ -15,6 +18,9 @@ vi.mock('./services/mail.js', () => ({
     listEmails: vi.fn().mockResolvedValue([]),
     searchEmails: mockSearchEmails,
     sendEmail: mockSendEmail,
+    listFolders: mockListFolders,
+    moveMessage: mockMoveMessage,
+    modifyLabels: mockModifyLabels,
   })),
 }));
 
@@ -210,6 +216,97 @@ describe('IMAP-03: search_emails tool', () => {
     const searchTool = tools.find((t: any) => t.name === 'search_emails');
     expect(searchTool.annotations.readOnlyHint).toBe(true);
     expect(searchTool.annotations.destructiveHint).toBe(false);
+  });
+});
+
+describe('IMAP-04: list_folders tool', () => {
+  it('list_folders tool is listed among available tools', () => {
+    const server = new MailMCPServer(false);
+    const tools = (server as any).getTools(false);
+    const names = tools.map((t: any) => t.name);
+    expect(names).toContain('list_folders');
+  });
+
+  it('list_folders tool has readOnlyHint=true (non-destructive)', () => {
+    const server = new MailMCPServer(false);
+    const tools = (server as any).getTools(false);
+    const tool = tools.find((t: any) => t.name === 'list_folders');
+    expect(tool.annotations.readOnlyHint).toBe(true);
+    expect(tool.annotations.destructiveHint).toBe(false);
+  });
+
+  it('list_folders tool requires accountId', () => {
+    const server = new MailMCPServer(false);
+    const tools = (server as any).getTools(false);
+    const tool = tools.find((t: any) => t.name === 'list_folders');
+    expect(tool.inputSchema.required).toContain('accountId');
+  });
+});
+
+describe('ORG-01: move_email tool', () => {
+  it('move_email tool is listed among available tools', () => {
+    const server = new MailMCPServer(false);
+    const tools = (server as any).getTools(false);
+    const names = tools.map((t: any) => t.name);
+    expect(names).toContain('move_email');
+  });
+
+  it('move_email tool has readOnlyHint=false and destructiveHint=true', () => {
+    const server = new MailMCPServer(false);
+    const tools = (server as any).getTools(false);
+    const tool = tools.find((t: any) => t.name === 'move_email');
+    expect(tool.annotations.readOnlyHint).toBe(false);
+    expect(tool.annotations.destructiveHint).toBe(true);
+  });
+
+  it('move_email tool schema includes uid, sourceFolder, targetFolder', () => {
+    const server = new MailMCPServer(false);
+    const tools = (server as any).getTools(false);
+    const tool = tools.find((t: any) => t.name === 'move_email');
+    const props = tool.inputSchema.properties;
+    expect(props.uid).toBeDefined();
+    expect(props.sourceFolder).toBeDefined();
+    expect(props.targetFolder).toBeDefined();
+  });
+
+  it('move_email is blocked in read-only mode', async () => {
+    const server = new MailMCPServer(true);
+    const result = await (server as any).dispatchTool('move_email', true, {});
+    expect(result.isError).toBe(true);
+  });
+});
+
+describe('ORG-02: modify_labels tool', () => {
+  it('modify_labels tool is listed among available tools', () => {
+    const server = new MailMCPServer(false);
+    const tools = (server as any).getTools(false);
+    const names = tools.map((t: any) => t.name);
+    expect(names).toContain('modify_labels');
+  });
+
+  it('modify_labels tool has readOnlyHint=false and destructiveHint=true', () => {
+    const server = new MailMCPServer(false);
+    const tools = (server as any).getTools(false);
+    const tool = tools.find((t: any) => t.name === 'modify_labels');
+    expect(tool.annotations.readOnlyHint).toBe(false);
+    expect(tool.annotations.destructiveHint).toBe(true);
+  });
+
+  it('modify_labels tool schema includes uid, folder, addLabels, removeLabels', () => {
+    const server = new MailMCPServer(false);
+    const tools = (server as any).getTools(false);
+    const tool = tools.find((t: any) => t.name === 'modify_labels');
+    const props = tool.inputSchema.properties;
+    expect(props.uid).toBeDefined();
+    expect(props.folder).toBeDefined();
+    expect(props.addLabels).toBeDefined();
+    expect(props.removeLabels).toBeDefined();
+  });
+
+  it('modify_labels is blocked in read-only mode', async () => {
+    const server = new MailMCPServer(true);
+    const result = await (server as any).dispatchTool('modify_labels', true, {});
+    expect(result.isError).toBe(true);
   });
 });
 

@@ -32,6 +32,16 @@ vi.mock('imapflow', () => {
           internalDate: new Date()
         }),
         search: vi.fn().mockResolvedValue([1]),
+        list: vi.fn().mockResolvedValue([
+          { path: 'INBOX' },
+          { path: 'Sent' },
+          { path: 'Drafts' },
+          { path: 'Trash' }
+        ]),
+        messageMove: vi.fn().mockResolvedValue(undefined),
+        messageFlagsAdd: vi.fn().mockResolvedValue(undefined),
+        messageFlagsRemove: vi.fn().mockResolvedValue(undefined),
+        messageDelete: vi.fn().mockResolvedValue(undefined),
         mailbox: {
           exists: 1
         }
@@ -86,6 +96,57 @@ describe('ImapClient', () => {
     const messages = await client.searchMessages({ from: 'sender@example.com', subject: 'Test' });
     expect(messages).toHaveLength(1);
     expect(messages[0].uid).toBe(1);
+  });
+
+  describe('IMAP-04: listFolders', () => {
+    it('should list folders returning an array of path strings', async () => {
+      const client = new ImapClient(account);
+      await client.connect();
+      const folders = await client.listFolders();
+      expect(folders).toEqual(['INBOX', 'Sent', 'Drafts', 'Trash']);
+    });
+  });
+
+  describe('ORG-01: moveMessage', () => {
+    it('should call messageMove with correct uid and target folder', async () => {
+      const { ImapFlow } = await import('imapflow');
+      const instance = (ImapFlow as any).mock.results.at(-1)?.value;
+      const client = new ImapClient(account);
+      await client.connect();
+      await client.moveMessage('5', 'INBOX', 'Archive');
+      const latestInstance = (ImapFlow as any).mock.results.at(-1)?.value;
+      expect(latestInstance.messageMove).toHaveBeenCalledWith('5', 'Archive', { uid: true });
+    });
+  });
+
+  describe('ORG-02: modifyLabels', () => {
+    it('should call messageFlagsAdd when addLabels provided', async () => {
+      const { ImapFlow } = await import('imapflow');
+      const client = new ImapClient(account);
+      await client.connect();
+      await client.modifyLabels('5', 'INBOX', ['\\Flagged'], []);
+      const latestInstance = (ImapFlow as any).mock.results.at(-1)?.value;
+      expect(latestInstance.messageFlagsAdd).toHaveBeenCalledWith('5', ['\\Flagged'], { uid: true });
+    });
+
+    it('should call messageFlagsRemove when removeLabels provided', async () => {
+      const { ImapFlow } = await import('imapflow');
+      const client = new ImapClient(account);
+      await client.connect();
+      await client.modifyLabels('5', 'INBOX', [], ['\\Seen']);
+      const latestInstance = (ImapFlow as any).mock.results.at(-1)?.value;
+      expect(latestInstance.messageFlagsRemove).toHaveBeenCalledWith('5', ['\\Seen'], { uid: true });
+    });
+
+    it('should call both add and remove when both lists are non-empty', async () => {
+      const { ImapFlow } = await import('imapflow');
+      const client = new ImapClient(account);
+      await client.connect();
+      await client.modifyLabels('5', 'INBOX', ['\\Flagged'], ['\\Seen']);
+      const latestInstance = (ImapFlow as any).mock.results.at(-1)?.value;
+      expect(latestInstance.messageFlagsAdd).toHaveBeenCalledWith('5', ['\\Flagged'], { uid: true });
+      expect(latestInstance.messageFlagsRemove).toHaveBeenCalledWith('5', ['\\Seen'], { uid: true });
+    });
   });
 
   it('should return empty array when search finds no messages', async () => {
