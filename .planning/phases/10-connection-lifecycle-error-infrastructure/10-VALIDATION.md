@@ -39,10 +39,11 @@ created: 2026-03-22
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
 | 10-01-01 | 01 | 1 | SAFE-02 | unit | `npx vitest run src/errors.test.ts` | ❌ W0 | ⬜ pending |
-| 10-02-01 | 02 | 1 | VAL-01 | unit | `npx vitest run src/config.test.ts` | ✅ | ⬜ pending |
-| 10-02-02 | 02 | 1 | VAL-04 | unit | `npx vitest run src/config.test.ts` | ✅ | ⬜ pending |
-| 10-03-01 | 03 | 2 | VAL-03 | unit | `npx vitest run src/protocol/smtp.test.ts` | ✅ | ⬜ pending |
-| 10-04-01 | 04 | 2 | CONN-01 | unit | `npx vitest run src/index.test.ts` | ✅ | ⬜ pending |
+| 10-01-02 | 01 | 1 | SAFE-02 | unit | `npx vitest run src/index.test.ts` | ✅ | ⬜ pending |
+| 10-02-01 | 02 | 2 | VAL-01 | unit | `npx vitest run src/config.test.ts` | ✅ | ⬜ pending |
+| 10-02-02 | 02 | 2 | VAL-04 | unit | `npx vitest run src/config.test.ts` | ✅ | ⬜ pending |
+| 10-03-01 | 03 | 2 | CONN-01 | unit | `npx vitest run src/index.test.ts` | ✅ | ⬜ pending |
+| 10-03-02 | 03 | 2 | CONN-01 | unit | `npx vitest run src/protocol/imap.test.ts` | ✅ | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
