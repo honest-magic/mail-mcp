@@ -4,10 +4,17 @@ vi.mock('./config.js', () => ({
   getAccounts: vi.fn().mockReturnValue([]),
 }));
 
+const mockSearchEmails = vi.fn().mockResolvedValue([
+  { id: '42', uid: 42, subject: 'Found Email', from: 'sender@example.com' }
+]);
+const mockSendEmail = vi.fn().mockResolvedValue(undefined);
+
 vi.mock('./services/mail.js', () => ({
   MailService: vi.fn().mockImplementation(() => ({
     connect: vi.fn().mockResolvedValue(undefined),
     listEmails: vi.fn().mockResolvedValue([]),
+    searchEmails: mockSearchEmails,
+    sendEmail: mockSendEmail,
   })),
 }));
 
@@ -169,5 +176,61 @@ describe('ROM-04: instructions field in Server options', () => {
       internalServer.options?.instructions ??
       internalServer.serverInfo?.instructions;
     expect(instructions).toBeFalsy();
+  });
+});
+
+describe('IMAP-03: search_emails tool', () => {
+  beforeEach(() => {
+    mockSearchEmails.mockClear();
+  });
+
+  it('search_emails tool is listed among available tools', () => {
+    const server = new MailMCPServer(false);
+    const tools = (server as any).getTools(false);
+    const names = tools.map((t: any) => t.name);
+    expect(names).toContain('search_emails');
+  });
+
+  it('search_emails tool schema includes from, subject, since, before, keywords fields', () => {
+    const server = new MailMCPServer(false);
+    const tools = (server as any).getTools(false);
+    const searchTool = tools.find((t: any) => t.name === 'search_emails');
+    expect(searchTool).toBeDefined();
+    const props = searchTool.inputSchema.properties;
+    expect(props.from).toBeDefined();
+    expect(props.subject).toBeDefined();
+    expect(props.since).toBeDefined();
+    expect(props.before).toBeDefined();
+    expect(props.keywords).toBeDefined();
+  });
+
+  it('search_emails tool has readOnlyHint=true (non-destructive)', () => {
+    const server = new MailMCPServer(false);
+    const tools = (server as any).getTools(false);
+    const searchTool = tools.find((t: any) => t.name === 'search_emails');
+    expect(searchTool.annotations.readOnlyHint).toBe(true);
+    expect(searchTool.annotations.destructiveHint).toBe(false);
+  });
+});
+
+describe('SMTP-02: send_email CC/BCC support', () => {
+  it('send_email tool schema includes cc and bcc fields', () => {
+    const server = new MailMCPServer(false);
+    const tools = (server as any).getTools(false);
+    const sendTool = tools.find((t: any) => t.name === 'send_email');
+    expect(sendTool).toBeDefined();
+    const props = sendTool.inputSchema.properties;
+    expect(props.cc).toBeDefined();
+    expect(props.bcc).toBeDefined();
+  });
+
+  it('create_draft tool schema includes cc and bcc fields', () => {
+    const server = new MailMCPServer(false);
+    const tools = (server as any).getTools(false);
+    const draftTool = tools.find((t: any) => t.name === 'create_draft');
+    expect(draftTool).toBeDefined();
+    const props = draftTool.inputSchema.properties;
+    expect(props.cc).toBeDefined();
+    expect(props.bcc).toBeDefined();
   });
 });
