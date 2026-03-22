@@ -255,6 +255,158 @@ describe('ImapClient', () => {
     });
   });
 
+  describe('pagination', () => {
+    it('listMessages with offset=0 returns normal results (backward compat)', async () => {
+      const { ImapFlow } = await import('imapflow');
+      const MockImapFlow = ImapFlow as any;
+      const fetchMock = vi.fn().mockImplementation(async function* () {
+        yield {
+          uid: 50,
+          envelope: { subject: 'Latest', from: [{ address: 'a@b.com' }], date: new Date() },
+          internalDate: new Date(),
+        };
+      });
+      MockImapFlow.mockImplementationOnce(function() {
+        return {
+          connect: vi.fn().mockResolvedValue(undefined),
+          getMailboxLock: vi.fn().mockResolvedValue({ release: vi.fn() }),
+          fetch: fetchMock,
+          mailbox: { exists: 50 },
+        };
+      });
+      const client = new ImapClient(account);
+      await client.connect();
+      const messages = await client.listMessages('INBOX', 5, 0);
+      // With offset=0, total=50, count=5: end=50, start=max(1,50-5+1)=46 → range '46:50'
+      expect(fetchMock).toHaveBeenCalledWith('46:50', expect.any(Object));
+      expect(messages).toHaveLength(1);
+    });
+
+    it('listMessages with offset=10, count=5, total=50 calls fetch with range "36:40"', async () => {
+      const { ImapFlow } = await import('imapflow');
+      const MockImapFlow = ImapFlow as any;
+      const fetchMock = vi.fn().mockImplementation(async function* () {});
+      MockImapFlow.mockImplementationOnce(function() {
+        return {
+          connect: vi.fn().mockResolvedValue(undefined),
+          getMailboxLock: vi.fn().mockResolvedValue({ release: vi.fn() }),
+          fetch: fetchMock,
+          mailbox: { exists: 50 },
+        };
+      });
+      const client = new ImapClient(account);
+      await client.connect();
+      await client.listMessages('INBOX', 5, 10);
+      // end=50-10=40, start=max(1,40-5+1)=36 → range '36:40'
+      expect(fetchMock).toHaveBeenCalledWith('36:40', expect.any(Object));
+    });
+
+    it('listMessages with offset >= total returns []', async () => {
+      const { ImapFlow } = await import('imapflow');
+      const MockImapFlow = ImapFlow as any;
+      const fetchMock = vi.fn().mockImplementation(async function* () {});
+      MockImapFlow.mockImplementationOnce(function() {
+        return {
+          connect: vi.fn().mockResolvedValue(undefined),
+          getMailboxLock: vi.fn().mockResolvedValue({ release: vi.fn() }),
+          fetch: fetchMock,
+          mailbox: { exists: 50 },
+        };
+      });
+      const client = new ImapClient(account);
+      await client.connect();
+      // offset=50 >= total=50: end=0 which is < 1, return []
+      const messages = await client.listMessages('INBOX', 5, 50);
+      expect(messages).toHaveLength(0);
+      expect(fetchMock).not.toHaveBeenCalled();
+    });
+
+    it('listMessages with offset leaving fewer than count messages clamps start to 1', async () => {
+      const { ImapFlow } = await import('imapflow');
+      const MockImapFlow = ImapFlow as any;
+      const fetchMock = vi.fn().mockImplementation(async function* () {});
+      MockImapFlow.mockImplementationOnce(function() {
+        return {
+          connect: vi.fn().mockResolvedValue(undefined),
+          getMailboxLock: vi.fn().mockResolvedValue({ release: vi.fn() }),
+          fetch: fetchMock,
+          mailbox: { exists: 50 },
+        };
+      });
+      const client = new ImapClient(account);
+      await client.connect();
+      // offset=48, count=5, total=50: end=50-48=2, start=max(1,2-5+1)=max(1,-2)=1 → range '1:2'
+      await client.listMessages('INBOX', 5, 48);
+      expect(fetchMock).toHaveBeenCalledWith('1:2', expect.any(Object));
+    });
+
+    it('searchMessages with offset=0 returns normal results (backward compat)', async () => {
+      const { ImapFlow } = await import('imapflow');
+      const MockImapFlow = ImapFlow as any;
+      const fetchMock = vi.fn().mockImplementation(async function* () {
+        yield {
+          uid: 7,
+          envelope: { subject: 'Matched', from: [{ address: 'x@y.com' }], date: new Date() },
+          internalDate: new Date(),
+        };
+      });
+      MockImapFlow.mockImplementationOnce(function() {
+        return {
+          connect: vi.fn().mockResolvedValue(undefined),
+          getMailboxLock: vi.fn().mockResolvedValue({ release: vi.fn() }),
+          search: vi.fn().mockResolvedValue([1, 2, 3, 4, 5, 6, 7]),
+          fetch: fetchMock,
+          mailbox: { exists: 10 },
+        };
+      });
+      const client = new ImapClient(account);
+      await client.connect();
+      await client.searchMessages({}, 'INBOX', 2, 0);
+      // uids=[1,2,3,4,5,6,7], offset=0, count=2: end=7, start=max(0,7-2)=5 → slice(5,7)=[6,7]
+      expect(fetchMock).toHaveBeenCalledWith('6,7', expect.any(Object), expect.any(Object));
+    });
+
+    it('searchMessages with offset=3, count=2, uids=[1..7] calls fetch with UIDs "3,4"', async () => {
+      const { ImapFlow } = await import('imapflow');
+      const MockImapFlow = ImapFlow as any;
+      const fetchMock = vi.fn().mockImplementation(async function* () {});
+      MockImapFlow.mockImplementationOnce(function() {
+        return {
+          connect: vi.fn().mockResolvedValue(undefined),
+          getMailboxLock: vi.fn().mockResolvedValue({ release: vi.fn() }),
+          search: vi.fn().mockResolvedValue([1, 2, 3, 4, 5, 6, 7]),
+          fetch: fetchMock,
+          mailbox: { exists: 10 },
+        };
+      });
+      const client = new ImapClient(account);
+      await client.connect();
+      await client.searchMessages({}, 'INBOX', 2, 3);
+      // uids=[1,2,3,4,5,6,7], offset=3, count=2: end=7-3=4, start=max(0,4-2)=2 → slice(2,4)=[3,4]
+      expect(fetchMock).toHaveBeenCalledWith('3,4', expect.any(Object), expect.any(Object));
+    });
+
+    it('searchMessages with offset >= uids.length returns []', async () => {
+      const { ImapFlow } = await import('imapflow');
+      const MockImapFlow = ImapFlow as any;
+      const fetchMock = vi.fn().mockImplementation(async function* () {});
+      MockImapFlow.mockImplementationOnce(function() {
+        return {
+          connect: vi.fn().mockResolvedValue(undefined),
+          getMailboxLock: vi.fn().mockResolvedValue({ release: vi.fn() }),
+          search: vi.fn().mockResolvedValue([1, 2, 3]),
+          fetch: fetchMock,
+          mailbox: { exists: 10 },
+        };
+      });
+      const client = new ImapClient(account);
+      await client.connect();
+      const messages = await client.searchMessages({}, 'INBOX', 2, 5);
+      expect(messages).toHaveLength(0);
+      expect(fetchMock).not.toHaveBeenCalled();
+    });
+  });
+
   describe('fetchAttachmentSize', () => {
     it('returns size when bodyStructure has part matching parameters.name', async () => {
       const { ImapFlow } = await import('imapflow');
