@@ -111,3 +111,12 @@ Plans:
 
 Plans:
 - [ ] TBD (promote with /gsd:review-backlog when ready)
+
+### Phase 999.2: Homebrew formula (BACKLOG)
+
+**Goal:** Add a brew formula to be used with Homebrew to install the MCP server
+**Requirements:** TBD
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (promote with /gsd:review-backlog when ready)
