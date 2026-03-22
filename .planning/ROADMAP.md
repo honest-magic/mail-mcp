@@ -108,7 +108,6 @@
 2. The README covers installation (`npx` and global), MCP client configuration (JSON snippet), all available tools, and the `--read-only` flag.
 3. A visitor to the repo page can follow the README alone to connect the server to an MCP client without consulting any other document.
 **Plans**: 2
-Plans:
 - [x] 08-01-PLAN.md — Write consumer-facing README.md
 - [x] 08-02-PLAN.md — Create GitHub repo, push commits, set topics and branch protection
 
@@ -121,9 +120,8 @@ Plans:
 2. Pushing a `v1.0.0` tag triggers the publish workflow, which publishes `@honest-magic/mail-mcp@1.0.0` to the public npm registry.
 3. If the CI job fails, the publish job does not run (enforced via `needs: ci` in the publish workflow).
 **Plans**: 2
-Plans:
-- [x] 08-01-PLAN.md — Write consumer-facing README.md
-- [ ] 08-02-PLAN.md — Create GitHub repo, push commits, set topics and branch protection
+- [ ] 09-01-PLAN.md — Create CI workflow (type-check + test on push/PR to main)
+- [ ] 09-02-PLAN.md — Create publish workflow (v* tag → build → npm publish, needs: ci)
 
 ## Progress
 
@@ -137,4 +135,4 @@ Plans:
 | 6. Mode Discoverability & Connection Hygiene | 1/1 | Complete | 2026-03-22 |
 | 7. npm Package Setup | 1/1 | Complete   | 2026-03-22 |
 | 8. GitHub Repository | 2/2 | Complete   | 2026-03-22 |
-| 9. GitHub Actions | 0/TBD | Not started | - |
+| 9. GitHub Actions | 0/2 | Not started | - |
