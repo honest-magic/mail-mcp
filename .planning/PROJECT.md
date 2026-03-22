@@ -30,6 +30,11 @@ Empower AI agents to act as a personal mail assistant by providing structured, t
 - ✓ **PKG-01–04**: npm package @honest-magic/mail-mcp, bin entry, files scoping, build artifact — v1.0.0
 - ✓ **GH-01–02**: Public GitHub repo, consumer-facing README — v1.0.0
 - ✓ **GHA-01–03**: CI workflow (tsc + vitest), tag-based publish, needs gate — v1.0.0
+- ✓ **CONN-01**: Graceful shutdown (SIGTERM/SIGINT) with 10s forced-exit fallback — v1.1.0 Phase 10
+- ✓ **VAL-01**: Account config Zod validation with actionable error messages — v1.1.0 Phase 10
+- ✓ **VAL-03**: SMTP port-aware TLS auto-derivation (465=TLS, 587=STARTTLS) — v1.1.0 Phase 10
+- ✓ **VAL-04**: In-memory config cache with fs.watch invalidation — v1.1.0 Phase 10
+- ✓ **SAFE-02**: Typed error classes (AuthError, NetworkError, ValidationError, QuotaError) — v1.1.0 Phase 10
 
 ### Out of Scope
 
@@ -99,4 +104,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-03-22 — v1.1.0 milestone started*
+*Last updated: 2026-03-22 — Phase 10 complete (connection lifecycle & error infrastructure)*
