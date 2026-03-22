@@ -35,6 +35,9 @@ Empower AI agents to act as a personal mail assistant by providing structured, t
 - ✓ **VAL-03**: SMTP port-aware TLS auto-derivation (465=TLS, 587=STARTTLS) — v1.1.0 Phase 10
 - ✓ **VAL-04**: In-memory config cache with fs.watch invalidation — v1.1.0 Phase 10
 - ✓ **SAFE-02**: Typed error classes (AuthError, NetworkError, ValidationError, QuotaError) — v1.1.0 Phase 10
+- ✓ **VAL-02**: Email address RFC 5322 validation on send/draft before SMTP — v1.1.0 Phase 11
+- ✓ **SAFE-01**: Attachment size cap (50MB) via BODYSTRUCTURE check before download — v1.1.0 Phase 11
+- ✓ **SAFE-03**: Per-account in-memory rate limiter (100 req/60s sliding window) — v1.1.0 Phase 11
 
 ### Out of Scope
 
@@ -104,4 +107,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-03-22 — Phase 10 complete (connection lifecycle & error infrastructure)*
+*Last updated: 2026-03-22 — Phase 11 complete (input validation & safety limits)*
