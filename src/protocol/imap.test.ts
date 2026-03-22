@@ -1,0 +1,109 @@
+import { describe, it, expect, vi } from 'vitest';
+import { ImapClient } from './imap.js';
+import { EmailAccount } from '../types/index.js';
+
+vi.mock('../security/keychain.js', () => ({
+  loadCredentials: vi.fn(() => Promise.resolve('test-password'))
+}));
+
+vi.mock('imapflow', () => {
+  return {
+    ImapFlow: vi.fn().mockImplementation(function() {
+      return {
+        connect: vi.fn().mockResolvedValue(undefined),
+        logout: vi.fn().mockResolvedValue(undefined),
+        getMailboxLock: vi.fn().mockResolvedValue({
+          release: vi.fn()
+        }),
+        fetch: vi.fn().mockImplementation(async function* () {
+          yield {
+            uid: 1,
+            envelope: {
+              subject: 'Test Subject',
+              from: [{ address: 'test@example.com' }],
+              date: new Date()
+            },
+            internalDate: new Date(),
+            threadId: '123'
+          };
+        }),
+        fetchOne: vi.fn().mockResolvedValue({
+          source: Buffer.from('Email Source'),
+          internalDate: new Date()
+        }),
+        search: vi.fn().mockResolvedValue([1]),
+        mailbox: {
+          exists: 1
+        }
+      };
+    })
+  };
+});
+
+describe('ImapClient', () => {
+  const account: EmailAccount = {
+    id: 'test-account',
+    name: 'Test',
+    host: 'imap.test.com',
+    port: 993,
+    user: 'test@test.com',
+    authType: 'login',
+    useTLS: true
+  };
+
+  it('should connect to the IMAP server', async () => {
+    const client = new ImapClient(account);
+    await client.connect();
+    expect(client).toBeDefined();
+  });
+
+  it('should list messages', async () => {
+    const client = new ImapClient(account);
+    await client.connect();
+    const messages = await client.listMessages();
+    expect(messages).toHaveLength(1);
+    expect(messages[0].subject).toBe('Test Subject');
+  });
+
+  it('should fetch message body', async () => {
+    const client = new ImapClient(account);
+    await client.connect();
+    const body = await client.fetchMessageBody('1');
+    expect(body.headerLines[0].line).toBe('Email Source');
+  });
+
+  it('should fetch thread messages', async () => {
+    const client = new ImapClient(account);
+    await client.connect();
+    const messages = await client.fetchThreadMessages('123');
+    expect(messages).toHaveLength(1);
+    expect(messages[0].threadId).toBe('123');
+  });
+
+  it('should search messages with criteria', async () => {
+    const client = new ImapClient(account);
+    await client.connect();
+    const messages = await client.searchMessages({ from: 'sender@example.com', subject: 'Test' });
+    expect(messages).toHaveLength(1);
+    expect(messages[0].uid).toBe(1);
+  });
+
+  it('should return empty array when search finds no messages', async () => {
+    const { ImapFlow } = await import('imapflow');
+    const MockImapFlow = ImapFlow as any;
+    MockImapFlow.mockImplementationOnce(function() {
+      return {
+        connect: vi.fn().mockResolvedValue(undefined),
+        logout: vi.fn().mockResolvedValue(undefined),
+        getMailboxLock: vi.fn().mockResolvedValue({ release: vi.fn() }),
+        search: vi.fn().mockResolvedValue([]),
+        fetch: vi.fn().mockImplementation(async function* () {}),
+        mailbox: { exists: 0 }
+      };
+    });
+    const emptyClient = new ImapClient(account);
+    await emptyClient.connect();
+    const messages = await emptyClient.searchMessages({ from: 'nobody@example.com' });
+    expect(messages).toHaveLength(0);
+  });
+});
