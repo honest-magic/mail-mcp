@@ -86,7 +86,11 @@ Plans:
   1. Running `npm run test:integration` with a local smtp-server fixture completes a full send-receive cycle (compose -> send -> receive -> verify headers) without any mocked transport
   2. Running `npm run test:integration` without IMAP credentials set in environment skips IMAP tests cleanly with a descriptive skip message, and exits zero
   3. The integration test suite does not appear in or interfere with the default `npm test` unit test run
-**Plans**: TBD
+**Plans:** 2 plans
+
+Plans:
+- [ ] 13-01-PLAN.md — Integration test infrastructure, smtp-server fixture, and SMTP send/receive test
+- [ ] 13-02-PLAN.md — IMAP credential-gated integration test and CI workflow update
 
 ## Progress
 
@@ -104,10 +108,10 @@ Plans:
 | 10. Connection Lifecycle & Error Infrastructure | v1.1.0 | 3/3 | Complete    | 2026-03-22 |
 | 11. Input Validation & Safety Limits | v1.1.0 | 2/2 | Complete    | 2026-03-22 |
 | 12. Pagination, Health Check & Reconnect | v1.1.0 | 2/2 | Complete    | 2026-03-22 |
-| 13. Integration Test Suite | v1.1.0 | 0/? | Not started | - |
+| 13. Integration Test Suite | v1.1.0 | 0/2 | Not started | - |
 
 ---
-*Last updated: 2026-03-22 — Phase 12 planned (2 plans in 2 waves)*
+*Last updated: 2026-03-22 — Phase 13 planned (2 plans in 2 waves)*
 
 ## Backlog
 
