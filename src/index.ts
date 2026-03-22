@@ -729,6 +729,39 @@ export class MailMCPServer {
   }
 }
 
+export async function runValidateAccounts(): Promise<void> {
+  const accounts = await getAccounts();
+  if (accounts.length === 0) {
+    console.log('No accounts configured.');
+    return;
+  }
+
+  for (const account of accounts) {
+    // IMAP probe
+    try {
+      const imap = new ImapClient(account);
+      await imap.connect();
+      await imap.disconnect();
+      console.log(`[PASS] ${account.id} IMAP`);
+    } catch (e) {
+      console.log(`[FAIL] ${account.id} IMAP - ${(e as Error).message}`);
+    }
+
+    // SMTP probe
+    if (account.smtpHost) {
+      try {
+        const smtp = new SmtpClient(account);
+        await smtp.connect();
+        console.log(`[PASS] ${account.id} SMTP`);
+      } catch (e) {
+        console.log(`[FAIL] ${account.id} SMTP - ${(e as Error).message}`);
+      }
+    } else {
+      console.log(`[SKIP] ${account.id} SMTP - no smtpHost configured`);
+    }
+  }
+}
+
 async function main() {
   const args = process.argv.slice(2);
 
@@ -741,9 +774,17 @@ async function main() {
   // No CLI subcommand — start MCP server
   const { values } = parseArgs({
     args,
-    options: { 'read-only': { type: 'boolean', default: false } },
+    options: {
+      'read-only': { type: 'boolean', default: false },
+      'validate-accounts': { type: 'boolean', default: false },
+    },
     strict: false,
   });
+
+  if (values['validate-accounts']) {
+    await runValidateAccounts();
+    process.exit(0);
+  }
 
   const server = new MailMCPServer((values['read-only'] as boolean | undefined) ?? false);
 

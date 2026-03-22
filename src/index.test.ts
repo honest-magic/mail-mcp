@@ -707,3 +707,105 @@ describe('QUAL-01: pagination offset parameter', () => {
     );
   });
 });
+
+// vi.mock for protocol classes used in runValidateAccounts
+vi.mock('./protocol/imap.js', () => ({
+  ImapClient: vi.fn().mockImplementation(function() {
+    return {
+      connect: vi.fn().mockResolvedValue(undefined),
+      disconnect: vi.fn().mockResolvedValue(undefined),
+      onClose: null,
+    };
+  }),
+}));
+
+vi.mock('./protocol/smtp.js', () => ({
+  SmtpClient: vi.fn().mockImplementation(function() {
+    return {
+      connect: vi.fn().mockResolvedValue(undefined),
+    };
+  }),
+}));
+
+import { ImapClient as MockImapClientCtor } from './protocol/imap.js';
+import { SmtpClient as MockSmtpClientCtor } from './protocol/smtp.js';
+
+describe('CONN-03: --validate-accounts health check', () => {
+  beforeEach(() => {
+    vi.mocked(MockImapClientCtor).mockImplementation(function() {
+      return {
+        connect: vi.fn().mockResolvedValue(undefined),
+        disconnect: vi.fn().mockResolvedValue(undefined),
+        onClose: null,
+      } as any;
+    });
+    vi.mocked(MockSmtpClientCtor).mockImplementation(function() {
+      return {
+        connect: vi.fn().mockResolvedValue(undefined),
+      } as any;
+    });
+  });
+
+  it('prints [PASS] for successful IMAP + SMTP probe', async () => {
+    const { runValidateAccounts } = await import('./index.js');
+    vi.mocked(getAccounts).mockResolvedValue([
+      { id: 'acc1', name: 'Test', user: 'test@test.com', host: 'imap.test.com', port: 993, useTLS: true, authType: 'password', smtpHost: 'smtp.test.com' } as any,
+    ]);
+
+    const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+    await runValidateAccounts();
+
+    const output = consoleSpy.mock.calls.map(c => c[0]);
+    consoleSpy.mockRestore();
+    expect(output).toContain('[PASS] acc1 IMAP');
+    expect(output).toContain('[PASS] acc1 SMTP');
+  });
+
+  it('prints [FAIL] for failed IMAP with error message', async () => {
+    const { runValidateAccounts } = await import('./index.js');
+    vi.mocked(getAccounts).mockResolvedValue([
+      { id: 'acc1', name: 'Test', user: 'test@test.com', host: 'imap.test.com', port: 993, useTLS: true, authType: 'password' } as any,
+    ]);
+
+    vi.mocked(MockImapClientCtor).mockImplementation(function() {
+      return {
+        connect: vi.fn().mockRejectedValue(new Error('Authentication failed')),
+        disconnect: vi.fn().mockResolvedValue(undefined),
+        onClose: null,
+      } as any;
+    });
+
+    const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+    await runValidateAccounts();
+
+    const output = consoleSpy.mock.calls.map(c => c[0]);
+    consoleSpy.mockRestore();
+    expect(output.some(msg => msg.startsWith('[FAIL] acc1 IMAP') && msg.includes('Authentication failed'))).toBe(true);
+  });
+
+  it('prints [SKIP] for account without smtpHost', async () => {
+    const { runValidateAccounts } = await import('./index.js');
+    vi.mocked(getAccounts).mockResolvedValue([
+      { id: 'acc1', name: 'Test', user: 'test@test.com', host: 'imap.test.com', port: 993, useTLS: true, authType: 'password' } as any,
+    ]);
+
+    const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+    await runValidateAccounts();
+
+    const output = consoleSpy.mock.calls.map(c => c[0]);
+    consoleSpy.mockRestore();
+    expect(output.some(msg => msg.startsWith('[SKIP] acc1 SMTP'))).toBe(true);
+  });
+
+  it('prints "No accounts configured." when accounts list is empty', async () => {
+    const { runValidateAccounts } = await import('./index.js');
+    vi.mocked(getAccounts).mockResolvedValue([]);
+
+    const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+    await runValidateAccounts();
+
+    const output = consoleSpy.mock.calls.map(c => c[0]);
+    consoleSpy.mockRestore();
+    expect(output[0]).toBe('No accounts configured.');
+  });
+});
