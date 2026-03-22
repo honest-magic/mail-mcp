@@ -38,6 +38,9 @@ Empower AI agents to act as a personal mail assistant by providing structured, t
 - ✓ **VAL-02**: Email address RFC 5322 validation on send/draft before SMTP — v1.1.0 Phase 11
 - ✓ **SAFE-01**: Attachment size cap (50MB) via BODYSTRUCTURE check before download — v1.1.0 Phase 11
 - ✓ **SAFE-03**: Per-account in-memory rate limiter (100 req/60s sliding window) — v1.1.0 Phase 11
+- ✓ **QUAL-01**: Pagination via offset parameter on list_emails and search_emails — v1.1.0 Phase 12
+- ✓ **CONN-02**: IMAP auto-reconnect on connection drop with one-retry backoff — v1.1.0 Phase 12
+- ✓ **CONN-03**: --validate-accounts CLI probes IMAP/SMTP per account at startup — v1.1.0 Phase 12
 
 ### Out of Scope
 
@@ -107,4 +110,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-03-22 — Phase 11 complete (input validation & safety limits)*
+*Last updated: 2026-03-22 — Phase 12 complete (pagination, health check & reconnect)*
