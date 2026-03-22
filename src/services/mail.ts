@@ -8,7 +8,7 @@ export class MailService {
   private smtpClient: SmtpClient;
   private account: EmailAccount;
 
-  constructor(account: EmailAccount) {
+  constructor(account: EmailAccount, private readonly readOnly: boolean = false) {
     this.account = account;
     this.imapClient = new ImapClient(account);
     this.smtpClient = new SmtpClient(account);
@@ -16,7 +16,9 @@ export class MailService {
 
   async connect() {
     await this.imapClient.connect();
-    await this.smtpClient.connect();
+    if (!this.readOnly) {
+      await this.smtpClient.connect();
+    }
   }
 
   async disconnect() {

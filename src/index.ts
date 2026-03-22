@@ -34,6 +34,9 @@ export class MailMCPServer {
         capabilities: {
           tools: {},
         },
+        ...(this.readOnly ? {
+          instructions: 'This server is running in read-only mode. Write operations (send_email, create_draft, move_email, modify_labels, batch_operations, register_oauth2_account) are disabled.',
+        } : {}),
       }
     );
 
@@ -51,7 +54,7 @@ export class MailMCPServer {
     if (!account) {
       throw new Error(`Account ${accountId} not found in configuration.`);
     }
-    const service = new MailService(account);
+    const service = new MailService(account, this.readOnly);
     await service.connect();
     this.services.set(accountId, service);
     return service;
