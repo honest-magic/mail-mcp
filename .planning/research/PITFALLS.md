@@ -678,6 +678,142 @@ refresh; token-aware reconnect prevents this failure mode.
 
 ---
 
+### Pitfall H-13: Pagination Using `1:*` UID Range Causes Out-of-Memory Crash
+
+**What goes wrong:**
+When implementing pagination for `list_emails` and `search_emails`, it is tempting to fetch all
+messages with a `1:*` sequence range and then slice the results in JavaScript. On a mailbox with
+50,000+ messages, ImapFlow buffers all message data in memory before returning. A single
+`list_emails` call against a large INBOX can exhaust available memory and crash the Node.js process.
+
+A second variant of this pitfall: implementing "page N" by fetching all messages up to that page
+(messages 1 through N×pageSize) and discarding earlier ones. This fetches quadratically more data
+as page number increases.
+
+**Why it happens:**
+The existing `listMessages` in `src/protocol/imap.ts` uses sequence arithmetic
+(`Math.max(1, total - count + 1)`) to fetch only the tail of the mailbox. Pagination seems like
+a natural extension of this — developers add an `offset` parameter and adjust the range calculation
+without verifying that the range stays bounded.
+
+**Consequences:**
+- Process crash with ENOMEM on large mailboxes
+- Slow responses even before OOM: fetching 10,000 messages to return page 100 of 10
+- IMAP server may disconnect for exceeding per-connection data transfer limits (Gmail: 2.5 GB/day)
+
+**Prevention:**
+- Always compute a bounded range: `Math.max(1, total - (page * pageSize))` to `Math.max(1, total - ((page - 1) * pageSize))` using the mailbox `total` count.
+- Never fetch more UIDs than `pageSize` in a single range expression.
+- For cursor-based pagination (preferred over offset): record the lowest UID seen on each page as the cursor; next page fetches `1:(cursor - 1)` from the tail end.
+- ImapFlow's documentation warns explicitly: "Do not use large ranges like `1:*` as this might exhaust all available memory."
+- Use `fetchAll()` only for ranges you know are small (< 100 messages); use the async `fetch()` generator with an early `break` for bounded iteration.
+
+**Detection / Warning signs:**
+- Pagination offset parameter is passed directly into a `1:N` range without checking against mailbox size
+- `fetchAll()` called with `'1:*'` or an unbounded sequence
+- No test with a simulated large mailbox (mock returning `mailbox.exists = 10000`)
+
+**Phase to address:** Phase 2 (Pagination) — implement bounded range arithmetic before any
+pagination feature lands.
+
+---
+
+### Pitfall H-14: MCP Protocol-Level Error vs Tool-Level `isError: true` Confusion
+
+**What goes wrong:**
+When adding structured error types, developers throw `McpError` (or an unhandled `Error`) inside
+a tool handler for domain errors like "account not found" or "rate limit exceeded." This surfaces
+as a JSON-RPC protocol error — the client sees a failed RPC call, not a tool execution result.
+MCP clients (Claude Desktop) treat protocol errors as server malfunctions and may disconnect,
+show a generic error UI, or suppress the error from the LLM context entirely.
+
+The correct behavior is: tool execution errors (including "account not found," "rate limit
+exceeded," "invalid email address") should be returned as a **successful JSON-RPC response**
+with `{ content: [{type: 'text', text: '...'}], isError: true }`. Only true protocol-layer
+failures (malformed request, server crash, unrecognized method) should be `McpError` throws.
+
+**Why it happens:**
+The distinction between "the tool ran and reported an error" vs "the RPC mechanism failed" is
+subtle. The existing `src/index.ts` catch block does the right thing for generic `Error` throws
+(wraps in `isError: true`) but the pattern is implicit — adding explicit `throw new McpError(...)`
+for domain errors bypasses this wrapper.
+
+**Consequences:**
+- LLM never sees the error message; it cannot reason about or recover from the failure
+- Claude Desktop shows "MCP Error" banner instead of feeding the error back to the model
+- Operators see protocol errors in logs for what are actually normal operational conditions
+  (e.g., "account not found" during a misconfigured session)
+
+**Prevention:**
+- Reserve `throw new McpError(ErrorCode.X, ...)` exclusively for: `MethodNotFound` (unknown tool),
+  `InvalidParams` (schema parse failure before any domain logic runs), and `InternalError`
+  (truly unexpected server exceptions like uncaught promise rejections).
+- For all domain errors (auth failure, rate limit, account not found, invalid email, IMAP error),
+  return `{ content: [{type: 'text', text: 'Error: ...'}], isError: true }`.
+- When adding structured error types (e.g., `class RateLimitError extends Error`), ensure the
+  catch block in the CallTool handler maps each error class to an `isError: true` response, not a
+  re-throw.
+- A structured error class hierarchy is still valuable — use it to compose the `text` message,
+  not to select between protocol-level vs tool-level error paths.
+
+**Detection / Warning signs:**
+- `throw new McpError(...)` appears inside domain logic handlers (after `getService()` is called)
+- No test verifies that a "rate limit exceeded" error returns `isError: true` in the response body
+- MCP client logs show `"code": -32603` (InternalError) for normal operational conditions
+
+**Phase to address:** Phase 2 (Structured Error Types) — establish the error response contract
+before wiring error classes into handlers; one wrong `throw McpError` buries errors from the LLM.
+
+---
+
+### Pitfall H-15: Installing Zod v4 When Schema Uses v3 API
+
+**What goes wrong:**
+Zod v4 was released in 2025 and ships as the default `npm install zod` result. It contains
+breaking changes that silently produce runtime failures when using v3-style schema definitions:
+
+1. `z.string().email()` no longer exists — it moved to `z.email()` (top-level function). Code
+   using the chained form compiles in TypeScript but the `.email()` method is undefined at runtime.
+2. `z.record(valueSchema)` now requires two arguments `(keySchema, valueSchema)`. The one-argument
+   form accepted in v3 is a type error in v4.
+3. The `message` param on validators (`z.string({ message: '...' })`) is replaced by `error`. Using
+   `message` silently falls back to the default error text with no TypeScript error in some editor
+   setups.
+4. `z.string().uuid()` behavior changed: v4 enforces RFC 4122 strictly; v3 accepted some non-standard
+   UUIDs. Existing test data with non-RFC-4122 UUIDs will fail validation silently (schema returns
+   no error for types that changed parsing behavior).
+
+**Why it happens:**
+The `zod` npm package defaulted to v3 for years. Documentation and Stack Overflow examples
+predominantly show v3 syntax. Developers install fresh and write v3-style schemas without checking
+the installed version.
+
+**Consequences:**
+- Config validation fails to reject invalid accounts because `.email()` is not called (silently skipped)
+- Schema code appears to work in unit tests using `zod` mocks but fails at runtime with real input
+- Runtime error: `TypeError: z.string(...).email is not a function` — confusing because it looks
+  like a type system issue, not a version mismatch
+
+**Prevention:**
+- After `npm install zod`, check `package.json` to confirm whether v3 (`^3.x`) or v4 (`^4.x`) is installed.
+- If using v4: use `z.email()`, `z.url()`, `z.uuid()` as top-level functions.
+- If using v3 (pinned for compatibility): add `"zod": "^3.23"` explicitly to `package.json` to
+  prevent v4 from being installed transitively.
+- Zod v4 exports at subpath `"zod/v4"` alongside v3 for incremental migration — useful if
+  other project dependencies pin v3.
+- Add a test that instantiates the Zod schema and confirms a known-invalid email is rejected;
+  this catches silent validation bypass immediately.
+
+**Detection / Warning signs:**
+- `package.json` lists `"zod": "^4.x"` or `"zod": "latest"` but schemas use `.email()` chained form
+- No pinned Zod version; `npm outdated` shows Zod at v4 when schemas were written against v3 docs
+- Schema test for `host` field passes even when `host` is `"not-an-email"` (validation silently no-ops)
+
+**Phase to address:** Phase 1 (Config Validation) — pin the Zod version or migrate to v4 API
+before writing any schemas. Discovering the version mismatch after 10 schemas are written is expensive.
+
+---
+
 ## Phase-Specific Warnings
 
 | Phase Topic | Likely Pitfall | Mitigation |
@@ -687,9 +823,12 @@ refresh; token-aware reconnect prevents this failure mode.
 | Config Validation | Zod fails open, returns empty array silently (H-04) | Throw on validation failure; per-account error reporting |
 | Config Validation | SMTP port/TLS mismatch masked as auth failure (H-06) | Zod `.refine()` cross-validates port and `secure` flag |
 | Config Validation | Memory cache added without invalidation (H-08) | Keep sync reads or add `fs.watch()` in same PR |
+| Config Validation | Zod v4 API installed when using v3 syntax (H-15) | Pin `"zod": "^3.23"` or migrate fully to v4 top-level functions |
 | Rate Limiting | Global limiter blocks all accounts (H-05) | Per-account `Map<id, RateLimiter>` in service layer |
 | Email Validation | RFC 5322 regex causes ReDoS (H-09) | Use `validator` npm package or simple safe regex |
 | Connection Health | NOOP during IDLE kills connection (H-07) | Check `client.idling` before sending NOOP |
+| Structured Errors | `McpError` thrown for domain errors hides them from LLM (H-14) | Domain errors return `isError: true`; `McpError` only for protocol failures |
+| Pagination | `1:*` range OOM on large mailboxes (H-13) | Always compute bounded range from `mailbox.exists`; cap at pageSize |
 | Integration Tests | Shared mailbox state causes flakiness (H-10) | Per-test unique IDs + `afterEach` cleanup |
 | Integration Tests | Integration tests break CI unit tests (H-11) | Separate test scripts and Vitest projects |
 | OAuth2 + Lifecycle | Token expires during long batch op (H-12) | Token refresh in reconnect handler; 5-minute buffer |
@@ -707,6 +846,9 @@ refresh; token-aware reconnect prevents this failure mode.
 | `getAccounts()` + Zod | Return `[]` on schema failure | Throw with field-level error details |
 | Nodemailer SMTP options | Set `secure` without validating port | Zod `.refine()` enforces port/secure relationship |
 | Rate limiter placement | Single global counter | Per-account `Map<accountId, Limiter>` inside `MailService` |
+| Tool handler errors | `throw new McpError(...)` for domain errors | Return `{ content, isError: true }` for all domain errors |
+| Pagination range | `fetch('1:*')` or unbounded fetchAll | Bounded range: `(total - pageSize):*` computed from `mailbox.exists` |
+| Zod version | `npm install zod` installs v4; schemas use v3 API | Pin `"zod": "^3.23"` or audit all schemas for v4 API changes |
 | Integration test setup | Single shared Vitest project | Separate `*.integration.test.ts` config; env-var guard |
 | Mailpit test isolation | No cleanup between tests | Purge mailbox in `beforeAll`; `afterEach` deletes test messages |
 | OAuth2 buffer | 60-second refresh buffer | Increase to 5 minutes; re-check in reconnect handler |
@@ -724,6 +866,7 @@ refresh; token-aware reconnect prevents this failure mode.
 - [ ] All `getMailboxLock()` calls use `finally` for release
 
 **Config Validation:**
+- [ ] Zod version pinned or v4 API migration completed before writing any schemas
 - [ ] Zod schema throws (does not return `[]`) on validation failure
 - [ ] Error message includes account ID/index and failing field name
 - [ ] SMTP port/`secure` relationship enforced via Zod `.refine()`
@@ -732,7 +875,17 @@ refresh; token-aware reconnect prevents this failure mode.
 **Rate Limiting:**
 - [ ] Rate limiter is per-account (Map keyed by accountId), not global
 - [ ] `batch_operations` respects rate limit per-UID, not per-tool-call
-- [ ] Rate limit errors return a structured error message (not a connection error)
+- [ ] Rate limit errors return `isError: true` response body (not a `McpError` throw)
+
+**Structured Errors:**
+- [ ] Domain errors (account not found, rate limit, IMAP failure) return `isError: true`
+- [ ] `throw new McpError(...)` reserved for protocol-layer failures only
+- [ ] Test verifies each error class produces an `isError: true` tool response visible to LLM
+
+**Pagination:**
+- [ ] `list_emails` and `search_emails` range is always bounded by `pageSize`
+- [ ] No `1:*` or unbounded `fetchAll()` in any paginated code path
+- [ ] Test uses mock mailbox with `exists: 10000` to verify bounded fetch
 
 **Integration Tests:**
 - [ ] Integration tests in separate Vitest project or script (`npm run test:integration`)
@@ -854,6 +1007,7 @@ These pitfalls apply across all milestones and remain valid for the project life
 
 - Direct analysis: `src/index.ts`, `src/services/mail.ts`, `src/config.ts`, `src/protocol/imap.ts`, `src/security/oauth2.ts`
 - [ImapFlow Documentation — Connection Lifecycle](https://imapflow.com/module-imapflow-ImapFlow.html) (HIGH confidence)
+- [ImapFlow Fetching Messages Guide](https://imapflow.com/docs/guides/fetching-messages/) (HIGH confidence)
 - [ImapFlow Issue #48 — getMailboxLock timeout on network disconnect](https://github.com/postalsys/imapflow/issues/48) (HIGH confidence)
 - [ImapFlow Issue #110 — messageFlagsAdd deadlock inside fetch loop](https://github.com/postalsys/imapflow/issues/110) (HIGH confidence)
 - [Mailbox Locking in ImapFlow — EmailEngine docs](https://docs.emailengine.app/mailbox-locking-in-imapflow/) (HIGH confidence)
@@ -861,6 +1015,11 @@ These pitfalls apply across all milestones and remain valid for the project life
 - [Gmail IMAP Rate Limits and Bandwidth](https://support.google.com/a/answer/2751577) (HIGH confidence)
 - [Mailpit — SMTP/IMAP test server for integration testing](https://mailpit.axllent.org/) (HIGH confidence)
 - [RFC 2177 — IMAP IDLE extension, NOOP prohibition during IDLE](https://www.rfc-editor.org/rfc/rfc2177) (HIGH confidence)
+- [MCP Error Handling — protocol vs tool-level errors](https://modelcontextprotocol.io/specification/2025-06-18/server/tools) (HIGH confidence)
+- [Error Handling in MCP TypeScript SDK](https://dev.to/yigit-konur/error-handling-in-mcp-typescript-sdk-2ol7) (MEDIUM confidence)
+- [Zod v4 Migration Guide — breaking changes](https://zod.dev/v4/changelog) (HIGH confidence)
+- [Zod v4 Release Notes](https://zod.dev/v4) (HIGH confidence)
+- [IMAP new messages since last check — UID/UIDNEXT pagination pattern](https://medium.com/@kehers/imap-new-messages-since-last-check-5cc338fd5f09) (MEDIUM confidence)
 - [email-addresses — RFC 5322 parser pitfalls](https://github.com/jackbearheart/email-addresses) (MEDIUM confidence)
 - [ReDoS risks in RFC 5322 email regex](https://www.regular-expressions.info/email.html) (MEDIUM confidence)
 
