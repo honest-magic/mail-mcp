@@ -15,10 +15,10 @@ Requirements for hardening & reliability milestone. Each maps to roadmap phases.
 
 ### Input Validation
 
-- [ ] **VAL-01**: Account config is validated against a Zod schema at load time, with actionable error messages on failure
+- [x] **VAL-01**: Account config is validated against a Zod schema at load time, with actionable error messages on failure
 - [ ] **VAL-02**: Email addresses (to/cc/bcc) are validated as RFC 5322 format before SMTP send
-- [ ] **VAL-03**: SMTP `secure` flag is auto-derived from port (465=TLS, 587=STARTTLS) when not explicitly set
-- [ ] **VAL-04**: Account config is cached in memory and invalidated via file watcher instead of reading from disk per call
+- [x] **VAL-03**: SMTP `secure` flag is auto-derived from port (465=TLS, 587=STARTTLS) when not explicitly set
+- [x] **VAL-04**: Account config is cached in memory and invalidated via file watcher instead of reading from disk per call
 
 ### Safety Limits
 
@@ -61,10 +61,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CONN-01 | Phase 10 | Complete |
 | CONN-02 | Phase 12 | Pending |
 | CONN-03 | Phase 12 | Pending |
-| VAL-01 | Phase 10 | Pending |
+| VAL-01 | Phase 10 | Complete |
 | VAL-02 | Phase 11 | Pending |
-| VAL-03 | Phase 10 | Pending |
-| VAL-04 | Phase 10 | Pending |
+| VAL-03 | Phase 10 | Complete |
+| VAL-04 | Phase 10 | Complete |
 | SAFE-01 | Phase 11 | Pending |
 | SAFE-02 | Phase 10 | Complete |
 | SAFE-03 | Phase 11 | Pending |

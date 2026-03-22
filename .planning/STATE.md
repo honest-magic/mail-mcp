@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.1.0
 milestone_name: Hardening & Reliability
 status: unknown
-stopped_at: Completed 10-03-PLAN.md
-last_updated: "2026-03-22T20:34:28.574Z"
+stopped_at: Completed 10-02-PLAN.md
+last_updated: "2026-03-22T20:34:56.870Z"
 progress:
   total_phases: 4
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 3
-  completed_plans: 2
+  completed_plans: 3
 ---
 
 # Project State: Mail MCP Server
@@ -90,10 +90,11 @@ Plan: 3 of 3
 | 260322-ms9 | Add CLI helper commands for managing accounts (add/list/remove) | 2026-03-22 | 26f07bc | [260322-ms9-add-cli-helper-commands-for-managing-acc](.planning/quick/260322-ms9-add-cli-helper-commands-for-managing-acc/) |
 | Phase 10 P01 | 170 | 2 tasks | 4 files |
 | Phase 10 P03 | 480 | 2 tasks | 4 files |
+| Phase 10 P02 | 245 | 2 tasks | 5 files |
 
 ## Session Continuity
 
 **Last Action:** Roadmap created for v1.1.0 Hardening & Reliability (Phases 10–13, 12 requirements mapped).
 **Next Step:** Plan Phase 10 — `/gsd:plan-phase 10`
-**Stopped At:** Completed 10-03-PLAN.md
+**Stopped At:** Completed 10-02-PLAN.md
 **Context for Next Agent:** v1.1.0 roadmap is ready. Phase 10 is the first phase — it covers connection lifecycle (CONN-01), config validation (VAL-01), SMTP TLS auto-derivation (VAL-03), config caching (VAL-04), and typed error classes (SAFE-02). Typed errors are in Phase 10 (not Phase 11) because every downstream phase depends on them. The research file at `.planning/research/SUMMARY.md` has a full pitfall list — H-01 (no auto-reconnect), H-02 (lock deadlock), H-03 (SIGTERM drain) are critical for Phase 10 implementation. Before Phase 11 rate limiting, verify `RateLimiterMemory` API. Before Phase 13, verify smtp-server ESM/Vitest compatibility and decide CI IMAP credentials strategy.
