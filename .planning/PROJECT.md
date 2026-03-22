@@ -34,10 +34,10 @@ Empower AI agents to act as a personal mail assistant by providing structured, t
 
 - [ ] **GH-01**: Public repo `github.com/honest-magic/mail-mcp` exists with all existing commits pushed
 - [ ] **GH-02**: Repository has a README.md suitable for public consumers (install, config, usage)
-- [ ] **PKG-01**: `package.json` has `name: "@honest-magic/mail-mcp"`, `version: "1.0.0"`, `publishConfig.access: "public"`
-- [ ] **PKG-02**: `package.json` has a `bin` entry enabling `npx @honest-magic/mail-mcp` and global install
-- [ ] **PKG-03**: `package.json` `files` field scopes the published artifact to `dist/`, `README.md`, `LICENSE` only
-- [ ] **PKG-04**: Build script produces a self-contained `dist/` that runs without dev dependencies
+- [x] **PKG-01**: `package.json` has `name: "@honest-magic/mail-mcp"`, `version: "1.0.0"`, `publishConfig.access: "public"` — *Validated in Phase 7: npm Package Setup*
+- [x] **PKG-02**: `package.json` has a `bin` entry enabling `npx @honest-magic/mail-mcp` and global install — *Validated in Phase 7*
+- [x] **PKG-03**: `package.json` `files` field scopes the published artifact to `dist/`, `README.md`, `LICENSE` only — *Validated in Phase 7*
+- [x] **PKG-04**: Build script produces a self-contained `dist/` that runs without dev dependencies — *Validated in Phase 7*
 - [ ] **GHA-01**: CI workflow runs `tsc --noEmit` + `npm test` on push to `main` and on pull requests
 - [ ] **GHA-02**: Publish workflow triggers on `v*` tag push and publishes `@honest-magic/mail-mcp` to npm
 - [ ] **GHA-03**: Publish workflow requires CI to pass before publishing
@@ -100,4 +100,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-03-22 — Milestone v1.2 started (public release & CI/CD)*
+*Last updated: 2026-03-22 — Phase 7 complete (npm package configured for @honest-magic/mail-mcp)*
