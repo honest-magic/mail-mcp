@@ -104,7 +104,8 @@ export class MailMCPServer {
           properties: {
             accountId: { type: 'string', description: 'The ID of the account to use' },
             folder: { type: 'string', description: 'The folder to list emails from (default: INBOX)' },
-            count: { type: 'number', description: 'The number of emails to retrieve (default: 10)' }
+            count: { type: 'number', description: 'The number of emails to retrieve (default: 10)' },
+            offset: { type: 'number', description: 'Number of messages to skip from the newest (for pagination, default: 0)' }
           },
           required: ['accountId']
         }
@@ -123,7 +124,8 @@ export class MailMCPServer {
             since: { type: 'string', description: 'Filter by date (ISO format)' },
             before: { type: 'string', description: 'Filter by date (ISO format)' },
             keywords: { type: 'string', description: 'Filter by keywords in body' },
-            count: { type: 'number', description: 'The number of emails to retrieve (default: 10)' }
+            count: { type: 'number', description: 'The number of emails to retrieve (default: 10)' },
+            offset: { type: 'number', description: 'Number of messages to skip from the newest (for pagination, default: 0)' }
           },
           required: ['accountId']
         }
@@ -344,6 +346,28 @@ export class MailMCPServer {
         );
       }
 
+      if (name === 'list_emails') {
+        const service = await this.getService(args.accountId as string);
+        const messages = await (service as any).listEmails(args.folder, args.count, args.offset);
+        return {
+          content: [{ type: 'text', text: JSON.stringify(messages, null, 2) }],
+        };
+      }
+
+      if (name === 'search_emails') {
+        const service = await this.getService(args.accountId as string);
+        const messages = await (service as any).searchEmails({
+          from: args.from,
+          subject: args.subject,
+          since: args.since,
+          before: args.before,
+          keywords: args.keywords,
+        }, args.folder, args.count, args.offset);
+        return {
+          content: [{ type: 'text', text: JSON.stringify(messages, null, 2) }],
+        };
+      }
+
       if (name === 'send_email') {
         const service = await this.getService(args.accountId as string);
         await (service as any).sendEmail(args.to, args.subject, args.body, args.isHtml, args.cc, args.bcc);
@@ -426,9 +450,9 @@ export class MailMCPServer {
         }
 
         if (request.params.name === 'list_emails') {
-          const args = request.params.arguments as { accountId: string; folder?: string; count?: number };
+          const args = request.params.arguments as { accountId: string; folder?: string; count?: number; offset?: number };
           const service = await this.getService(args.accountId);
-          const messages = await service.listEmails(args.folder, args.count);
+          const messages = await service.listEmails(args.folder, args.count, args.offset);
           return {
             content: [
               {
@@ -440,15 +464,16 @@ export class MailMCPServer {
         }
 
         if (request.params.name === 'search_emails') {
-          const args = request.params.arguments as { 
-            accountId: string; 
-            folder?: string; 
-            from?: string; 
-            subject?: string; 
-            since?: string; 
-            before?: string; 
+          const args = request.params.arguments as {
+            accountId: string;
+            folder?: string;
+            from?: string;
+            subject?: string;
+            since?: string;
+            before?: string;
             keywords?: string;
             count?: number;
+            offset?: number;
           };
           const service = await this.getService(args.accountId);
           const messages = await service.searchEmails({
@@ -457,7 +482,7 @@ export class MailMCPServer {
             since: args.since,
             before: args.before,
             keywords: args.keywords
-          }, args.folder, args.count);
+          }, args.folder, args.count, args.offset);
           return {
             content: [
               {
