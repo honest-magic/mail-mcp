@@ -1,6 +1,6 @@
 {
   "name": "@honest-magic/mail-mcp",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "MCP server for AI-powered email access via IMAP and SMTP",
   "keywords": ["mcp", "email", "imap", "smtp", "ai", "llm", "model-context-protocol"],
   "author": "honest-magic",
