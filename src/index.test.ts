@@ -374,6 +374,137 @@ describe('SAFE-02: typed error formatting in catch block', () => {
   });
 });
 
+describe('VAL-02: email validation at dispatch layer', () => {
+  it('send_email with invalid to returns isError: true containing [ValidationError] and the invalid address', async () => {
+    const server = new MailMCPServer(false);
+    const result = await (server as any).dispatchTool('send_email', false, {
+      accountId: 'test',
+      to: 'notanemail',
+      subject: 'Hi',
+      body: 'test',
+    });
+    expect(result.isError).toBe(true);
+    expect(result.content[0].text).toContain('[ValidationError]');
+    expect(result.content[0].text).toContain('notanemail');
+  });
+
+  it('send_email with invalid to does NOT call MailService.sendEmail', async () => {
+    const { MailService } = await import('./services/mail.js');
+    const server = new MailMCPServer(false);
+    const sendEmailMock = vi.fn();
+    // Override getService to return a mock with sendEmail spy
+    vi.spyOn(server as any, 'getService').mockResolvedValue({ sendEmail: sendEmailMock });
+    await (server as any).dispatchTool('send_email', false, {
+      accountId: 'test',
+      to: 'notanemail',
+      subject: 'Hi',
+      body: 'test',
+    });
+    expect(sendEmailMock).not.toHaveBeenCalled();
+  });
+
+  it('create_draft with invalid to returns isError: true containing [ValidationError]', async () => {
+    const server = new MailMCPServer(false);
+    const result = await (server as any).dispatchTool('create_draft', false, {
+      accountId: 'test',
+      to: 'notanemail',
+      subject: 'Draft',
+      body: 'test',
+    });
+    expect(result.isError).toBe(true);
+    expect(result.content[0].text).toContain('[ValidationError]');
+  });
+
+  it('create_draft with invalid to does NOT call MailService.createDraft', async () => {
+    const server = new MailMCPServer(false);
+    const createDraftMock = vi.fn();
+    vi.spyOn(server as any, 'getService').mockResolvedValue({ createDraft: createDraftMock });
+    await (server as any).dispatchTool('create_draft', false, {
+      accountId: 'test',
+      to: 'notanemail',
+      subject: 'Draft',
+      body: 'test',
+    });
+    expect(createDraftMock).not.toHaveBeenCalled();
+  });
+
+  it('send_email with valid to proceeds (does not return ValidationError)', async () => {
+    const server = new MailMCPServer(false);
+    const sendEmailMock = vi.fn().mockResolvedValue(undefined);
+    vi.spyOn(server as any, 'getService').mockResolvedValue({ sendEmail: sendEmailMock });
+    const result = await (server as any).dispatchTool('send_email', false, {
+      accountId: 'test',
+      to: 'user@example.com',
+      subject: 'Hi',
+      body: 'test',
+    });
+    expect(result.isError).not.toBe(true);
+    expect(sendEmailMock).toHaveBeenCalledOnce();
+  });
+});
+
+describe('SAFE-03: rate limiting at dispatch layer', () => {
+  it('returns [QuotaError] after exceeding rate limit for an account', async () => {
+    // Use very low limits (1 request) to trigger quickly in tests
+    const { AccountRateLimiter } = await import('./utils/rate-limiter.js');
+    const server = new MailMCPServer(false);
+    // Replace the internal rate limiter with a low-limit one
+    (server as any).rateLimiter = new AccountRateLimiter({ points: 1, duration: 60 });
+
+    const sendEmailMock = vi.fn().mockResolvedValue(undefined);
+    vi.spyOn(server as any, 'getService').mockResolvedValue({ sendEmail: sendEmailMock });
+
+    // First call should succeed (valid email, 1 point consumed)
+    const result1 = await (server as any).dispatchTool('send_email', false, {
+      accountId: 'test-rate',
+      to: 'user@example.com',
+      subject: 'Hi',
+      body: 'test',
+    });
+    expect(result1.isError).not.toBe(true);
+
+    // Second call should be rate-limited
+    const result2 = await (server as any).dispatchTool('send_email', false, {
+      accountId: 'test-rate',
+      to: 'user@example.com',
+      subject: 'Hi',
+      body: 'test',
+    });
+    expect(result2.isError).toBe(true);
+    expect(result2.content[0].text).toContain('[QuotaError]');
+    expect(result2.content[0].text).toContain('Rate limit exceeded');
+  });
+
+  it('list_accounts is NOT rate-limited (no accountId)', async () => {
+    const { AccountRateLimiter } = await import('./utils/rate-limiter.js');
+    const server = new MailMCPServer(false);
+    // Replace the internal rate limiter with a 0-point limiter that always fails
+    (server as any).rateLimiter = new AccountRateLimiter({ points: 0, duration: 60 });
+
+    // list_accounts has no accountId — should NOT be rate-limited
+    const result = await (server as any).dispatchTool('list_accounts', false, {});
+    expect(result.isError).not.toBe(true);
+  });
+
+  it('rate limiter is called BEFORE getService (no IMAP connection for rate-limited requests)', async () => {
+    const { AccountRateLimiter } = await import('./utils/rate-limiter.js');
+    const server = new MailMCPServer(false);
+    (server as any).rateLimiter = new AccountRateLimiter({ points: 0, duration: 60 });
+
+    const getServiceSpy = vi.spyOn(server as any, 'getService');
+
+    const result = await (server as any).dispatchTool('send_email', false, {
+      accountId: 'test',
+      to: 'user@example.com',
+      subject: 'Hi',
+      body: 'test',
+    });
+    expect(result.isError).toBe(true);
+    expect(result.content[0].text).toContain('[QuotaError]');
+    expect(getServiceSpy).not.toHaveBeenCalled();
+  });
+});
+
 describe('CONN-01: graceful shutdown', () => {
   it('shutdown() calls disconnect() on all services in the services Map', async () => {
     const server = new MailMCPServer(false);

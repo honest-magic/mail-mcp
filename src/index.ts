@@ -12,6 +12,8 @@ import { getAccounts } from './config.js';
 import { handleAccountsCommand } from './cli/accounts.js';
 import { MailService } from './services/mail.js';
 import { MailMCPError } from './errors.js';
+import { AccountRateLimiter } from './utils/rate-limiter.js';
+import { validateEmailAddresses } from './utils/validation.js';
 
 const WRITE_TOOLS = new Set<string>([
   'send_email',
@@ -27,6 +29,7 @@ export class MailMCPServer {
   private services: Map<string, MailService> = new Map();
   private shuttingDown = false;
   private inFlightCount = 0;
+  private readonly rateLimiter = new AccountRateLimiter();
 
   constructor(private readonly readOnly: boolean = false) {
     this.server = new Server(
@@ -312,6 +315,12 @@ export class MailMCPServer {
         };
       }
 
+      // Rate limit guard — before any I/O (list_accounts has no accountId, skip it)
+      const accountId = (args as Record<string, unknown>)?.accountId as string | undefined;
+      if (accountId) {
+        await this.rateLimiter.consume(accountId);
+      }
+
       if (name === 'list_accounts') {
         const accounts = await getAccounts();
         return {
@@ -323,6 +332,31 @@ export class MailMCPServer {
               2
             ),
           }],
+        };
+      }
+
+      // Email validation guard for send/draft tools — before SMTP/IMAP I/O
+      if (name === 'send_email' || name === 'create_draft') {
+        validateEmailAddresses(
+          args.to as string,
+          args.cc as string | undefined,
+          args.bcc as string | undefined
+        );
+      }
+
+      if (name === 'send_email') {
+        const service = await this.getService(args.accountId as string);
+        await (service as any).sendEmail(args.to, args.subject, args.body, args.isHtml, args.cc, args.bcc);
+        return {
+          content: [{ type: 'text', text: `Email successfully sent to ${args.to} and saved to Sent folder.` }],
+        };
+      }
+
+      if (name === 'create_draft') {
+        const service = await this.getService(args.accountId as string);
+        await (service as any).createDraft(args.to, args.subject, args.body, args.isHtml, args.cc, args.bcc);
+        return {
+          content: [{ type: 'text', text: `Draft successfully created in Drafts folder.` }],
         };
       }
 
@@ -367,6 +401,12 @@ export class MailMCPServer {
             }],
             isError: true,
           };
+        }
+
+        // Rate limit guard — before any I/O
+        const reqAccountId = (request.params.arguments as Record<string, unknown>)?.accountId as string | undefined;
+        if (reqAccountId) {
+          await this.rateLimiter.consume(reqAccountId);
         }
 
         if (request.params.name === 'list_accounts') {
@@ -444,6 +484,7 @@ export class MailMCPServer {
 
         if (request.params.name === 'send_email') {
           const args = request.params.arguments as { accountId: string; to: string; subject: string; body: string; isHtml?: boolean; cc?: string; bcc?: string };
+          validateEmailAddresses(args.to, args.cc, args.bcc);
           const service = await this.getService(args.accountId);
           await service.sendEmail(args.to, args.subject, args.body, args.isHtml, args.cc, args.bcc);
           return {
@@ -458,6 +499,7 @@ export class MailMCPServer {
 
         if (request.params.name === 'create_draft') {
           const args = request.params.arguments as { accountId: string; to: string; subject: string; body: string; isHtml?: boolean; cc?: string; bcc?: string };
+          validateEmailAddresses(args.to, args.cc, args.bcc);
           const service = await this.getService(args.accountId);
           await service.createDraft(args.to, args.subject, args.body, args.isHtml, args.cc, args.bcc);
           return {
