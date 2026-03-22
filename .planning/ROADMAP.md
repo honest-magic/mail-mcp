@@ -109,7 +109,7 @@
 3. A visitor to the repo page can follow the README alone to connect the server to an MCP client without consulting any other document.
 **Plans**: 2
 Plans:
-- [ ] 08-01-PLAN.md — Write consumer-facing README.md
+- [x] 08-01-PLAN.md — Write consumer-facing README.md
 - [ ] 08-02-PLAN.md — Create GitHub repo, push commits, set topics and branch protection
 
 ### Phase 9: GitHub Actions
@@ -136,5 +136,5 @@ Plans:
 | 5. Read-Only Enforcement | 1/1 | Complete | 2026-03-21 |
 | 6. Mode Discoverability & Connection Hygiene | 1/1 | Complete | 2026-03-22 |
 | 7. npm Package Setup | 1/1 | Complete   | 2026-03-22 |
-| 8. GitHub Repository | 0/TBD | Not started | - |
+| 8. GitHub Repository | 1/2 | In Progress|  |
 | 9. GitHub Actions | 0/TBD | Not started | - |

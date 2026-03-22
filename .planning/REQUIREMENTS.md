@@ -120,7 +120,7 @@ All 21 v1 requirements validated and shipped. See ROADMAP.md and individual phas
 ### GitHub Repository (GH)
 
 - [ ] **GH-01**: Public repo `github.com/honest-magic/mail-mcp` exists with all existing commits pushed
-- [ ] **GH-02**: Repository has a README.md suitable for public consumers (install, config, usage, available tools)
+- [x] **GH-02**: Repository has a README.md suitable for public consumers (install, config, usage, available tools)
 
 ### npm Package (PKG)
 
@@ -149,7 +149,7 @@ All 21 v1 requirements validated and shipped. See ROADMAP.md and individual phas
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | GH-01 | Phase 8 | Pending |
-| GH-02 | Phase 8 | Pending |
+| GH-02 | Phase 8 | Complete |
 | PKG-01 | Phase 7 | Complete |
 | PKG-02 | Phase 7 | Complete |
 | PKG-03 | Phase 7 | Complete |
