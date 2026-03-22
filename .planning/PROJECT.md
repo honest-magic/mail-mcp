@@ -2,7 +2,7 @@
 
 ## What This Is
 
-A local Model Context Protocol (MCP) server that provides AI agents with structured, tool-based access to email accounts via IMAP and SMTP. Ships as `@honest-magic/mail-mcp` on npm — installable via `npx` or global install. Supports Gmail, Outlook, and any standard IMAP/SMTP provider.
+A local Model Context Protocol (MCP) server that provides AI agents with structured, tool-based access to email accounts via IMAP and SMTP. Ships as `@honest-magic/mail-mcp` on npm — installable via `npx` or global install. Supports Gmail, Outlook, and any standard IMAP/SMTP provider. Production-hardened with typed errors, input validation, rate limiting, and connection lifecycle management.
 
 ## Core Value
 
@@ -10,10 +10,10 @@ Empower AI agents to act as a personal mail assistant by providing structured, t
 
 ## Current State
 
-**v1.0.0 shipped 2026-03-22.** 14 MCP tools covering the full email lifecycle — read, search, send, thread, organize, attach. Read-only mode enforced at handshake. Published to npm under `@honest-magic/mail-mcp`. CI + tag-based publish via GitHub Actions.
+**v1.1.0 shipped 2026-03-22.** 14 MCP tools with production hardening — typed error hierarchy, Zod config validation, email address validation, attachment size guards, per-account rate limiting, graceful shutdown, IMAP auto-reconnect, pagination, and integration tests.
 
-- 1,312 TypeScript LOC (src), 678 test LOC, 55 passing tests
-- Stack: imapflow, nodemailer, mailparser, pdf-parse, @modelcontextprotocol/sdk
+- 1,996 TypeScript LOC (src), 2,416 test LOC, 177 unit tests + 6 integration tests
+- Stack: imapflow, nodemailer, mailparser, pdf-parse, zod, rate-limiter-flexible, @modelcontextprotocol/sdk
 - Repo: `github.com/honest-magic/mail-mcp`
 
 ## Requirements
@@ -30,18 +30,18 @@ Empower AI agents to act as a personal mail assistant by providing structured, t
 - ✓ **PKG-01–04**: npm package @honest-magic/mail-mcp, bin entry, files scoping, build artifact — v1.0.0
 - ✓ **GH-01–02**: Public GitHub repo, consumer-facing README — v1.0.0
 - ✓ **GHA-01–03**: CI workflow (tsc + vitest), tag-based publish, needs gate — v1.0.0
-- ✓ **CONN-01**: Graceful shutdown (SIGTERM/SIGINT) with 10s forced-exit fallback — v1.1.0 Phase 10
-- ✓ **VAL-01**: Account config Zod validation with actionable error messages — v1.1.0 Phase 10
-- ✓ **VAL-03**: SMTP port-aware TLS auto-derivation (465=TLS, 587=STARTTLS) — v1.1.0 Phase 10
-- ✓ **VAL-04**: In-memory config cache with fs.watch invalidation — v1.1.0 Phase 10
-- ✓ **SAFE-02**: Typed error classes (AuthError, NetworkError, ValidationError, QuotaError) — v1.1.0 Phase 10
-- ✓ **VAL-02**: Email address RFC 5322 validation on send/draft before SMTP — v1.1.0 Phase 11
-- ✓ **SAFE-01**: Attachment size cap (50MB) via BODYSTRUCTURE check before download — v1.1.0 Phase 11
-- ✓ **SAFE-03**: Per-account in-memory rate limiter (100 req/60s sliding window) — v1.1.0 Phase 11
-- ✓ **QUAL-01**: Pagination via offset parameter on list_emails and search_emails — v1.1.0 Phase 12
-- ✓ **CONN-02**: IMAP auto-reconnect on connection drop with one-retry backoff — v1.1.0 Phase 12
-- ✓ **CONN-03**: --validate-accounts CLI probes IMAP/SMTP per account at startup — v1.1.0 Phase 12
-- ✓ **QUAL-02**: Integration test suite (SMTP via smtp-server, IMAP credential-gated) — v1.1.0 Phase 13
+- ✓ **CONN-01**: Graceful shutdown (SIGTERM/SIGINT) with 10s forced-exit fallback — v1.1.0
+- ✓ **CONN-02**: IMAP auto-reconnect on connection drop with one-retry backoff — v1.1.0
+- ✓ **CONN-03**: --validate-accounts CLI probes IMAP/SMTP per account at startup — v1.1.0
+- ✓ **VAL-01**: Account config Zod validation with actionable error messages — v1.1.0
+- ✓ **VAL-02**: Email address RFC 5322 validation on send/draft before SMTP — v1.1.0
+- ✓ **VAL-03**: SMTP port-aware TLS auto-derivation (465=TLS, 587=STARTTLS) — v1.1.0
+- ✓ **VAL-04**: In-memory config cache with fs.watch invalidation — v1.1.0
+- ✓ **SAFE-01**: Attachment size cap (50MB) via BODYSTRUCTURE check before download — v1.1.0
+- ✓ **SAFE-02**: Typed error classes (AuthError, NetworkError, ValidationError, QuotaError) — v1.1.0
+- ✓ **SAFE-03**: Per-account in-memory rate limiter (100 req/60s sliding window) — v1.1.0
+- ✓ **QUAL-01**: Pagination via offset parameter on list_emails and search_emails — v1.1.0
+- ✓ **QUAL-02**: Integration test suite (SMTP via smtp-server, IMAP credential-gated) — v1.1.0
 
 ### Out of Scope
 
@@ -51,6 +51,8 @@ Empower AI agents to act as a personal mail assistant by providing structured, t
 - Runtime read-only toggle — mode is a startup contract
 - Per-tool granular allow-listing — binary read/write mode is sufficient
 - IMAP EXAMINE in read-only (ROM-08) — deferred to v2
+- SQLite message cache — adds persistent-state dependency to stateless gateway
+- Redis-backed rate limiter — single-process local server, in-memory sufficient
 
 ## Constraints
 
@@ -69,22 +71,11 @@ Empower AI agents to act as a personal mail assistant by providing structured, t
 | Read-only at startup (not toggleable) | Startup contract is simpler and safer than runtime toggle | ✓ Good |
 | `--read-only` filters tools from list | Prevents LLM from planning blocked operations | ✓ Good |
 | Tag-based npm publish (not semantic-release) | Manual control over release timing; simpler CI pipeline | ✓ Good |
-
-## Current Milestone: v1.1.0 Hardening & Reliability
-
-**Goal:** Make the MCP server production-ready with robust connection lifecycle, input validation, error handling, and developer tooling.
-
-**Target features:**
-- Connection lifecycle management (graceful shutdown, reconnection)
-- Account config validation (Zod schema on load)
-- Email address validation on send
-- SMTP port-aware TLS handling
-- Attachment size limits
-- Rate limiting per account
-- Connection health checks
-- Integration tests against real IMAP/SMTP
-- Improved error messages with structured error types
-- Pagination for large email lists
+| MailMCPError hierarchy over ad-hoc strings | Typed errors enable structured [ErrorCode] responses for LLM callers | ✓ Good |
+| Zod schema on accounts.json (not runtime) | Fail-fast at load time with actionable field-level errors | ✓ Good |
+| In-memory rate limiter (not Redis) | Single-process local server; zero external dependencies | ✓ Good |
+| onClose callback (not EventEmitter) for reconnect | Zero new base class, minimal test churn, simple invalidation | ✓ Good |
+| smtp-server for integration tests (not Docker) | In-process, zero CI infrastructure, Nodemailer org maintained | ✓ Good |
 
 ## Deferred (v2+)
 
@@ -111,4 +102,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-03-22 — Phase 13 complete (integration test suite)*
+*Last updated: 2026-03-22 after v1.1.0 milestone*

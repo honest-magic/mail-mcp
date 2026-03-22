@@ -1,5 +1,22 @@
 # Milestones
 
+## v1.1.0 Hardening & Reliability (Shipped: 2026-03-22)
+
+**Phases completed:** 6 phases, 9 plans, 4 tasks
+
+**Key accomplishments:**
+
+- One-liner:
+- One-liner:
+- Task 1: ImapClient.disconnect() liveness check
+- Task 1 — Attachment size guard:
+- One-liner:
+- 1. [Rule 1 - Bug] imap.test.ts missing `once` method in ImapFlow mocks
+- One-liner:
+- One-liner:
+
+---
+
 ## v1.0.0 Mail MCP Server (Shipped: 2026-03-22)
 
 **Phases completed:** 9 phases, 16 plans, 12 tasks
