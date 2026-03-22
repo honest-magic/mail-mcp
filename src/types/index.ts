@@ -5,6 +5,8 @@ export interface EmailAccount {
   name: string;
   host: string;
   port: number;
+  smtpHost?: string;
+  smtpPort?: number;
   user: string;
   authType: AuthType;
   useTLS: boolean;
