@@ -32,8 +32,8 @@ Empower AI agents to act as a personal mail assistant by providing structured, t
 
 ### v1.2 Active
 
-- [ ] **GH-01**: Public repo `github.com/honest-magic/mail-mcp` exists with all existing commits pushed
-- [ ] **GH-02**: Repository has a README.md suitable for public consumers (install, config, usage)
+- [x] **GH-01**: Public repo `github.com/honest-magic/mail-mcp` exists with all existing commits pushed — *Validated in Phase 8: GitHub Repository*
+- [x] **GH-02**: Repository has a README.md suitable for public consumers (install, config, usage) — *Validated in Phase 8*
 - [x] **PKG-01**: `package.json` has `name: "@honest-magic/mail-mcp"`, `version: "1.0.0"`, `publishConfig.access: "public"` — *Validated in Phase 7: npm Package Setup*
 - [x] **PKG-02**: `package.json` has a `bin` entry enabling `npx @honest-magic/mail-mcp` and global install — *Validated in Phase 7*
 - [x] **PKG-03**: `package.json` `files` field scopes the published artifact to `dist/`, `README.md`, `LICENSE` only — *Validated in Phase 7*
@@ -100,4 +100,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-03-22 — Phase 7 complete (npm package configured for @honest-magic/mail-mcp)*
+*Last updated: 2026-03-22 — Phase 8 complete (public GitHub repo live at github.com/honest-magic/mail-mcp)*
