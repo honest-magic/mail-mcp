@@ -56,7 +56,7 @@ export class ImapClient {
     }
   }
 
-  async listMessages(folder: string = 'INBOX', count: number = 10): Promise<MessageMetadata[]> {
+  async listMessages(folder: string = 'INBOX', count: number = 10, offset: number = 0): Promise<MessageMetadata[]> {
     if (!this.client) {
       throw new Error('Not connected');
     }
@@ -68,8 +68,10 @@ export class ImapClient {
       const total = (mailbox && typeof mailbox !== 'boolean') ? mailbox.exists : 0;
       if (total === 0) return [];
 
-      const start = Math.max(1, total - count + 1);
-      const range = `${start}:*`;
+      const end = total - offset;
+      if (end < 1) return [];
+      const start = Math.max(1, end - count + 1);
+      const range = `${start}:${end}`;
       
       for await (const msg of this.client.fetch(range, { envelope: true, flags: true, internalDate: true, bodyParts: ['TEXT'] })) {
         const textBuf = (msg as any).bodyParts?.get('TEXT');
@@ -92,7 +94,7 @@ export class ImapClient {
     }
   }
 
-  async searchMessages(criteria: any, folder: string = 'INBOX', count: number = 10): Promise<MessageMetadata[]> {
+  async searchMessages(criteria: any, folder: string = 'INBOX', count: number = 10, offset: number = 0): Promise<MessageMetadata[]> {
     if (!this.client) {
       throw new Error('Not connected');
     }
@@ -102,12 +104,15 @@ export class ImapClient {
       const uids = await this.client.search(criteria, { uid: true });
       if (!uids || typeof uids === 'boolean' || uids.length === 0) return [];
 
-      // Take only the last 'count' messages
-      const uidsArray = uids as number[];
-      const lastUids = uidsArray.slice(-count);
+      const uidsArray = (uids as number[]).sort((a, b) => a - b);
+      if (offset >= uidsArray.length) return [];
+
+      const end = uidsArray.length - offset;
+      const start = Math.max(0, end - count);
+      const sliced = uidsArray.slice(start, end);
       const messages: MessageMetadata[] = [];
-      
-      for await (const msg of this.client.fetch(lastUids.join(','), { envelope: true, flags: true, internalDate: true, bodyParts: ['TEXT'] }, { uid: true })) {
+
+      for await (const msg of this.client.fetch(sliced.join(','), { envelope: true, flags: true, internalDate: true, bodyParts: ['TEXT'] }, { uid: true })) {
         const textBuf = (msg as any).bodyParts?.get('TEXT');
         const snippet = textBuf
           ? textBuf.toString('utf-8').replace(/\s+/g, ' ').slice(0, 200).trim()
@@ -282,7 +287,8 @@ export class ImapClient {
     const lock = await this.client.getMailboxLock(folder);
     try {
       const msg = await this.client.fetchOne(uid, { bodyStructure: true }, { uid: true });
-      if (!msg?.bodyStructure) return null;
+      if (!msg || !(msg as any).bodyStructure) return null;
+      const bodyStructure = (msg as any).bodyStructure;
 
       function findSize(node: any): number | null {
         const name = node.parameters?.name ?? node.dispositionParameters?.filename;
@@ -298,7 +304,7 @@ export class ImapClient {
         return null;
       }
 
-      return findSize(msg.bodyStructure);
+      return findSize(bodyStructure);
     } finally {
       lock.release();
     }
