@@ -542,3 +542,52 @@ describe('CONN-01: graceful shutdown', () => {
     expect((server as any).inFlightCount).toBe(0);
   });
 });
+
+describe('QUAL-01: pagination offset parameter', () => {
+  it('list_emails tool schema includes offset property', () => {
+    const server = new MailMCPServer(false);
+    const tools = (server as any).getTools(false);
+    const tool = tools.find((t: any) => t.name === 'list_emails');
+    expect(tool).toBeDefined();
+    expect(tool.inputSchema.properties.offset).toBeDefined();
+  });
+
+  it('search_emails tool schema includes offset property', () => {
+    const server = new MailMCPServer(false);
+    const tools = (server as any).getTools(false);
+    const tool = tools.find((t: any) => t.name === 'search_emails');
+    expect(tool).toBeDefined();
+    expect(tool.inputSchema.properties.offset).toBeDefined();
+  });
+
+  it('dispatchTool list_emails passes offset to service.listEmails', async () => {
+    const server = new MailMCPServer(false);
+    const listEmailsMock = vi.fn().mockResolvedValue([]);
+    vi.spyOn(server as any, 'getService').mockResolvedValue({ listEmails: listEmailsMock });
+    await (server as any).dispatchTool('list_emails', false, {
+      accountId: 'test',
+      folder: 'INBOX',
+      count: 5,
+      offset: 10,
+    });
+    expect(listEmailsMock).toHaveBeenCalledWith('INBOX', 5, 10);
+  });
+
+  it('dispatchTool search_emails passes offset to service.searchEmails', async () => {
+    const server = new MailMCPServer(false);
+    const searchEmailsMock = vi.fn().mockResolvedValue([]);
+    vi.spyOn(server as any, 'getService').mockResolvedValue({ searchEmails: searchEmailsMock });
+    await (server as any).dispatchTool('search_emails', false, {
+      accountId: 'test',
+      folder: 'INBOX',
+      count: 5,
+      offset: 3,
+    });
+    expect(searchEmailsMock).toHaveBeenCalledWith(
+      expect.any(Object),
+      'INBOX',
+      5,
+      3,
+    );
+  });
+});
