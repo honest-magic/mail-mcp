@@ -41,6 +41,7 @@ Empower AI agents to act as a personal mail assistant by providing structured, t
 - ✓ **QUAL-01**: Pagination via offset parameter on list_emails and search_emails — v1.1.0 Phase 12
 - ✓ **CONN-02**: IMAP auto-reconnect on connection drop with one-retry backoff — v1.1.0 Phase 12
 - ✓ **CONN-03**: --validate-accounts CLI probes IMAP/SMTP per account at startup — v1.1.0 Phase 12
+- ✓ **QUAL-02**: Integration test suite (SMTP via smtp-server, IMAP credential-gated) — v1.1.0 Phase 13
 
 ### Out of Scope
 
@@ -110,4 +111,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-03-22 — Phase 12 complete (pagination, health check & reconnect)*
+*Last updated: 2026-03-22 — Phase 13 complete (integration test suite)*
