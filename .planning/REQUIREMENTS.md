@@ -1,0 +1,81 @@
+# Requirements: Mail MCP Server
+
+**Defined:** 2026-03-22
+**Core Value:** Empower AI agents to act as a personal mail assistant by providing structured, tool-based access to existing email accounts through standard protocols.
+
+## v1.1.0 Requirements
+
+Requirements for hardening & reliability milestone. Each maps to roadmap phases.
+
+### Connection Lifecycle
+
+- [ ] **CONN-01**: Server gracefully disconnects all IMAP/SMTP connections on SIGTERM/SIGINT with 10s forced exit timeout
+- [ ] **CONN-02**: IMAP client automatically attempts one reconnect with exponential backoff when connection drops
+- [ ] **CONN-03**: User can run `--validate-accounts` to probe IMAP CAPABILITY and SMTP EHLO for all accounts at startup
+
+### Input Validation
+
+- [ ] **VAL-01**: Account config is validated against a Zod schema at load time, with actionable error messages on failure
+- [ ] **VAL-02**: Email addresses (to/cc/bcc) are validated as RFC 5322 format before SMTP send
+- [ ] **VAL-03**: SMTP `secure` flag is auto-derived from port (465=TLS, 587=STARTTLS) when not explicitly set
+- [ ] **VAL-04**: Account config is cached in memory and invalidated via file watcher instead of reading from disk per call
+
+### Safety Limits
+
+- [ ] **SAFE-01**: Attachment download is rejected with clear error when BODYSTRUCTURE size exceeds configurable limit (default 50MB)
+- [ ] **SAFE-02**: All tool errors use typed error classes (AuthError, NetworkError, ValidationError, QuotaError) with contextual messages
+- [ ] **SAFE-03**: Per-account in-memory rate limiter enforces a sliding window limit (default 100 req/60s)
+
+### Quality & Testing
+
+- [ ] **QUAL-01**: User can paginate large email lists via an `offset` parameter on `list_emails` and `search_emails`
+- [ ] **QUAL-02**: Integration test suite covers SMTP send (via smtp-server) and IMAP operations (via real credentials in CI)
+
+## Future Requirements
+
+### Deferred to v2+
+
+- **REAL-01**: Real-time push via IMAP IDLE
+- **CONT-01**: Contact lookup and history enrichment
+- **AI-01**: Proactive inbox triage suggestions
+- **ROM-08**: IMAP EXAMINE mode (no \Seen flag mutation in read-only)
+
+## Out of Scope
+
+| Feature | Reason |
+|---------|--------|
+| SQLite message cache | Adds persistent-state dependency to stateless gateway; cache invalidation against live IMAP is non-trivial |
+| Redis-backed rate limiter | Single-process local server; Redis adds external dependency for zero benefit |
+| Docker/Testcontainers for tests | Heavyweight for a local CLI tool; use smtp-server + real IMAP credentials instead |
+| hoodiecrow-imap for IMAP tests | Deprecated ~10 years; no ESM support, no modern Node.js compatibility |
+| Per-account configurable batch limits | Hard-coded sensible default is simpler than adding config surface area |
+| IMAP IDLE (real-time push) | Significant architecture change; deferred to v2 (REAL-01) |
+| IMAP EXAMINE for read-only | Lower priority than reliability hardening; deferred to v2 (ROM-08) |
+
+## Traceability
+
+Which phases cover which requirements. Updated during roadmap creation.
+
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| CONN-01 | — | Pending |
+| CONN-02 | — | Pending |
+| CONN-03 | — | Pending |
+| VAL-01 | — | Pending |
+| VAL-02 | — | Pending |
+| VAL-03 | — | Pending |
+| VAL-04 | — | Pending |
+| SAFE-01 | — | Pending |
+| SAFE-02 | — | Pending |
+| SAFE-03 | — | Pending |
+| QUAL-01 | — | Pending |
+| QUAL-02 | — | Pending |
+
+**Coverage:**
+- v1.1.0 requirements: 12 total
+- Mapped to phases: 0
+- Unmapped: 12 ⚠️
+
+---
+*Requirements defined: 2026-03-22*
+*Last updated: 2026-03-22 after initial definition*
