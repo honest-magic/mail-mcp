@@ -17,6 +17,10 @@ export class MailService {
     this.smtpClient = new SmtpClient(account);
   }
 
+  get imap(): ImapClient {
+    return this.imapClient;
+  }
+
   async connect() {
     await this.imapClient.connect();
   }

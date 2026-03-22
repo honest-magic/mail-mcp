@@ -11,8 +11,10 @@ import { parseArgs } from 'node:util';
 import { getAccounts } from './config.js';
 import { handleAccountsCommand } from './cli/accounts.js';
 import { MailService } from './services/mail.js';
-import { MailMCPError } from './errors.js';
+import { MailMCPError, NetworkError } from './errors.js';
 import { AccountRateLimiter } from './utils/rate-limiter.js';
+import { ImapClient } from './protocol/imap.js';
+import { SmtpClient } from './protocol/smtp.js';
 import { validateEmailAddresses } from './utils/validation.js';
 
 const WRITE_TOOLS = new Set<string>([
@@ -69,10 +71,7 @@ export class MailMCPServer {
     this.services.clear();
   }
 
-  private async getService(accountId: string): Promise<MailService> {
-    if (this.services.has(accountId)) {
-      return this.services.get(accountId)!;
-    }
+  private async _createAndCacheService(accountId: string): Promise<MailService> {
     const accounts = await getAccounts();
     const account = accounts.find(a => a.id === accountId);
     if (!account) {
@@ -81,7 +80,35 @@ export class MailMCPServer {
     const service = new MailService(account, this.readOnly);
     await service.connect();
     this.services.set(accountId, service);
+
+    // Wire close listener for auto-reconnect (CONN-02)
+    service.imap.onClose = () => {
+      if (!this.shuttingDown) {
+        this.services.delete(accountId);
+      }
+    };
+
     return service;
+  }
+
+  private async getService(accountId: string): Promise<MailService> {
+    if (this.services.has(accountId)) {
+      return this.services.get(accountId)!;
+    }
+    try {
+      return await this._createAndCacheService(accountId);
+    } catch (firstErr) {
+      // One retry with 1-second backoff (CONN-02)
+      await new Promise(r => setTimeout(r, 1_000));
+      try {
+        return await this._createAndCacheService(accountId);
+      } catch (secondErr) {
+        throw new NetworkError(
+          `Could not connect to account ${accountId} after reconnect attempt: ${(secondErr as Error).message}`,
+          { cause: secondErr }
+        );
+      }
+    }
   }
 
   getTools(readOnly: boolean) {

@@ -17,6 +17,7 @@ export interface MessageMetadata {
 export class ImapClient {
   private client: ImapFlow | null = null;
   private account: EmailAccount;
+  public onClose: (() => void) | null = null;
 
   constructor(account: EmailAccount) {
     this.account = account;
@@ -45,6 +46,9 @@ export class ImapClient {
     });
 
     await this.client.connect();
+    this.client.once('close', () => {
+      this.onClose?.();
+    });
   }
 
   async disconnect(): Promise<void> {

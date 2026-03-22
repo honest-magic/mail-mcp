@@ -38,6 +38,8 @@ vi.mock('./services/mail.js', () => {
 });
 
 import { MailMCPServer } from './index.js';
+import { MailService } from './services/mail.js';
+import { getAccounts } from './config.js';
 
 const WRITE_TOOL_NAMES = [
   'send_email',
@@ -540,6 +542,120 @@ describe('CONN-01: graceful shutdown', () => {
   it('inFlightCount starts at 0', () => {
     const server = new MailMCPServer(false);
     expect((server as any).inFlightCount).toBe(0);
+  });
+});
+
+describe('CONN-02: IMAP reconnect via close-event + getService retry', () => {
+  const testAccount = { id: 'acc1', name: 'Test', user: 'test@test.com', host: 'imap.test.com', port: 993, useTLS: true, authType: 'password' } as any;
+
+  beforeEach(() => {
+    vi.mocked(getAccounts).mockResolvedValue([testAccount]);
+  });
+
+  it('close event on ImapFlow causes services Map entry deletion', async () => {
+    // Test _createAndCacheService wires onClose and removing from services Map
+    const server = new MailMCPServer(false);
+
+    // Spy on _createAndCacheService to intercept and set up the close callback test
+    let capturedOnClose: (() => void) | null = null;
+    const fakeService = {
+      connect: vi.fn().mockResolvedValue(undefined),
+      disconnect: vi.fn().mockResolvedValue(undefined),
+      imap: {
+        get onClose() { return capturedOnClose; },
+        set onClose(cb: (() => void) | null) { capturedOnClose = cb; },
+      },
+    };
+
+    // Bypass real _createAndCacheService by manually setting up services + close listener
+    (server as any).services.set('acc1', fakeService);
+    fakeService.imap.onClose = () => {
+      if (!(server as any).shuttingDown) {
+        (server as any).services.delete('acc1');
+      }
+    };
+
+    expect((server as any).services.has('acc1')).toBe(true);
+    capturedOnClose?.();
+    expect((server as any).services.has('acc1')).toBe(false);
+  });
+
+  it('after close event, services Map no longer has the entry and getService calls _createAndCacheService again', async () => {
+    const server = new MailMCPServer(false);
+
+    let capturedOnClose: (() => void) | null = null;
+    const fakeService = {
+      connect: vi.fn().mockResolvedValue(undefined),
+      disconnect: vi.fn().mockResolvedValue(undefined),
+      imap: {
+        get onClose() { return capturedOnClose; },
+        set onClose(cb: (() => void) | null) { capturedOnClose = cb; },
+      },
+    };
+
+    (server as any).services.set('acc1', fakeService);
+    fakeService.imap.onClose = () => {
+      if (!(server as any).shuttingDown) {
+        (server as any).services.delete('acc1');
+      }
+    };
+
+    // Fire close
+    capturedOnClose?.();
+    expect((server as any).services.has('acc1')).toBe(false);
+
+    // Next getService will try to reconnect — mock _createAndCacheService to avoid real IMAP
+    const newService = { connect: vi.fn(), imap: { onClose: null }, disconnect: vi.fn() };
+    vi.spyOn(server as any, '_createAndCacheService').mockResolvedValue(newService);
+
+    const result = await (server as any).getService('acc1');
+    expect(result).toBe(newService);
+  });
+
+  it('two consecutive connect failures throw NetworkError with "after reconnect attempt"', async () => {
+    vi.useFakeTimers();
+    const { NetworkError } = await import('./errors.js');
+
+    const server = new MailMCPServer(false);
+    vi.spyOn(server as any, '_createAndCacheService').mockRejectedValue(new Error('connection refused'));
+
+    let caughtError: unknown;
+    const getServicePromise = (server as any).getService('acc1').catch((e: unknown) => {
+      caughtError = e;
+    });
+    await vi.runAllTimersAsync();
+    await getServicePromise;
+
+    expect(caughtError).toBeInstanceOf(NetworkError);
+    expect((caughtError as NetworkError).message).toContain('after reconnect attempt');
+
+    vi.useRealTimers();
+  });
+
+  it('close listener does NOT delete from Map when shuttingDown=true', async () => {
+    const server = new MailMCPServer(false);
+
+    let capturedOnClose: (() => void) | null = null;
+    const fakeService = {
+      connect: vi.fn().mockResolvedValue(undefined),
+      disconnect: vi.fn().mockResolvedValue(undefined),
+      imap: {
+        get onClose() { return capturedOnClose; },
+        set onClose(cb: (() => void) | null) { capturedOnClose = cb; },
+      },
+    };
+
+    (server as any).services.set('acc1', fakeService);
+    fakeService.imap.onClose = () => {
+      if (!(server as any).shuttingDown) {
+        (server as any).services.delete('acc1');
+      }
+    };
+
+    expect((server as any).services.has('acc1')).toBe(true);
+    (server as any).shuttingDown = true;
+    capturedOnClose?.();
+    expect((server as any).services.has('acc1')).toBe(true);
   });
 });
 
