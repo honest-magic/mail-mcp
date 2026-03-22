@@ -23,7 +23,7 @@ Requirements for hardening & reliability milestone. Each maps to roadmap phases.
 ### Safety Limits
 
 - [ ] **SAFE-01**: Attachment download is rejected with clear error when BODYSTRUCTURE size exceeds configurable limit (default 50MB)
-- [ ] **SAFE-02**: All tool errors use typed error classes (AuthError, NetworkError, ValidationError, QuotaError) with contextual messages
+- [x] **SAFE-02**: All tool errors use typed error classes (AuthError, NetworkError, ValidationError, QuotaError) with contextual messages
 - [ ] **SAFE-03**: Per-account in-memory rate limiter enforces a sliding window limit (default 100 req/60s)
 
 ### Quality & Testing
@@ -66,7 +66,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | VAL-03 | Phase 10 | Pending |
 | VAL-04 | Phase 10 | Pending |
 | SAFE-01 | Phase 11 | Pending |
-| SAFE-02 | Phase 10 | Pending |
+| SAFE-02 | Phase 10 | Complete |
 | SAFE-03 | Phase 11 | Pending |
 | QUAL-01 | Phase 12 | Pending |
 | QUAL-02 | Phase 13 | Pending |
