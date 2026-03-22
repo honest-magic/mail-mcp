@@ -131,7 +131,7 @@ All 21 v1 requirements validated and shipped. See ROADMAP.md and individual phas
 
 ### GitHub Actions (GHA)
 
-- [ ] **GHA-01**: CI workflow (`.github/workflows/ci.yml`) runs `tsc --noEmit` and `npm test` on every push to `main` and on all pull requests
+- [x] **GHA-01**: CI workflow (`.github/workflows/ci.yml`) runs `tsc --noEmit` and `npm test` on every push to `main` and on all pull requests
 - [ ] **GHA-02**: Publish workflow (`.github/workflows/publish.yml`) triggers on `v*` tag push, builds the project, and publishes `@honest-magic/mail-mcp` to npm using `NPM_TOKEN` repository secret
 - [ ] **GHA-03**: Publish workflow's publish job depends on (`needs:`) the CI job passing, preventing broken releases
 
@@ -154,7 +154,7 @@ All 21 v1 requirements validated and shipped. See ROADMAP.md and individual phas
 | PKG-02 | Phase 7 | Complete |
 | PKG-03 | Phase 7 | Complete |
 | PKG-04 | Phase 7 | Complete |
-| GHA-01 | Phase 9 | Pending |
+| GHA-01 | Phase 9 | Complete |
 | GHA-02 | Phase 9 | Pending |
 | GHA-03 | Phase 9 | Pending |
 

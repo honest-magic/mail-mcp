@@ -120,7 +120,7 @@
 2. Pushing a `v1.0.0` tag triggers the publish workflow, which publishes `@honest-magic/mail-mcp@1.0.0` to the public npm registry.
 3. If the CI job fails, the publish job does not run (enforced via `needs: ci` in the publish workflow).
 **Plans**: 2
-- [ ] 09-01-PLAN.md — Create CI workflow (type-check + test on push/PR to main)
+- [x] 09-01-PLAN.md — Create CI workflow (type-check + test on push/PR to main)
 - [ ] 09-02-PLAN.md — Create publish workflow (v* tag → build → npm publish, needs: ci)
 
 ## Progress
@@ -135,4 +135,4 @@
 | 6. Mode Discoverability & Connection Hygiene | 1/1 | Complete | 2026-03-22 |
 | 7. npm Package Setup | 1/1 | Complete   | 2026-03-22 |
 | 8. GitHub Repository | 2/2 | Complete   | 2026-03-22 |
-| 9. GitHub Actions | 0/2 | Not started | - |
+| 9. GitHub Actions | 1/2 | In Progress|  |
