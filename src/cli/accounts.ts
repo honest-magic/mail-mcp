@@ -36,7 +36,7 @@ export async function handleAccountsCommand(args: string[]): Promise<boolean> {
 }
 
 async function listAccounts(): Promise<void> {
-  const accounts = getAccounts();
+  const accounts = await getAccounts();
 
   if (accounts.length === 0) {
     console.log('No accounts configured.');
@@ -72,7 +72,7 @@ async function removeAccount(id: string | undefined): Promise<void> {
     process.exit(1);
   }
 
-  const accounts = getAccounts();
+  const accounts = await getAccounts();
   const index = accounts.findIndex((a) => a.id === id);
 
   if (index === -1) {
@@ -99,7 +99,7 @@ async function addAccount(): Promise<void> {
   });
 
   try {
-    const existingAccounts = getAccounts();
+    const existingAccounts = await getAccounts();
     const existingIds = new Set(existingAccounts.map((a) => a.id));
 
     // id
