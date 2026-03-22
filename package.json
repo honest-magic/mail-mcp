@@ -2,7 +2,15 @@
   "name": "@honest-magic/mail-mcp",
   "version": "1.0.1",
   "description": "MCP server for AI-powered email access via IMAP and SMTP",
-  "keywords": ["mcp", "email", "imap", "smtp", "ai", "llm", "model-context-protocol"],
+  "keywords": [
+    "mcp",
+    "email",
+    "imap",
+    "smtp",
+    "ai",
+    "llm",
+    "model-context-protocol"
+  ],
   "author": "honest-magic",
   "license": "MIT",
   "homepage": "https://github.com/honest-magic/mail-mcp#readme",
@@ -20,7 +28,11 @@
   "bin": {
     "mail-mcp": "dist/index.js"
   },
-  "files": ["dist", "README.md", "LICENSE"],
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
   "publishConfig": {
     "access": "public"
   },
@@ -37,6 +49,7 @@
     "mailparser": "^3.9.4",
     "nodemailer": "^8.0.3",
     "pdf-parse": "^2.4.5",
+    "rate-limiter-flexible": "^10.0.1",
     "turndown": "^7.2.2",
     "zod": "^4.3.6"
   },
