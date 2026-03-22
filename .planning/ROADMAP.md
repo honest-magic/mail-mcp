@@ -9,7 +9,7 @@
 - [x] **Phase 5: Read-Only Enforcement** - Add `--read-only` startup flag, write-tool guard, tool filtering, and MCP annotations. (completed 2026-03-21)
 - [x] **Phase 6: Mode Discoverability & Connection Hygiene** - Expose mode to MCP clients at handshake and skip unnecessary SMTP authentication. (completed 2026-03-22)
 - [x] **Phase 7: npm Package Setup** - Configure package.json for public npm distribution and verify the build produces a self-contained publishable artifact. (completed 2026-03-22)
-- [ ] **Phase 8: GitHub Repository** - Create the public repo under `honest-magic`, write a consumer-facing README, and push all existing commits.
+- [x] **Phase 8: GitHub Repository** - Create the public repo under `honest-magic`, write a consumer-facing README, and push all existing commits. (completed 2026-03-22)
 - [ ] **Phase 9: GitHub Actions** - Add CI workflow (type-check + test) and tag-based publish workflow with a mandatory CI gate.
 
 ## Phase Details
@@ -110,7 +110,7 @@
 **Plans**: 2
 Plans:
 - [x] 08-01-PLAN.md — Write consumer-facing README.md
-- [ ] 08-02-PLAN.md — Create GitHub repo, push commits, set topics and branch protection
+- [x] 08-02-PLAN.md — Create GitHub repo, push commits, set topics and branch protection
 
 ### Phase 9: GitHub Actions
 **Goal**: Every push to `main` is automatically type-checked and tested, and pushing a `v*` tag publishes a verified build of `@honest-magic/mail-mcp` to npm only after CI passes.
@@ -122,7 +122,7 @@ Plans:
 3. If the CI job fails, the publish job does not run (enforced via `needs: ci` in the publish workflow).
 **Plans**: 2
 Plans:
-- [ ] 08-01-PLAN.md — Write consumer-facing README.md
+- [x] 08-01-PLAN.md — Write consumer-facing README.md
 - [ ] 08-02-PLAN.md — Create GitHub repo, push commits, set topics and branch protection
 
 ## Progress
@@ -136,5 +136,5 @@ Plans:
 | 5. Read-Only Enforcement | 1/1 | Complete | 2026-03-21 |
 | 6. Mode Discoverability & Connection Hygiene | 1/1 | Complete | 2026-03-22 |
 | 7. npm Package Setup | 1/1 | Complete   | 2026-03-22 |
-| 8. GitHub Repository | 1/2 | In Progress|  |
+| 8. GitHub Repository | 2/2 | Complete   | 2026-03-22 |
 | 9. GitHub Actions | 0/TBD | Not started | - |
