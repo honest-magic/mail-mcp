@@ -58,6 +58,22 @@ Empower AI agents to act as a personal mail assistant by providing structured, t
 | `--read-only` filters tools from list | Prevents LLM from planning blocked operations | ✓ Good |
 | Tag-based npm publish (not semantic-release) | Manual control over release timing; simpler CI pipeline | ✓ Good |
 
+## Current Milestone: v1.1.0 Hardening & Reliability
+
+**Goal:** Make the MCP server production-ready with robust connection lifecycle, input validation, error handling, and developer tooling.
+
+**Target features:**
+- Connection lifecycle management (graceful shutdown, reconnection)
+- Account config validation (Zod schema on load)
+- Email address validation on send
+- SMTP port-aware TLS handling
+- Attachment size limits
+- Rate limiting per account
+- Connection health checks
+- Integration tests against real IMAP/SMTP
+- Improved error messages with structured error types
+- Pagination for large email lists
+
 ## Deferred (v2+)
 
 - **REAL-01**: Real-time push via IMAP IDLE
@@ -65,5 +81,22 @@ Empower AI agents to act as a personal mail assistant by providing structured, t
 - **AI-01**: Proactive inbox triage suggestions
 - **ROM-08**: IMAP EXAMINE mode (no \Seen flag mutation in read-only)
 
+## Evolution
+
+This document evolves at phase transitions and milestone boundaries.
+
+**After each phase transition** (via `/gsd:transition`):
+1. Requirements invalidated? → Move to Out of Scope with reason
+2. Requirements validated? → Move to Validated with phase reference
+3. New requirements emerged? → Add to Active
+4. Decisions to log? → Add to Key Decisions
+5. "What This Is" still accurate? → Update if drifted
+
+**After each milestone** (via `/gsd:complete-milestone`):
+1. Full review of all sections
+2. Core Value check — still the right priority?
+3. Audit Out of Scope — reasons still valid?
+4. Update Context with current state
+
 ---
-*Last updated: 2026-03-22 — v1.0.0 milestone complete*
+*Last updated: 2026-03-22 — v1.1.0 milestone started*
