@@ -115,6 +115,54 @@ All 21 v1 requirements validated and shipped. See ROADMAP.md and individual phas
 - Mapped to phases: 7
 - Unmapped: 0 ✓
 
+## v1.2 Requirements (Active — Milestone v1.2 Public Release & CI/CD)
+
+### GitHub Repository (GH)
+
+- [ ] **GH-01**: Public repo `github.com/honest-magic/mail-mcp` exists with all existing commits pushed
+- [ ] **GH-02**: Repository has a README.md suitable for public consumers (install, config, usage, available tools)
+
+### npm Package (PKG)
+
+- [ ] **PKG-01**: `package.json` has `name: "@honest-magic/mail-mcp"`, `version: "1.0.0"`, and `publishConfig: { access: "public" }`
+- [ ] **PKG-02**: `package.json` has a `bin` field (`"mail-mcp": "dist/index.js"`) enabling both `npx @honest-magic/mail-mcp` and `npm install -g @honest-magic/mail-mcp`
+- [ ] **PKG-03**: `package.json` `files` field restricts the published artifact to `["dist", "README.md", "LICENSE"]`
+- [ ] **PKG-04**: Build script (`npm run build`) produces a self-contained `dist/index.js` with a proper shebang that runs without dev dependencies
+
+### GitHub Actions (GHA)
+
+- [ ] **GHA-01**: CI workflow (`.github/workflows/ci.yml`) runs `tsc --noEmit` and `npm test` on every push to `main` and on all pull requests
+- [ ] **GHA-02**: Publish workflow (`.github/workflows/publish.yml`) triggers on `v*` tag push, builds the project, and publishes `@honest-magic/mail-mcp` to npm using `NPM_TOKEN` repository secret
+- [ ] **GHA-03**: Publish workflow's publish job depends on (`needs:`) the CI job passing, preventing broken releases
+
+## Out of Scope (v1.2)
+
+| Feature | Reason |
+|---------|--------|
+| Semantic-release / changesets | Simple tag-based publish is sufficient; automation adds overhead |
+| Automated version bumping | Manual `git tag v*` gives full control over release timing |
+| Docker / container publish | Out of scope for npx-based distribution |
+| Private npm registry | Package is public under `@honest-magic` scope |
+
+### v1.2 Traceability
+
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| GH-01 | TBD | Pending |
+| GH-02 | TBD | Pending |
+| PKG-01 | TBD | Pending |
+| PKG-02 | TBD | Pending |
+| PKG-03 | TBD | Pending |
+| PKG-04 | TBD | Pending |
+| GHA-01 | TBD | Pending |
+| GHA-02 | TBD | Pending |
+| GHA-03 | TBD | Pending |
+
+**Coverage:**
+- v1.2 requirements: 9 total
+- Mapped to phases: TBD (roadmap pending)
+- Unmapped: 9 ⚠
+
 ---
 *Requirements defined: 2026-03-21*
-*Last updated: 2026-03-21 — v1.1 traceability corrected (ROM-04, ROM-07 assigned to Phase 6)*
+*Last updated: 2026-03-22 — v1.2 requirements added (public release & CI/CD)*
