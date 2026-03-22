@@ -27,8 +27,8 @@ Empower AI agents to act as a personal mail assistant by providing structured, t
 - [x] **ROM-03**: In read-only mode, all read/search tools function normally — *Validated in Phase 5*
 - [x] **ROM-05**: Write tools filtered from tools/list in read-only mode — *Validated in Phase 5*
 - [x] **ROM-06**: All 14 tools annotated with readOnlyHint/destructiveHint — *Validated in Phase 5*
-- [ ] **ROM-04**: Server exposes its current mode so MCP clients can adapt
-- [ ] **ROM-07**: SMTP connection skipped when server starts with --read-only
+- [x] **ROM-04**: Server exposes its current mode so MCP clients can adapt — *Validated in Phase 6: Mode Discoverability & Connection Hygiene*
+- [x] **ROM-07**: SMTP connection skipped when server starts with --read-only — *Validated in Phase 6*
 
 ### Out of Scope
 
@@ -54,15 +54,18 @@ Empower AI agents to act as a personal mail assistant by providing structured, t
 |----------|-----------|---------|
 | Language Choice | TypeScript/Node.js selected for rich MCP SDK support and async handling | ✓ Good |
 
-## Current Milestone: v1.1 Read-Only Mode
+## Current Milestone: v1.1 Read-Only Mode — Complete ✓
 
 **Goal:** Add a startup flag that restricts the server to read-only operations, preventing any email mutations.
 
-**Target features:**
-- `--read-only` startup flag
-- Write tools blocked with clear error in read-only mode
-- Read/search tools unaffected
-- Mode discoverable by MCP clients
+**Delivered (all 7 requirements validated):**
+- `--read-only` startup flag (ROM-01)
+- Write tools blocked with clear refusal error (ROM-02)
+- Read/search tools unaffected (ROM-03)
+- Mode communicated via `InitializeResult.instructions` at handshake (ROM-04)
+- Write tools filtered from `tools/list` in read-only mode (ROM-05)
+- All 14 tools annotated with `readOnlyHint`/`destructiveHint` (ROM-06)
+- SMTP connection skipped when read-only (ROM-07)
 
 ## Evolution
 
@@ -82,4 +85,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-03-21 — Milestone v1.1 started*
+*Last updated: 2026-03-22 — Milestone v1.1 complete (all 6 phases, 28 requirements validated)*
