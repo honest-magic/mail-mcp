@@ -5,7 +5,7 @@ MCP server for IMAP/SMTP email access — works with Claude and other MCP client
 ## Requirements
 
 - Node.js >=18
-- macOS (credentials stored in Keychain)
+- macOS, Windows, or Linux (credentials stored in the OS keychain via [cross-keychain](https://www.npmjs.com/package/cross-keychain))
 
 ## Installation
 
@@ -59,7 +59,7 @@ Alternatively, create `~/.config/mail-mcp/accounts.json` by hand:
 ]
 ```
 
-Then store the password in macOS Keychain:
+Then store the password in the OS keychain. The easiest way is `mail-mcp accounts add`, which handles this automatically. On macOS you can also use:
 
 ```bash
 security add-generic-password \
