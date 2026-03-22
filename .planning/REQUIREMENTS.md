@@ -44,13 +44,13 @@ All 21 v1 requirements validated and shipped. See ROADMAP.md and individual phas
 
 ### Read-Only Mode (ROM)
 
-- [ ] **ROM-01**: User can start the server with a `--read-only` flag to restrict it to read operations only
-- [ ] **ROM-02**: In read-only mode, write tools (`send_email`, `create_draft`, `move_email`, `modify_labels`, `batch_operations`, `register_oauth2_account`) return a descriptive refusal error naming the blocked tool and active mode
-- [ ] **ROM-03**: In read-only mode, all read and search tools (`list_emails`, `read_email`, `search_emails`, `list_folders`, `get_thread`, `list_attachments`, `get_attachment`) function normally without modification
-- [ ] **ROM-04**: Server communicates its current mode to MCP clients automatically at handshake via the `instructions` field on `InitializeResult`
-- [ ] **ROM-05**: Write tools are filtered out of the `tools/list` response when the server is in read-only mode, preventing LLM planning of blocked operations
-- [ ] **ROM-06**: All 14 tools declare `readOnlyHint` and `destructiveHint` MCP tool annotations
-- [ ] **ROM-07**: SMTP connection is skipped when the server starts with `--read-only`, avoiding unnecessary authentication
+- [x] **ROM-01**: User can start the server with a `--read-only` flag to restrict it to read operations only
+- [x] **ROM-02**: In read-only mode, write tools (`send_email`, `create_draft`, `move_email`, `modify_labels`, `batch_operations`, `register_oauth2_account`) return a descriptive refusal error naming the blocked tool and active mode
+- [x] **ROM-03**: In read-only mode, all read and search tools (`list_emails`, `read_email`, `search_emails`, `list_folders`, `get_thread`, `list_attachments`, `get_attachment`) function normally without modification
+- [x] **ROM-04**: Server communicates its current mode to MCP clients automatically at handshake via the `instructions` field on `InitializeResult`
+- [x] **ROM-05**: Write tools are filtered out of the `tools/list` response when the server is in read-only mode, preventing LLM planning of blocked operations
+- [x] **ROM-06**: All 14 tools declare `readOnlyHint` and `destructiveHint` MCP tool annotations
+- [x] **ROM-07**: SMTP connection is skipped when the server starts with `--read-only`, avoiding unnecessary authentication
 
 ## v2 Requirements (Deferred)
 
@@ -102,13 +102,13 @@ All 21 v1 requirements validated and shipped. See ROADMAP.md and individual phas
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| ROM-01 | Phase 5 | Pending |
-| ROM-02 | Phase 5 | Pending |
-| ROM-03 | Phase 5 | Pending |
-| ROM-05 | Phase 5 | Pending |
-| ROM-06 | Phase 5 | Pending |
-| ROM-04 | Phase 6 | Pending |
-| ROM-07 | Phase 6 | Pending |
+| ROM-01 | Phase 5 | Complete |
+| ROM-02 | Phase 5 | Complete |
+| ROM-03 | Phase 5 | Complete |
+| ROM-05 | Phase 5 | Complete |
+| ROM-06 | Phase 5 | Complete |
+| ROM-04 | Phase 6 | Complete |
+| ROM-07 | Phase 6 | Complete |
 
 **Coverage:**
 - v1.1 requirements: 7 total
