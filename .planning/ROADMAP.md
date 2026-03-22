@@ -96,7 +96,8 @@
 2. Running `npx .` (or pointing npx at the local package) starts the MCP server without error.
 3. `package.json` declares `name: "@honest-magic/mail-mcp"`, `version: "1.0.0"`, `publishConfig: { access: "public" }`, and `bin: { "mail-mcp": "dist/index.js" }`.
 4. `npm run build` succeeds and `dist/index.js` has a `#!/usr/bin/env node` shebang so it is directly executable.
-**Plans**: TBD
+**Plans**: 1
+- [ ] 07-01-PLAN.md — Update package.json for npm distribution and create LICENSE file.
 
 ### Phase 8: GitHub Repository
 **Goal**: The project exists as a public GitHub repository under `honest-magic` with all commit history and a README that lets any consumer install and configure the server in under five minutes.
@@ -128,6 +129,6 @@
 | 4. Efficiency & Scale | 1/1 | Complete | 2026-03-21 |
 | 5. Read-Only Enforcement | 1/1 | Complete | 2026-03-21 |
 | 6. Mode Discoverability & Connection Hygiene | 1/1 | Complete | 2026-03-22 |
-| 7. npm Package Setup | 0/TBD | Not started | - |
+| 7. npm Package Setup | 0/1 | Not started | - |
 | 8. GitHub Repository | 0/TBD | Not started | - |
 | 9. GitHub Actions | 0/TBD | Not started | - |
