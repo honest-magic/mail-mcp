@@ -276,4 +276,31 @@ export class ImapClient {
       lock.release();
     }
   }
+
+  async fetchAttachmentSize(uid: string, filename: string, folder: string = 'INBOX'): Promise<number | null> {
+    if (!this.client) throw new Error('Not connected');
+    const lock = await this.client.getMailboxLock(folder);
+    try {
+      const msg = await this.client.fetchOne(uid, { bodyStructure: true }, { uid: true });
+      if (!msg?.bodyStructure) return null;
+
+      function findSize(node: any): number | null {
+        const name = node.parameters?.name ?? node.dispositionParameters?.filename;
+        if (name === filename && node.size != null) {
+          return node.size;
+        }
+        if (node.childNodes) {
+          for (const child of node.childNodes) {
+            const result = findSize(child);
+            if (result !== null) return result;
+          }
+        }
+        return null;
+      }
+
+      return findSize(msg.bodyStructure);
+    } finally {
+      lock.release();
+    }
+  }
 }

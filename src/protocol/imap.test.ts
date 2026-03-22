@@ -254,4 +254,136 @@ describe('ImapClient', () => {
       expect((client as any).client).toBeNull();
     });
   });
+
+  describe('fetchAttachmentSize', () => {
+    it('returns size when bodyStructure has part matching parameters.name', async () => {
+      const { ImapFlow } = await import('imapflow');
+      const MockImapFlow = ImapFlow as any;
+      const mockRelease = vi.fn();
+      MockImapFlow.mockImplementationOnce(function () {
+        return {
+          connect: vi.fn().mockResolvedValue(undefined),
+          getMailboxLock: vi.fn().mockResolvedValue({ release: mockRelease }),
+          fetchOne: vi.fn().mockResolvedValue({
+            bodyStructure: {
+              parameters: { name: 'report.pdf' },
+              size: 1000,
+              childNodes: [],
+            },
+          }),
+        };
+      });
+      const client = new ImapClient(account);
+      await client.connect();
+      const size = await client.fetchAttachmentSize('1', 'report.pdf');
+      expect(size).toBe(1000);
+      expect(mockRelease).toHaveBeenCalledOnce();
+    });
+
+    it('returns size when bodyStructure has part matching dispositionParameters.filename', async () => {
+      const { ImapFlow } = await import('imapflow');
+      const MockImapFlow = ImapFlow as any;
+      MockImapFlow.mockImplementationOnce(function () {
+        return {
+          connect: vi.fn().mockResolvedValue(undefined),
+          getMailboxLock: vi.fn().mockResolvedValue({ release: vi.fn() }),
+          fetchOne: vi.fn().mockResolvedValue({
+            bodyStructure: {
+              dispositionParameters: { filename: 'report.pdf' },
+              size: 2000,
+              childNodes: [],
+            },
+          }),
+        };
+      });
+      const client = new ImapClient(account);
+      await client.connect();
+      const size = await client.fetchAttachmentSize('1', 'report.pdf');
+      expect(size).toBe(2000);
+    });
+
+    it('returns correct size when matching part is nested in childNodes', async () => {
+      const { ImapFlow } = await import('imapflow');
+      const MockImapFlow = ImapFlow as any;
+      MockImapFlow.mockImplementationOnce(function () {
+        return {
+          connect: vi.fn().mockResolvedValue(undefined),
+          getMailboxLock: vi.fn().mockResolvedValue({ release: vi.fn() }),
+          fetchOne: vi.fn().mockResolvedValue({
+            bodyStructure: {
+              childNodes: [
+                {
+                  childNodes: [
+                    {
+                      parameters: { name: 'nested.pdf' },
+                      size: 5000,
+                      childNodes: [],
+                    },
+                  ],
+                },
+              ],
+            },
+          }),
+        };
+      });
+      const client = new ImapClient(account);
+      await client.connect();
+      const size = await client.fetchAttachmentSize('1', 'nested.pdf');
+      expect(size).toBe(5000);
+    });
+
+    it('returns null when no part matches the filename', async () => {
+      const { ImapFlow } = await import('imapflow');
+      const MockImapFlow = ImapFlow as any;
+      MockImapFlow.mockImplementationOnce(function () {
+        return {
+          connect: vi.fn().mockResolvedValue(undefined),
+          getMailboxLock: vi.fn().mockResolvedValue({ release: vi.fn() }),
+          fetchOne: vi.fn().mockResolvedValue({
+            bodyStructure: {
+              parameters: { name: 'other.pdf' },
+              size: 999,
+              childNodes: [],
+            },
+          }),
+        };
+      });
+      const client = new ImapClient(account);
+      await client.connect();
+      const size = await client.fetchAttachmentSize('1', 'report.pdf');
+      expect(size).toBeNull();
+    });
+
+    it('returns null when msg.bodyStructure is undefined', async () => {
+      const { ImapFlow } = await import('imapflow');
+      const MockImapFlow = ImapFlow as any;
+      MockImapFlow.mockImplementationOnce(function () {
+        return {
+          connect: vi.fn().mockResolvedValue(undefined),
+          getMailboxLock: vi.fn().mockResolvedValue({ release: vi.fn() }),
+          fetchOne: vi.fn().mockResolvedValue({ bodyStructure: undefined }),
+        };
+      });
+      const client = new ImapClient(account);
+      await client.connect();
+      const size = await client.fetchAttachmentSize('1', 'report.pdf');
+      expect(size).toBeNull();
+    });
+
+    it('returns null when fetchOne returns null', async () => {
+      const { ImapFlow } = await import('imapflow');
+      const MockImapFlow = ImapFlow as any;
+      MockImapFlow.mockImplementationOnce(function () {
+        return {
+          connect: vi.fn().mockResolvedValue(undefined),
+          getMailboxLock: vi.fn().mockResolvedValue({ release: vi.fn() }),
+          fetchOne: vi.fn().mockResolvedValue(null),
+        };
+      });
+      const client = new ImapClient(account);
+      await client.connect();
+      const size = await client.fetchAttachmentSize('1', 'report.pdf');
+      expect(size).toBeNull();
+    });
+  });
 });

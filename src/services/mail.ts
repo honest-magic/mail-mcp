@@ -2,6 +2,7 @@ import { ImapClient, MessageMetadata } from '../protocol/imap.js';
 import { SmtpClient } from '../protocol/smtp.js';
 import { htmlToMarkdown } from '../utils/markdown.js';
 import { EmailAccount } from '../types/index.js';
+import { ValidationError } from '../errors.js';
 
 export class MailService {
   private imapClient: ImapClient;
@@ -151,7 +152,13 @@ export class MailService {
     return this.imapClient.fetchThreadMessages(threadId, folder);
   }
 
-  async downloadAttachment(uid: string, filename: string, folder: string = 'INBOX'): Promise<{ content: Buffer, contentType: string }> {
+  async downloadAttachment(uid: string, filename: string, folder: string = 'INBOX', maxBytes: number = 50 * 1024 * 1024): Promise<{ content: Buffer, contentType: string }> {
+    const size = await this.imapClient.fetchAttachmentSize(uid, filename, folder);
+    if (size != null && size > maxBytes) {
+      throw new ValidationError(
+        `Attachment "${filename}" is ${Math.round(size / 1024 / 1024)} MB, which exceeds the ${Math.round(maxBytes / 1024 / 1024)} MB limit. Use an email client to download large attachments directly.`
+      );
+    }
     const parsed = await this.imapClient.fetchMessageBody(uid, folder);
     if (!parsed.attachments || parsed.attachments.length === 0) {
       throw new Error('No attachments found in this email');
