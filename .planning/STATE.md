@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.1.0
 milestone_name: Hardening & Reliability
 status: unknown
-stopped_at: Completed 12-02-PLAN.md
-last_updated: "2026-03-22T21:31:24.830Z"
+stopped_at: Completed 13-01-PLAN.md
+last_updated: "2026-03-22T21:44:58.245Z"
 progress:
   total_phases: 6
   completed_phases: 3
-  total_plans: 7
-  completed_plans: 7
+  total_plans: 9
+  completed_plans: 8
 ---
 
 # Project State: Mail MCP Server
@@ -17,12 +17,12 @@ progress:
 ## Project Reference
 
 **Core Value:** Empower AI agents to act as a personal mail assistant by providing structured, tool-based access to existing email accounts through standard protocols.
-**Current Focus:** Phase 12 — Pagination, Health Check & Reconnect
+**Current Focus:** Phase 13 — Integration Test Suite
 
 ## Current Position
 
-Phase: 999.1
-Plan: Not started
+Phase: 13 (Integration Test Suite) — EXECUTING
+Plan: 2 of 2
 
 ## Performance Metrics
 
@@ -95,10 +95,11 @@ Plan: Not started
 | Phase 11 P02 | 390 | 2 tasks | 6 files |
 | Phase 12 P01 | 160 | 2 tasks | 5 files |
 | Phase 12 P02 | 513 | 2 tasks | 5 files |
+| Phase 13-integration-test-suite P01 | 117 | 2 tasks | 4 files |
 
 ## Session Continuity
 
 **Last Action:** Roadmap created for v1.1.0 Hardening & Reliability (Phases 10–13, 12 requirements mapped).
 **Next Step:** Plan Phase 10 — `/gsd:plan-phase 10`
-**Stopped At:** Completed 12-02-PLAN.md
+**Stopped At:** Completed 13-01-PLAN.md
 **Context for Next Agent:** v1.1.0 roadmap is ready. Phase 10 is the first phase — it covers connection lifecycle (CONN-01), config validation (VAL-01), SMTP TLS auto-derivation (VAL-03), config caching (VAL-04), and typed error classes (SAFE-02). Typed errors are in Phase 10 (not Phase 11) because every downstream phase depends on them. The research file at `.planning/research/SUMMARY.md` has a full pitfall list — H-01 (no auto-reconnect), H-02 (lock deadlock), H-03 (SIGTERM drain) are critical for Phase 10 implementation. Before Phase 11 rate limiting, verify `RateLimiterMemory` API. Before Phase 13, verify smtp-server ESM/Vitest compatibility and decide CI IMAP credentials strategy.
