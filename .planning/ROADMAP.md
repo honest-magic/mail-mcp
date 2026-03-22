@@ -100,3 +100,14 @@ Plans:
 
 ---
 *Last updated: 2026-03-22 — Phase 10 planned (3 plans in 2 waves)*
+
+## Backlog
+
+### Phase 999.1: README update section (BACKLOG)
+
+**Goal:** Write a section in the README.md about updating the MCP server
+**Requirements:** TBD
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (promote with /gsd:review-backlog when ready)
