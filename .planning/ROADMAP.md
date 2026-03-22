@@ -58,7 +58,11 @@ Plans:
   1. Calling `send_email` with a syntactically invalid recipient address (e.g. `notanemail`) returns a `ValidationError` without any SMTP connection being opened
   2. Requesting attachment content for an attachment whose BODYSTRUCTURE-reported size exceeds 50 MB returns a clear error before any bytes are downloaded
   3. An AI agent issuing more than 100 tool calls in 60 seconds against a single account receives a `QuotaError` response; subsequent calls within the window continue to be rejected until the window resets
-**Plans**: TBD
+**Plans:** 2 plans
+
+Plans:
+- [ ] 11-01-PLAN.md — Email validation utility and per-account rate limiter with tests
+- [ ] 11-02-PLAN.md — Attachment size guard, wire all guards into dispatch layer
 
 ### Phase 12: Pagination, Health Check & Reconnect
 **Goal**: Users can navigate large mailboxes, validate credentials at startup, and the server recovers automatically from dropped connections
@@ -94,12 +98,12 @@ Plans:
 | 8. GitHub Repository | v1.0.0 | 2/2 | Complete | 2026-03-22 |
 | 9. GitHub Actions | v1.0.0 | 2/2 | Complete | 2026-03-22 |
 | 10. Connection Lifecycle & Error Infrastructure | v1.1.0 | 3/3 | Complete    | 2026-03-22 |
-| 11. Input Validation & Safety Limits | v1.1.0 | 0/? | Not started | - |
+| 11. Input Validation & Safety Limits | v1.1.0 | 0/2 | Planned | - |
 | 12. Pagination, Health Check & Reconnect | v1.1.0 | 0/? | Not started | - |
 | 13. Integration Test Suite | v1.1.0 | 0/? | Not started | - |
 
 ---
-*Last updated: 2026-03-22 — Phase 10 planned (3 plans in 2 waves)*
+*Last updated: 2026-03-22 — Phase 11 planned (2 plans in 2 waves)*
 
 ## Backlog
 
