@@ -29,7 +29,7 @@ Full archive: `.planning/milestones/v1.0.0-ROADMAP.md`
 - [x] **Phase 10: Connection Lifecycle & Error Infrastructure** — Graceful shutdown, config validation, SMTP TLS derivation, config caching, typed errors (completed 2026-03-22)
 - [x] **Phase 11: Input Validation & Safety Limits** — Email address validation, attachment size cap, per-account rate limiting (completed 2026-03-22)
 - [x] **Phase 12: Pagination, Health Check & Reconnect** — Large mailbox pagination, startup account probing, auto-reconnect on drop (completed 2026-03-22)
-- [ ] **Phase 13: Integration Test Suite** — Real-protocol SMTP and IMAP integration tests with CI support
+- [x] **Phase 13: Integration Test Suite** — Real-protocol SMTP and IMAP integration tests with CI support (completed 2026-03-22)
 
 ## Phase Details
 
@@ -86,11 +86,11 @@ Plans:
   1. Running `npm run test:integration` with a local smtp-server fixture completes a full send-receive cycle (compose -> send -> receive -> verify headers) without any mocked transport
   2. Running `npm run test:integration` without IMAP credentials set in environment skips IMAP tests cleanly with a descriptive skip message, and exits zero
   3. The integration test suite does not appear in or interfere with the default `npm test` unit test run
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 
 Plans:
 - [x] 13-01-PLAN.md — Integration test infrastructure, smtp-server fixture, and SMTP send/receive test
-- [ ] 13-02-PLAN.md — IMAP credential-gated integration test and CI workflow update
+- [x] 13-02-PLAN.md — IMAP credential-gated integration test and CI workflow update
 
 ## Progress
 
@@ -108,7 +108,7 @@ Plans:
 | 10. Connection Lifecycle & Error Infrastructure | v1.1.0 | 3/3 | Complete    | 2026-03-22 |
 | 11. Input Validation & Safety Limits | v1.1.0 | 2/2 | Complete    | 2026-03-22 |
 | 12. Pagination, Health Check & Reconnect | v1.1.0 | 2/2 | Complete    | 2026-03-22 |
-| 13. Integration Test Suite | v1.1.0 | 1/2 | In Progress|  |
+| 13. Integration Test Suite | v1.1.0 | 2/2 | Complete   | 2026-03-22 |
 
 ---
 *Last updated: 2026-03-22 — Phase 13 planned (2 plans in 2 waves)*
