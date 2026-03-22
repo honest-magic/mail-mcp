@@ -10,7 +10,7 @@
 - [x] **Phase 6: Mode Discoverability & Connection Hygiene** - Expose mode to MCP clients at handshake and skip unnecessary SMTP authentication. (completed 2026-03-22)
 - [x] **Phase 7: npm Package Setup** - Configure package.json for public npm distribution and verify the build produces a self-contained publishable artifact. (completed 2026-03-22)
 - [x] **Phase 8: GitHub Repository** - Create the public repo under `honest-magic`, write a consumer-facing README, and push all existing commits. (completed 2026-03-22)
-- [ ] **Phase 9: GitHub Actions** - Add CI workflow (type-check + test) and tag-based publish workflow with a mandatory CI gate.
+- [x] **Phase 9: GitHub Actions** - Add CI workflow (type-check + test) and tag-based publish workflow with a mandatory CI gate. (completed 2026-03-22)
 
 ## Phase Details
 
@@ -121,7 +121,7 @@
 3. If the CI job fails, the publish job does not run (enforced via `needs: ci` in the publish workflow).
 **Plans**: 2
 - [x] 09-01-PLAN.md — Create CI workflow (type-check + test on push/PR to main)
-- [ ] 09-02-PLAN.md — Create publish workflow (v* tag → build → npm publish, needs: ci)
+- [x] 09-02-PLAN.md — Create publish workflow (v* tag → build → npm publish, needs: ci)
 
 ## Progress
 
@@ -135,4 +135,4 @@
 | 6. Mode Discoverability & Connection Hygiene | 1/1 | Complete | 2026-03-22 |
 | 7. npm Package Setup | 1/1 | Complete   | 2026-03-22 |
 | 8. GitHub Repository | 2/2 | Complete   | 2026-03-22 |
-| 9. GitHub Actions | 1/2 | In Progress|  |
+| 9. GitHub Actions | 2/2 | Complete   | 2026-03-22 |
