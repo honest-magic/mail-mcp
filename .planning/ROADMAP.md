@@ -93,4 +93,4 @@
 | 3. Context & Resources | 2/2 | Complete | 2026-03-21 |
 | 4. Efficiency & Scale | 1/1 | Complete | 2026-03-21 |
 | 5. Read-Only Enforcement | 1/1 | Complete    | 2026-03-21 |
-| 6. Mode Discoverability & Connection Hygiene | 1/1 | Complete   | 2026-03-22 |
+| 6. Mode Discoverability & Connection Hygiene | 1/1 | Complete    | 2026-03-22 |
