@@ -9,6 +9,7 @@ import {
 } from '@modelcontextprotocol/sdk/types.js';
 import { parseArgs } from 'node:util';
 import { getAccounts } from './config.js';
+import { handleAccountsCommand } from './cli/accounts.js';
 import { MailService } from './services/mail.js';
 
 const WRITE_TOOLS = new Set<string>([
@@ -591,13 +592,27 @@ export class MailMCPServer {
   }
 }
 
-const { values } = parseArgs({
-  args: process.argv.slice(2),
-  options: {
-    'read-only': { type: 'boolean', default: false },
-  },
-  strict: false,
-});
+async function main() {
+  const args = process.argv.slice(2);
 
-const server = new MailMCPServer((values['read-only'] as boolean | undefined) ?? false);
-server.run().catch(console.error);
+  // Check for CLI subcommands before starting MCP server
+  const handled = await handleAccountsCommand(args);
+  if (handled) {
+    process.exit(0);
+  }
+
+  // No CLI subcommand — start MCP server
+  const { values } = parseArgs({
+    args,
+    options: { 'read-only': { type: 'boolean', default: false } },
+    strict: false,
+  });
+
+  const server = new MailMCPServer((values['read-only'] as boolean | undefined) ?? false);
+  server.run().catch(console.error);
+}
+
+main().catch((err) => {
+  console.error(err);
+  process.exit(1);
+});
