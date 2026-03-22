@@ -28,7 +28,7 @@ Requirements for hardening & reliability milestone. Each maps to roadmap phases.
 
 ### Quality & Testing
 
-- [ ] **QUAL-01**: User can paginate large email lists via an `offset` parameter on `list_emails` and `search_emails`
+- [x] **QUAL-01**: User can paginate large email lists via an `offset` parameter on `list_emails` and `search_emails`
 - [ ] **QUAL-02**: Integration test suite covers SMTP send (via smtp-server) and IMAP operations (via real credentials in CI)
 
 ## Future Requirements
@@ -68,7 +68,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SAFE-01 | Phase 11 | Complete |
 | SAFE-02 | Phase 10 | Complete |
 | SAFE-03 | Phase 11 | Complete |
-| QUAL-01 | Phase 12 | Pending |
+| QUAL-01 | Phase 12 | Complete |
 | QUAL-02 | Phase 13 | Pending |
 
 **Coverage:**
