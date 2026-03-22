@@ -1,9 +1,15 @@
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 
 vi.mock('./config.js', () => ({
-  getAccounts: vi.fn().mockReturnValue([]),
+  getAccounts: vi.fn().mockResolvedValue([]),
 }));
 
+// vi.mock() is hoisted above all variable declarations, so outer-scope variables like
+// mockDisconnect cannot be referenced inside the factory (they'd be in TDZ). Instead,
+// we create all mock functions self-contained inside the factory and keep external
+// references only for assertions.
+
+// Shared mock functions — declared before use in tests, not inside the factory.
 const mockSearchEmails = vi.fn().mockResolvedValue([
   { id: '42', uid: 42, subject: 'Found Email', from: 'sender@example.com' }
 ]);
@@ -11,18 +17,25 @@ const mockSendEmail = vi.fn().mockResolvedValue(undefined);
 const mockListFolders = vi.fn().mockResolvedValue(['INBOX', 'Sent', 'Drafts', 'Trash']);
 const mockMoveMessage = vi.fn().mockResolvedValue(undefined);
 const mockModifyLabels = vi.fn().mockResolvedValue(undefined);
+const mockDisconnect = vi.fn().mockResolvedValue(undefined);
 
-vi.mock('./services/mail.js', () => ({
-  MailService: vi.fn().mockImplementation(() => ({
+vi.mock('./services/mail.js', () => {
+  // Self-contained: no outer-scope references to avoid TDZ issues with vi.mock hoisting.
+  const disconnect = vi.fn().mockResolvedValue(undefined);
+  const MockMailService = vi.fn().mockImplementation(() => ({
     connect: vi.fn().mockResolvedValue(undefined),
+    disconnect,
     listEmails: vi.fn().mockResolvedValue([]),
-    searchEmails: mockSearchEmails,
-    sendEmail: mockSendEmail,
-    listFolders: mockListFolders,
-    moveMessage: mockMoveMessage,
-    modifyLabels: mockModifyLabels,
-  })),
-}));
+    searchEmails: vi.fn().mockResolvedValue([
+      { id: '42', uid: 42, subject: 'Found Email', from: 'sender@example.com' },
+    ]),
+    sendEmail: vi.fn().mockResolvedValue(undefined),
+    listFolders: vi.fn().mockResolvedValue(['INBOX', 'Sent', 'Drafts', 'Trash']),
+    moveMessage: vi.fn().mockResolvedValue(undefined),
+    modifyLabels: vi.fn().mockResolvedValue(undefined),
+  }));
+  return { MailService: MockMailService };
+});
 
 import { MailMCPServer } from './index.js';
 
@@ -358,5 +371,43 @@ describe('SAFE-02: typed error formatting in catch block', () => {
     const result = await (server as any).dispatchTool('read_email', false, { accountId: 'test' });
     expect(result.isError).toBe(true);
     expect(result.content[0].text).toBe('[NetworkError] timeout');
+  });
+});
+
+describe('CONN-01: graceful shutdown', () => {
+  it('shutdown() calls disconnect() on all services in the services Map', async () => {
+    const server = new MailMCPServer(false);
+    const d1 = vi.fn().mockResolvedValue(undefined);
+    const d2 = vi.fn().mockResolvedValue(undefined);
+    (server as any).services.set('account1', { disconnect: d1 });
+    (server as any).services.set('account2', { disconnect: d2 });
+    await (server as any).shutdown();
+    expect(d1).toHaveBeenCalledOnce();
+    expect(d2).toHaveBeenCalledOnce();
+  });
+
+  it('shutdown() clears the services Map after disconnecting', async () => {
+    const server = new MailMCPServer(false);
+    (server as any).services.set('account1', { disconnect: vi.fn().mockResolvedValue(undefined) });
+    await (server as any).shutdown();
+    expect((server as any).services.size).toBe(0);
+  });
+
+  it('shutdown() resolves even if a service.disconnect() rejects', async () => {
+    const server = new MailMCPServer(false);
+    (server as any).services.set('account1', { disconnect: vi.fn().mockRejectedValue(new Error('disconnect failed')) });
+    await expect((server as any).shutdown()).resolves.toBeUndefined();
+    expect((server as any).services.size).toBe(0);
+  });
+
+  it('when shuttingDown is true, shuttingDown flag is set on the server', () => {
+    const server = new MailMCPServer(false);
+    (server as any).shuttingDown = true;
+    expect((server as any).shuttingDown).toBe(true);
+  });
+
+  it('inFlightCount starts at 0', () => {
+    const server = new MailMCPServer(false);
+    expect((server as any).inFlightCount).toBe(0);
   });
 });

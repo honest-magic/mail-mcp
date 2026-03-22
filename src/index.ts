@@ -25,6 +25,8 @@ const WRITE_TOOLS = new Set<string>([
 export class MailMCPServer {
   private server: Server;
   private services: Map<string, MailService> = new Map();
+  private shuttingDown = false;
+  private inFlightCount = 0;
 
   constructor(private readonly readOnly: boolean = false) {
     this.server = new Server(
@@ -47,11 +49,28 @@ export class MailMCPServer {
     this.server.onerror = (error) => console.error('[MCP Error]', error);
   }
 
+  async shutdown(): Promise<void> {
+    this.shuttingDown = true;
+
+    // Wait for in-flight requests to drain (max 10s)
+    const deadline = Date.now() + 10_000;
+    while (this.inFlightCount > 0 && Date.now() < deadline) {
+      await new Promise(resolve => setTimeout(resolve, 50));
+    }
+
+    // Disconnect all cached services
+    const disconnects = Array.from(this.services.values()).map(svc =>
+      svc.disconnect().catch(err => console.error('Disconnect error:', err))
+    );
+    await Promise.allSettled(disconnects);
+    this.services.clear();
+  }
+
   private async getService(accountId: string): Promise<MailService> {
     if (this.services.has(accountId)) {
       return this.services.get(accountId)!;
     }
-    const accounts = getAccounts();
+    const accounts = await getAccounts();
     const account = accounts.find(a => a.id === accountId);
     if (!account) {
       throw new Error(`Account ${accountId} not found in configuration.`);
@@ -294,7 +313,7 @@ export class MailMCPServer {
       }
 
       if (name === 'list_accounts') {
-        const accounts = getAccounts();
+        const accounts = await getAccounts();
         return {
           content: [{
             type: 'text',
@@ -330,6 +349,13 @@ export class MailMCPServer {
     }));
 
     this.server.setRequestHandler(CallToolRequestSchema, async (request) => {
+      if (this.shuttingDown) {
+        return {
+          content: [{ type: 'text', text: 'Server is shutting down' }],
+          isError: true,
+        };
+      }
+      this.inFlightCount++;
       try {
         const toolName = request.params.name;
 
@@ -344,7 +370,7 @@ export class MailMCPServer {
         }
 
         if (request.params.name === 'list_accounts') {
-          const accounts = getAccounts();
+          const accounts = await getAccounts();
           return {
             content: [
               {
@@ -596,6 +622,8 @@ export class MailMCPServer {
           content: [{ type: 'text', text: message }],
           isError: true,
         };
+      } finally {
+        this.inFlightCount--;
       }
     });
   }
@@ -624,6 +652,19 @@ async function main() {
   });
 
   const server = new MailMCPServer((values['read-only'] as boolean | undefined) ?? false);
+
+  const shutdown = async () => {
+    const timer = setTimeout(() => {
+      console.error('Forced exit after 10s shutdown timeout');
+      process.exit(1);
+    }, 10_000);
+    timer.unref();
+    await server.shutdown();
+    process.exit(0);
+  };
+  process.on('SIGTERM', shutdown);
+  process.on('SIGINT', shutdown);
+
   server.run().catch(console.error);
 }
 
