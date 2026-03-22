@@ -124,10 +124,10 @@ All 21 v1 requirements validated and shipped. See ROADMAP.md and individual phas
 
 ### npm Package (PKG)
 
-- [ ] **PKG-01**: `package.json` has `name: "@honest-magic/mail-mcp"`, `version: "1.0.0"`, and `publishConfig: { access: "public" }`
-- [ ] **PKG-02**: `package.json` has a `bin` field (`"mail-mcp": "dist/index.js"`) enabling both `npx @honest-magic/mail-mcp` and `npm install -g @honest-magic/mail-mcp`
-- [ ] **PKG-03**: `package.json` `files` field restricts the published artifact to `["dist", "README.md", "LICENSE"]`
-- [ ] **PKG-04**: Build script (`npm run build`) produces a self-contained `dist/index.js` with a proper shebang that runs without dev dependencies
+- [x] **PKG-01**: `package.json` has `name: "@honest-magic/mail-mcp"`, `version: "1.0.0"`, and `publishConfig: { access: "public" }`
+- [x] **PKG-02**: `package.json` has a `bin` field (`"mail-mcp": "dist/index.js"`) enabling both `npx @honest-magic/mail-mcp` and `npm install -g @honest-magic/mail-mcp`
+- [x] **PKG-03**: `package.json` `files` field restricts the published artifact to `["dist", "README.md", "LICENSE"]`
+- [x] **PKG-04**: Build script (`npm run build`) produces a self-contained `dist/index.js` with a proper shebang that runs without dev dependencies
 
 ### GitHub Actions (GHA)
 
@@ -150,10 +150,10 @@ All 21 v1 requirements validated and shipped. See ROADMAP.md and individual phas
 |-------------|-------|--------|
 | GH-01 | Phase 8 | Pending |
 | GH-02 | Phase 8 | Pending |
-| PKG-01 | Phase 7 | Pending |
-| PKG-02 | Phase 7 | Pending |
-| PKG-03 | Phase 7 | Pending |
-| PKG-04 | Phase 7 | Pending |
+| PKG-01 | Phase 7 | Complete |
+| PKG-02 | Phase 7 | Complete |
+| PKG-03 | Phase 7 | Complete |
+| PKG-04 | Phase 7 | Complete |
 | GHA-01 | Phase 9 | Pending |
 | GHA-02 | Phase 9 | Pending |
 | GHA-03 | Phase 9 | Pending |

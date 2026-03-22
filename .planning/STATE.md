@@ -1,14 +1,14 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.2
-milestone_name: public-release-cicd
-status: active
-last_updated: "2026-03-22T00:00:00.000Z"
+milestone: v1.0.0
+milestone_name: milestone
+status: unknown
+last_updated: "2026-03-22T07:33:00.247Z"
 progress:
-  total_phases: 3
-  completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
+  total_phases: 9
+  completed_phases: 5
+  total_plans: 12
+  completed_plans: 9
 ---
 
 # Project State: Mail MCP Server
@@ -16,25 +16,17 @@ progress:
 ## Project Reference
 
 **Core Value:** Empower AI agents to act as a personal mail assistant by providing structured, tool-based access to existing email accounts through standard protocols.
-**Current Focus:** Milestone v1.2 — Public Release & CI/CD
+**Current Focus:** Phase 08 — github-readme
 
 ## Current Position
 
-Phase: 7 — npm Package Setup
-Plan: —
-Status: Ready to plan
-Last activity: 2026-03-22 — Roadmap created for v1.2
-
-```
-Phase 7 [          ] 0%   npm Package Setup
-Phase 8 [          ] 0%   GitHub Repository
-Phase 9 [          ] 0%   GitHub Actions
-```
+Phase: 07 (npm-package-setup) — COMPLETE
+Next: Phase 08 (github-readme)
 
 ## Performance Metrics
 
-- **Phases Completed:** 0/3 (v1.2)
-- **Requirements Covered:** 0/9 (v1.2 requirements pending)
+- **Phases Completed:** 1/3 (v1.2)
+- **Requirements Covered:** 4/9 (v1.2 requirements pending)
 - **Current Velocity:** 1 phase/session
 
 ## Accumulated Context
@@ -75,9 +67,11 @@ Phase 9 [          ] 0%   GitHub Actions
 | 260321 | Fix 3 audit gaps: SMTP-04, THRD non-Gmail, IMAP-01 snippet | 2026-03-21 | c6f1bf2 | [260321-fix-audit-gaps](.planning/quick/260321-fix-audit-gaps/) |
 | Phase 05-read-only-enforcement P01 | 137 | 2 tasks | 2 files |
 | Phase 06-mode-discoverability-connection-hygiene P01 | 1 | 2 tasks | 4 files |
+| Phase 07-npm-package-setup P01 | 10 | 2 tasks | 2 files |
 
 ## Session Continuity
 
-**Last Action:** Roadmap created for v1.2 (Phases 7–9 defined, 9/9 requirements mapped).
-**Next Step:** Run `/gsd:plan-phase 7` to plan npm package setup.
-**Context for Next Agent:** v1.1 complete (6 phases, 28 requirements). v1.2 adds 3 phases (7–9). Phase 7 configures package.json for `@honest-magic/mail-mcp` (name, version, bin, files, publishConfig) and verifies `npm run build` produces a self-contained dist/index.js with shebang. Phase 8 creates the public GitHub repo at `github.com/honest-magic/mail-mcp` and writes the consumer-facing README. Phase 9 adds `.github/workflows/ci.yml` (tsc + test on push/PR to main) and `.github/workflows/publish.yml` (npm publish on v* tag, needs: ci).
+**Last Action:** Completed Phase 7 (npm-package-setup) — package.json configured as @honest-magic/mail-mcp with bin, files, publishConfig, MIT LICENSE created. PKG-01 through PKG-04 validated.
+**Next Step:** Execute Phase 8 (github-readme) — create public GitHub repo at github.com/honest-magic/mail-mcp and write consumer-facing README.
+**Stopped At:** Completed 07-npm-package-setup 07-01-PLAN.md
+**Context for Next Agent:** Phase 7 complete. package.json is @honest-magic/mail-mcp, bin=mail-mcp->dist/index.js, files=[dist,README.md,LICENSE], publishConfig.access=public, MIT LICENSE exists. npm pack --dry-run confirms correct tarball. Phase 8 creates GitHub repo and README.md (which is already referenced in files field). Phase 9 adds .github/workflows/ci.yml and publish.yml.
