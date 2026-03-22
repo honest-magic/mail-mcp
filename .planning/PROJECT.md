@@ -30,6 +30,18 @@ Empower AI agents to act as a personal mail assistant by providing structured, t
 - [x] **ROM-04**: Server exposes its current mode so MCP clients can adapt — *Validated in Phase 6: Mode Discoverability & Connection Hygiene*
 - [x] **ROM-07**: SMTP connection skipped when server starts with --read-only — *Validated in Phase 6*
 
+### v1.2 Active
+
+- [ ] **GH-01**: Public repo `github.com/honest-magic/mail-mcp` exists with all existing commits pushed
+- [ ] **GH-02**: Repository has a README.md suitable for public consumers (install, config, usage)
+- [ ] **PKG-01**: `package.json` has `name: "@honest-magic/mail-mcp"`, `version: "1.0.0"`, `publishConfig.access: "public"`
+- [ ] **PKG-02**: `package.json` has a `bin` entry enabling `npx @honest-magic/mail-mcp` and global install
+- [ ] **PKG-03**: `package.json` `files` field scopes the published artifact to `dist/`, `README.md`, `LICENSE` only
+- [ ] **PKG-04**: Build script produces a self-contained `dist/` that runs without dev dependencies
+- [ ] **GHA-01**: CI workflow runs `tsc --noEmit` + `npm test` on push to `main` and on pull requests
+- [ ] **GHA-02**: Publish workflow triggers on `v*` tag push and publishes `@honest-magic/mail-mcp` to npm
+- [ ] **GHA-03**: Publish workflow requires CI to pass before publishing
+
 ### Out of Scope
 
 - Hosting a mail server (this is a client/adapter only)
@@ -54,18 +66,21 @@ Empower AI agents to act as a personal mail assistant by providing structured, t
 |----------|-----------|---------|
 | Language Choice | TypeScript/Node.js selected for rich MCP SDK support and async handling | ✓ Good |
 
-## Current Milestone: v1.1 Read-Only Mode — Complete ✓
-
-**Goal:** Add a startup flag that restricts the server to read-only operations, preventing any email mutations.
+## Previous Milestone: v1.1 Read-Only Mode — Complete ✓
 
 **Delivered (all 7 requirements validated):**
-- `--read-only` startup flag (ROM-01)
-- Write tools blocked with clear refusal error (ROM-02)
-- Read/search tools unaffected (ROM-03)
-- Mode communicated via `InitializeResult.instructions` at handshake (ROM-04)
-- Write tools filtered from `tools/list` in read-only mode (ROM-05)
-- All 14 tools annotated with `readOnlyHint`/`destructiveHint` (ROM-06)
-- SMTP connection skipped when read-only (ROM-07)
+- `--read-only` startup flag, write blocking, tool filtering, MCP handshake instructions, SMTP skip
+
+## Current Milestone: v1.2 — Public Release & CI/CD
+
+**Goal:** Publish the server as `@honest-magic/mail-mcp` on npm, create a public GitHub repo under `honest-magic`, and add GitHub Actions for CI and tag-based npm publish.
+
+**Target features:**
+- Public GitHub repo at `github.com/honest-magic/mail-mcp`
+- Consumer-facing README
+- npm package configured for `npx @honest-magic/mail-mcp` and global install
+- CI workflow (type-check + tests on push/PR)
+- Publish workflow (npm publish on `v*` tag)
 
 ## Evolution
 
@@ -85,4 +100,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-03-22 — Milestone v1.1 complete (all 6 phases, 28 requirements validated)*
+*Last updated: 2026-03-22 — Milestone v1.2 started (public release & CI/CD)*

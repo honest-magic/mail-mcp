@@ -1,14 +1,14 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.0
-milestone_name: milestone
-status: unknown
-last_updated: "2026-03-22T06:50:17.384Z"
+milestone: v1.2
+milestone_name: public-release-cicd
+status: active
+last_updated: "2026-03-22T00:00:00.000Z"
 progress:
-  total_phases: 6
-  completed_phases: 4
-  total_plans: 11
-  completed_plans: 8
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
 ---
 
 # Project State: Mail MCP Server
@@ -16,17 +16,19 @@ progress:
 ## Project Reference
 
 **Core Value:** Empower AI agents to act as a personal mail assistant by providing structured, tool-based access to existing email accounts through standard protocols.
-**Current Focus:** Phase 06 — mode-discoverability-connection-hygiene
+**Current Focus:** Milestone v1.2 — Public Release & CI/CD
 
 ## Current Position
 
-Phase: 6
-Plan: Not started
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-03-22 — Milestone v1.2 started
 
 ## Performance Metrics
 
-- **Phases Completed:** 4/6
-- **Requirements Covered:** 21/28 (v1.0 done; v1.1 pending)
+- **Phases Completed:** 0/TBD
+- **Requirements Covered:** 0/9 (v1.2 requirements pending)
 - **Current Velocity:** 1 phase/session
 
 ## Accumulated Context
@@ -66,6 +68,6 @@ Plan: Not started
 
 ## Session Continuity
 
-**Last Action:** Completed 06-01-PLAN.md — ROM-04 (instructions in MCP handshake) and ROM-07 (SMTP skip in read-only mode) implemented.
-**Next Step:** Run `/gsd:transition` or `/gsd:complete-milestone` to close v1.1 and update PROJECT.md.
-**Context for Next Agent:** v1.1 complete. All 7 ROM requirements implemented across Phases 5 and 6. Phase 5 added --read-only flag, write blocking, tool filtering, and annotations. Phase 6 added MCP handshake instructions and SMTP skip. ROM-08 (IMAP EXAMINE) deferred to v2.
+**Last Action:** Milestone v1.2 started. Requirements defined (GH-01/02, PKG-01–04, GHA-01–03). Roadmap pending.
+**Next Step:** Run `/gsd:plan-phase 7` after roadmap is created.
+**Context for Next Agent:** v1.1 complete (6 phases, 28 requirements). v1.2 targets public GitHub repo under `honest-magic` org, npm package `@honest-magic/mail-mcp` at version 1.0.0 with `bin` entry for npx/global-install, and GH Actions for CI (test+typecheck) and tag-based npm publish. No new runtime dependencies expected.
