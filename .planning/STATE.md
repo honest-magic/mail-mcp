@@ -1,8 +1,8 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.3.0
-milestone_name: Performance & Caching
-status: defining_requirements
+milestone: v1.2.0
+milestone_name: Distribution & Documentation
+status: milestone_complete
 stopped_at: null
 last_updated: "2026-03-23T16:00:00.000Z"
 progress:
@@ -17,14 +17,14 @@ progress:
 ## Project Reference
 
 **Core Value:** Empower AI agents to act as a personal mail assistant by providing structured, tool-based access to existing email accounts through standard protocols.
-**Current Focus:** Defining requirements for v1.3.0 Performance & Caching
+**Current Focus:** v1.2.0 complete — backlog items parked, next milestone TBD
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: —
 Plan: —
-Status: Defining requirements
-Last activity: 2026-03-23 — Milestone v1.3.0 started
+Status: Between milestones
+Last activity: 2026-03-23 — v1.2.0 shipped, backlog items added
 
 ## Accumulated Context
 
@@ -42,5 +42,5 @@ Carried from v1.2.0 — see PROJECT.md Key Decisions table for full history.
 
 ## Session Continuity
 
-**Last Action:** Started milestone v1.3.0 Performance & Caching — researching domain before defining requirements.
-**Next Step:** Complete research, define requirements, create roadmap.
+**Last Action:** Shipped v1.2.0 — Homebrew, CLI flags, GitHub Releases. Parked performance/caching as backlog item 999.5.
+**Next Step:** Run `/gsd:new-milestone` when ready to start next milestone, or `/gsd:review-backlog` to promote items.

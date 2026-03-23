@@ -97,5 +97,14 @@ Plans:
 Plans:
 - [ ] TBD (promote with /gsd:review-backlog when ready)
 
+### Phase 999.5: Performance & Caching (BACKLOG)
+
+**Goal:** Reduce latency across the full request path — IMAP connection pooling, response caching for repeated email/thread fetches, faster search on large mailboxes, efficient body/attachment parsing
+**Requirements:** TBD
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (promote with /gsd:review-backlog when ready)
+
 ---
-*Last updated: 2026-03-23 — Backlog item 999.4 added*
+*Last updated: 2026-03-23 — Backlog item 999.5 added*

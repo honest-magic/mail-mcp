@@ -79,15 +79,9 @@ Empower AI agents to act as a personal mail assistant by providing structured, t
 | onClose callback (not EventEmitter) for reconnect | Zero new base class, minimal test churn, simple invalidation | ✓ Good |
 | smtp-server for integration tests (not Docker) | In-process, zero CI infrastructure, Nodemailer org maintained | ✓ Good |
 
-## Current Milestone: v1.3.0 Performance & Caching
+## Current Milestone: None (planning next)
 
-**Goal:** Reduce latency and redundant work across the full request path — IMAP connections, message fetching, search, parsing, and repeated queries.
-
-**Target features:**
-- Connection pooling / persistent IMAP sessions
-- Response caching for repeated email/thread fetches
-- Faster message listing and search on large mailboxes
-- Efficient body/attachment parsing for large messages
+**Last shipped:** v1.2.0 Distribution & Documentation (2026-03-23)
 
 ## Deferred (v2+)
 
@@ -114,4 +108,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-03-23 — v1.3.0 milestone started*
+*Last updated: 2026-03-23 — v1.2.0 shipped, backlog items parked*
