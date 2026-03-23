@@ -47,7 +47,7 @@ Full archive: `.planning/milestones/v1.1.0-ROADMAP.md`
 
 ### v1.3.0 Signature Support & Performance Improvements (Phases 15–18)
 
-- [ ] **Phase 15: Upgrade GitHub Actions to Node.js 24** - Upgrade CI workflows before forced migration
+- [x] **Phase 15: Upgrade GitHub Actions to Node.js 24** - Upgrade CI workflows before forced migration (completed 2026-03-23)
 - [ ] **Phase 16: MCP Tool Description Improvements** - Better AI routing between mail-mcp and Gmail
 - [ ] **Phase 17: Email Signature Support** - Per-account signatures for send and draft
 - [ ] **Phase 18: Performance & Caching** - Connection pooling, response caching, faster search
@@ -61,7 +61,7 @@ Full archive: `.planning/milestones/v1.1.0-ROADMAP.md`
 **Plans**: 1 plan
 
 Plans:
-- [ ] 15-01-PLAN.md — Upgrade ci.yml and publish.yml action versions and standardize node-version to '22'
+- [x] 15-01-PLAN.md — Upgrade ci.yml and publish.yml action versions and standardize node-version to '22'
 
 ### Phase 16: MCP Tool Description Improvements
 **Goal**: Make tool descriptions specific enough that AI clients prefer mail-mcp for IMAP accounts and Gmail MCP for Google accounts
@@ -99,7 +99,7 @@ Plans:
 | 12. Pagination & Reconnect | v1.1.0 | 2/2 | Complete | 2026-03-22 |
 | 13. Integration Tests | v1.1.0 | 2/2 | Complete | 2026-03-22 |
 | 14. Distribution & Documentation | v1.2.0 | 2/2 | Complete | 2026-03-23 |
-| 15. GH Actions Node.js 24 | v1.3.0 | 0/1 | Not started | - |
+| 15. GH Actions Node.js 24 | v1.3.0 | 1/1 | Complete   | 2026-03-23 |
 | 16. Tool Descriptions | v1.3.0 | 0/? | Not started | - |
 | 17. Email Signatures | v1.3.0 | 0/? | Not started | - |
 | 18. Performance & Caching | v1.3.0 | 0/? | Not started | - |
