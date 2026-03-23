@@ -777,9 +777,40 @@ async function main() {
     options: {
       'read-only': { type: 'boolean', default: false },
       'validate-accounts': { type: 'boolean', default: false },
+      'version': { type: 'boolean', default: false },
+      'help': { type: 'boolean', short: 'h', default: false },
     },
     strict: false,
   });
+
+  if (values['version']) {
+    const { createRequire } = await import('node:module');
+    const require = createRequire(import.meta.url);
+    const pkg = require('../package.json');
+    console.log(pkg.version);
+    process.exit(0);
+  }
+
+  if (values['help']) {
+    const { createRequire } = await import('node:module');
+    const require = createRequire(import.meta.url);
+    const pkg = require('../package.json');
+    console.log(`mail-mcp v${pkg.version} — MCP server for IMAP/SMTP email access
+
+Usage: mail-mcp [options] [command]
+
+Commands:
+  accounts add        Add a new email account (interactive)
+  accounts list       List configured accounts
+  accounts remove ID  Remove an account
+
+Options:
+  --read-only           Start in read-only mode (no send/move/label tools)
+  --validate-accounts   Probe IMAP/SMTP connections and exit
+  --version             Show version number
+  -h, --help            Show this help message`);
+    process.exit(0);
+  }
 
   if (values['validate-accounts']) {
     await runValidateAccounts();
