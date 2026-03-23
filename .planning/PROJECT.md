@@ -77,6 +77,14 @@ Empower AI agents to act as a personal mail assistant by providing structured, t
 | onClose callback (not EventEmitter) for reconnect | Zero new base class, minimal test churn, simple invalidation | ✓ Good |
 | smtp-server for integration tests (not Docker) | In-process, zero CI infrastructure, Nodemailer org maintained | ✓ Good |
 
+## Current Milestone: v1.2.0 Distribution & Documentation
+
+**Goal:** Improve the install and update experience with a Homebrew formula and better documentation.
+
+**Target features:**
+- README section about updating the MCP server
+- Homebrew formula for `brew install mail-mcp`
+
 ## Deferred (v2+)
 
 - **REAL-01**: Real-time push via IMAP IDLE
@@ -102,4 +110,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-03-22 after v1.1.0 milestone*
+*Last updated: 2026-03-23 — v1.2.0 milestone started*
