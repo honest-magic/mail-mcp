@@ -182,7 +182,11 @@ export class MailMCPServer {
             body: { type: 'string', description: 'Email body content' },
             isHtml: { type: 'boolean', description: 'Whether the body is HTML (default: false)' },
             cc: { type: 'string', description: 'CC recipients' },
-            bcc: { type: 'string', description: 'BCC recipients' }
+            bcc: { type: 'string', description: 'BCC recipients' },
+            includeSignature: {
+              type: 'boolean',
+              description: 'Whether to append the account signature (default: true). Set to false to suppress the signature for this message.'
+            }
           },
           required: ['accountId', 'to', 'subject', 'body']
         }
@@ -200,7 +204,11 @@ export class MailMCPServer {
             body: { type: 'string', description: 'Email body content' },
             isHtml: { type: 'boolean', description: 'Whether the body is HTML (default: false)' },
             cc: { type: 'string', description: 'CC recipients' },
-            bcc: { type: 'string', description: 'BCC recipients' }
+            bcc: { type: 'string', description: 'BCC recipients' },
+            includeSignature: {
+              type: 'boolean',
+              description: 'Whether to append the account signature (default: true). Set to false to suppress the signature for this draft.'
+            }
           },
           required: ['accountId', 'to', 'subject', 'body']
         }
