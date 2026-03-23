@@ -541,10 +541,11 @@ export class MailMCPServer {
         }
 
         if (request.params.name === 'send_email') {
-          const args = request.params.arguments as { accountId: string; to: string; subject: string; body: string; isHtml?: boolean; cc?: string; bcc?: string };
+          const args = request.params.arguments as { accountId: string; to: string; subject: string; body: string; isHtml?: boolean; cc?: string; bcc?: string; includeSignature?: boolean };
           validateEmailAddresses(args.to, args.cc, args.bcc);
+          const includeSignature = args.includeSignature !== false; // default true
           const service = await this.getService(args.accountId);
-          await service.sendEmail(args.to, args.subject, args.body, args.isHtml, args.cc, args.bcc);
+          await service.sendEmail(args.to, args.subject, args.body, args.isHtml, args.cc, args.bcc, includeSignature);
           return {
             content: [
               {
@@ -556,10 +557,11 @@ export class MailMCPServer {
         }
 
         if (request.params.name === 'create_draft') {
-          const args = request.params.arguments as { accountId: string; to: string; subject: string; body: string; isHtml?: boolean; cc?: string; bcc?: string };
+          const args = request.params.arguments as { accountId: string; to: string; subject: string; body: string; isHtml?: boolean; cc?: string; bcc?: string; includeSignature?: boolean };
           validateEmailAddresses(args.to, args.cc, args.bcc);
+          const includeSignature = args.includeSignature !== false; // default true
           const service = await this.getService(args.accountId);
-          await service.createDraft(args.to, args.subject, args.body, args.isHtml, args.cc, args.bcc);
+          await service.createDraft(args.to, args.subject, args.body, args.isHtml, args.cc, args.bcc, includeSignature);
           return {
             content: [
               {
