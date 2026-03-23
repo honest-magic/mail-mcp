@@ -106,5 +106,14 @@ Plans:
 Plans:
 - [ ] TBD (promote with /gsd:review-backlog when ready)
 
+### Phase 999.6: Email signature support for sending (BACKLOG)
+
+**Goal:** Allow per-account email signatures that are automatically appended when sending or drafting emails
+**Requirements:** TBD
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (promote with /gsd:review-backlog when ready)
+
 ---
-*Last updated: 2026-03-23 — Backlog item 999.5 added*
+*Last updated: 2026-03-23 — Backlog item 999.6 added*
