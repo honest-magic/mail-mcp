@@ -77,5 +77,16 @@ Plans:
 | 13. Integration Tests | v1.1.0 | 2/2 | Complete | 2026-03-22 |
 | 14. Distribution & Documentation | v1.2.0 | 2/2 | Complete    | 2026-03-23 |
 
+## Backlog
+
+### Phase 999.3: Upgrade GitHub Actions to Node.js 24-compatible versions (BACKLOG)
+
+**Goal:** Upgrade actions/checkout@v4 and actions/setup-node@v4 to Node.js 24-compatible versions before forced migration on 2026-06-02
+**Requirements:** TBD
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (promote with /gsd:review-backlog when ready)
+
 ---
-*Last updated: 2026-03-23 — Phase 14 plans created*
+*Last updated: 2026-03-23 — Backlog item 999.3 added*
