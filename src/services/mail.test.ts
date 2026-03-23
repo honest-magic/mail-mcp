@@ -1,6 +1,7 @@
-import { vi, describe, it, expect, beforeEach } from 'vitest';
+import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 
 const mockImapConnect = vi.fn().mockResolvedValue(undefined);
+const mockImapAppendMessage = vi.fn().mockResolvedValue(undefined);
 const mockSmtpConnect = vi.fn().mockResolvedValue(undefined);
 const mockSmtpSend = vi.fn().mockResolvedValue({ messageId: 'test' });
 const mockFetchAttachmentSize = vi.fn();
@@ -11,7 +12,7 @@ vi.mock('../protocol/imap.js', () => {
     ImapClient: vi.fn(function () {
       return {
         connect: mockImapConnect,
-        appendMessage: vi.fn().mockResolvedValue(undefined),
+        appendMessage: mockImapAppendMessage,
         fetchAttachmentSize: mockFetchAttachmentSize,
         fetchMessageBody: mockFetchMessageBody,
       };
@@ -27,7 +28,7 @@ vi.mock('../protocol/smtp.js', () => {
   };
 });
 
-import { MailService } from './mail.js';
+import { MailService, applySignature } from './mail.js';
 
 describe('MailService SMTP connection behavior', () => {
   beforeEach(() => {
@@ -125,5 +126,132 @@ describe('MailService attachment size guard', () => {
     const result = await service.downloadAttachment('1', 'file.txt');
     expect(mockFetchMessageBody).toHaveBeenCalledOnce();
     expect(result.contentType).toBe('text/plain');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// applySignature pure helper tests
+// ---------------------------------------------------------------------------
+
+describe('applySignature helper', () => {
+  it('returns body unchanged when signature is undefined and includeSignature is true', () => {
+    expect(applySignature('Hello', undefined, false, true)).toBe('Hello');
+  });
+
+  it('returns body unchanged when signature is undefined and includeSignature is false', () => {
+    expect(applySignature('Hello', undefined, false, false)).toBe('Hello');
+  });
+
+  it('returns body unchanged when includeSignature is false even if signature is set', () => {
+    expect(applySignature('Hello', 'Best', false, false)).toBe('Hello');
+  });
+
+  it('appends plain text signature with RFC 3676 separator when includeSignature is true', () => {
+    expect(applySignature('Hello', 'Best', false, true)).toBe('Hello\n-- \nBest');
+  });
+
+  it('appends HTML-wrapped signature when body is HTML and includeSignature is true', () => {
+    expect(applySignature('<p>Hello</p>', 'Best', true, true)).toBe(
+      '<p>Hello</p><br><br><p style="white-space: pre-line">-- \nBest</p>'
+    );
+  });
+
+  it('returns HTML body unchanged when includeSignature is false even if signature is set', () => {
+    expect(applySignature('<p>Hello</p>', 'Best', true, false)).toBe('<p>Hello</p>');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// sendEmail with signature tests
+// ---------------------------------------------------------------------------
+
+describe('MailService sendEmail with signature', () => {
+  const baseAccount = { id: 'test', name: 'Test', user: 'test@example.com', authType: 'login' as const, host: 'imap.example.com', port: 993, useTLS: true };
+  const mockAppendMessage = vi.fn().mockResolvedValue(undefined);
+
+  beforeEach(() => {
+    mockSmtpConnect.mockClear();
+    mockSmtpSend.mockClear();
+    mockAppendMessage.mockClear();
+    // Re-apply appendMessage mock since the ImapClient vi.fn() may re-create instances
+  });
+
+  it('appends signature to body when account has signature and includeSignature is true (default)', async () => {
+    const account = { ...baseAccount, signature: 'Best regards,\nAlice' };
+    const service = new MailService(account, false);
+    await service.connect();
+    await service.sendEmail('to@example.com', 'Hi', 'Hello there');
+    expect(mockSmtpSend).toHaveBeenCalledWith(
+      'to@example.com',
+      'Hi',
+      'Hello there\n-- \nBest regards,\nAlice',
+      undefined,
+      undefined,
+      undefined
+    );
+  });
+
+  it('does not append signature when includeSignature is false', async () => {
+    const account = { ...baseAccount, signature: 'Best regards,\nAlice' };
+    const service = new MailService(account, false);
+    await service.connect();
+    await service.sendEmail('to@example.com', 'Hi', 'Hello there', false, undefined, undefined, false);
+    expect(mockSmtpSend).toHaveBeenCalledWith(
+      'to@example.com',
+      'Hi',
+      'Hello there',
+      false,
+      undefined,
+      undefined
+    );
+  });
+
+  it('does not append signature when account has no signature', async () => {
+    const account = { ...baseAccount };
+    const service = new MailService(account, false);
+    await service.connect();
+    await service.sendEmail('to@example.com', 'Hi', 'Hello there');
+    expect(mockSmtpSend).toHaveBeenCalledWith(
+      'to@example.com',
+      'Hi',
+      'Hello there',
+      undefined,
+      undefined,
+      undefined
+    );
+  });
+});
+
+// ---------------------------------------------------------------------------
+// createDraft with signature tests
+// ---------------------------------------------------------------------------
+
+describe('MailService createDraft with signature', () => {
+  const baseAccount = { id: 'test', name: 'Test', user: 'test@example.com', authType: 'login' as const, host: 'imap.example.com', port: 993, useTLS: true };
+
+  beforeEach(() => {
+    mockImapAppendMessage.mockClear();
+  });
+
+  it('appends signature to draft body when account has signature and includeSignature is true (default)', async () => {
+    const account = { ...baseAccount, signature: 'Regards' };
+    const service = new MailService(account, false);
+    await service.connect();
+    await service.createDraft('to@example.com', 'Draft', 'Body text');
+    expect(mockImapAppendMessage).toHaveBeenCalledOnce();
+    const rawMessage: string = mockImapAppendMessage.mock.calls[0][1];
+    // body ends with \r\n after joining, then effectiveBody appended — check signature present
+    expect(rawMessage).toContain('Body text\n-- \nRegards');
+  });
+
+  it('does not append signature to draft when includeSignature is false', async () => {
+    const account = { ...baseAccount, signature: 'Regards' };
+    const service = new MailService(account, false);
+    await service.connect();
+    await service.createDraft('to@example.com', 'Draft', 'Body text', false, undefined, undefined, false);
+    expect(mockImapAppendMessage).toHaveBeenCalledOnce();
+    const rawMessage: string = mockImapAppendMessage.mock.calls[0][1];
+    expect(rawMessage).not.toContain('-- \n');
+    expect(rawMessage).toContain('Body text');
   });
 });
