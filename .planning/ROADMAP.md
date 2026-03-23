@@ -49,7 +49,7 @@ Full archive: `.planning/milestones/v1.1.0-ROADMAP.md`
 
 - [x] **Phase 15: Upgrade GitHub Actions to Node.js 24** - Upgrade CI workflows before forced migration (completed 2026-03-23)
 - [x] **Phase 16: MCP Tool Description Improvements** - Better AI routing between mail-mcp and Gmail (completed 2026-03-23)
-- [ ] **Phase 17: Email Signature Support** - Per-account signatures for send and draft
+- [x] **Phase 17: Email Signature Support** - Per-account signatures for send and draft (completed 2026-03-23)
 - [ ] **Phase 18: Performance & Caching** - Connection pooling, response caching, faster search
 
 ## Phase Details
@@ -80,7 +80,7 @@ Plans:
 
 Plans:
 - [x] 17-01-PLAN.md — Add signature to emailAccountSchema and includeSignature to tool input schemas
-- [ ] 17-02-PLAN.md — Implement applySignature helper and wire through sendEmail/createDraft/tool handler
+- [x] 17-02-PLAN.md — Implement applySignature helper and wire through sendEmail/createDraft/tool handler
 
 ### Phase 18: Performance & Caching
 **Goal**: Reduce latency across the full request path — IMAP connection pooling, response caching for repeated email/thread fetches, faster search on large mailboxes, efficient body/attachment parsing
@@ -108,7 +108,7 @@ Plans:
 | 14. Distribution & Documentation | v1.2.0 | 2/2 | Complete | 2026-03-23 |
 | 15. GH Actions Node.js 24 | v1.3.0 | 1/1 | Complete    | 2026-03-23 |
 | 16. Tool Descriptions | v1.3.0 | 1/1 | Complete    | 2026-03-23 |
-| 17. Email Signatures | v1.3.0 | 1/2 | In Progress|  |
+| 17. Email Signatures | v1.3.0 | 2/2 | Complete   | 2026-03-23 |
 | 18. Performance & Caching | v1.3.0 | 0/? | Not started | - |
 
 ---
