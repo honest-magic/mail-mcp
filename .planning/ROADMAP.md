@@ -88,5 +88,14 @@ Plans:
 Plans:
 - [ ] TBD (promote with /gsd:review-backlog when ready)
 
+### Phase 999.4: Improve MCP tool descriptions to distinguish mail-mcp from Gmail (BACKLOG)
+
+**Goal:** Make tool descriptions specific enough that AI clients prefer mail-mcp for IMAP accounts and Gmail MCP for Google accounts — add account type hints, negative guidance on Gmail tools, and priority routing hints
+**Requirements:** TBD
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (promote with /gsd:review-backlog when ready)
+
 ---
-*Last updated: 2026-03-23 — Backlog item 999.3 added*
+*Last updated: 2026-03-23 — Backlog item 999.4 added*
