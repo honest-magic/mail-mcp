@@ -75,8 +75,12 @@ Plans:
 ### Phase 17: Email Signature Support
 **Goal**: Allow per-account email signatures that are automatically appended when sending or drafting emails
 **Depends on**: Nothing
-**Requirements**: TBD
-**Plans**: TBD
+**Requirements**: None (feature addition)
+**Plans**: 2 plans
+
+Plans:
+- [ ] 17-01-PLAN.md — Add signature to emailAccountSchema and includeSignature to tool input schemas
+- [ ] 17-02-PLAN.md — Implement applySignature helper and wire through sendEmail/createDraft/tool handler
 
 ### Phase 18: Performance & Caching
 **Goal**: Reduce latency across the full request path — IMAP connection pooling, response caching for repeated email/thread fetches, faster search on large mailboxes, efficient body/attachment parsing
@@ -104,8 +108,8 @@ Plans:
 | 14. Distribution & Documentation | v1.2.0 | 2/2 | Complete | 2026-03-23 |
 | 15. GH Actions Node.js 24 | v1.3.0 | 1/1 | Complete    | 2026-03-23 |
 | 16. Tool Descriptions | v1.3.0 | 1/1 | Complete    | 2026-03-23 |
-| 17. Email Signatures | v1.3.0 | 0/? | Not started | - |
+| 17. Email Signatures | v1.3.0 | 0/2 | Not started | - |
 | 18. Performance & Caching | v1.3.0 | 0/? | Not started | - |
 
 ---
-*Last updated: 2026-03-23 — Phase 16 planned (1 plan)*
+*Last updated: 2026-03-23 — Phase 17 planned (2 plans)*
