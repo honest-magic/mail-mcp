@@ -5,10 +5,14 @@ subsystem: infra
 tags: [homebrew, formula, tap, npm, distribution]
 
 # Dependency graph
-requires: []
+requires:
+  - phase: 14-01
+    provides: "Published npm package @honest-magic/mail-mcp@1.1.0 on registry"
 provides:
-  - "Homebrew formula Formula/mail-mcp.rb for installing mail-mcp via brew"
-affects: [homebrew-tap-repo, distribution]
+  - "Formula/mail-mcp.rb — Homebrew formula for mail-mcp"
+  - "honest-magic/homebrew-tap GitHub repo with formula at Formula/mail-mcp.rb"
+  - "`brew tap honest-magic/tap && brew install mail-mcp` works end-to-end"
+affects: [distribution, install-docs]
 
 # Tech tracking
 tech-stack:
@@ -33,20 +37,20 @@ requirements-completed:
   - DIST-01
 
 # Metrics
-duration: 5min
+duration: 30min
 completed: 2026-03-23
 ---
 
 # Phase 14 Plan 02: Homebrew Formula Summary
 
-**Homebrew formula for mail-mcp using npm registry tarball, SHA-256 verified, with caveats pointing to `mail-mcp accounts add`**
+**Homebrew tap published at honest-magic/homebrew-tap — `brew tap honest-magic/tap && brew install mail-mcp` installs the 1.1.0 binary from npm registry tarball**
 
 ## Performance
 
-- **Duration:** ~5 min
+- **Duration:** ~30 min (including human-action checkpoint for tap repo setup)
 - **Started:** 2026-03-23T08:51:59Z
-- **Completed:** 2026-03-23T08:57:00Z
-- **Tasks:** 1 of 2 (Task 2 requires human action — homebrew-tap repo creation)
+- **Completed:** 2026-03-23T10:54:42Z
+- **Tasks:** 2 of 2
 - **Files modified:** 1
 
 ## Accomplishments
@@ -54,6 +58,8 @@ completed: 2026-03-23
 - Created `Formula/mail-mcp.rb` with correct class name, npm tarball URL, and verified SHA-256
 - SHA-256 computed live from registry.npmjs.org tarball (matches research value)
 - Formula follows current Homebrew Node pattern: `std_npm_args`, `libexec.glob("bin/*")`, no deprecated `Language::Node`
+- User created `honest-magic/homebrew-tap` repo and pushed formula
+- Verified end-to-end: binary installs at `/opt/homebrew/Cellar/mail-mcp/1.1.0`, `mail-mcp accounts list` works, caveats display correctly
 - All 177 unit tests pass — no source regressions
 
 ## Task Commits
@@ -61,9 +67,9 @@ completed: 2026-03-23
 Each task was committed atomically:
 
 1. **Task 1: Create Homebrew formula and tap repo structure** - `4a5f229` (feat)
-2. **Task 2: User creates homebrew-tap repo and pushes formula** - PENDING human action
+2. **Task 2: User creates homebrew-tap repo and pushes formula** - Human action (no commit in this repo — changes live in honest-magic/homebrew-tap)
 
-**Plan metadata:** (pending final commit after Task 2 checkpoint)
+**Plan metadata:** `a5ae538` (docs: complete Homebrew formula plan)
 
 ## Files Created/Modified
 
@@ -95,40 +101,20 @@ Each task was committed atomically:
 
 - `mail-mcp --help` does not exit — the process starts the MCP stdio server and waits for input regardless of arguments. Resolved by using `assert_predicate :executable?` which is the standard Homebrew pattern for service binaries.
 
-## User Setup Required
+## User Setup Required (Completed)
 
-Task 2 is a blocking human-action checkpoint. The user must:
+Task 2 was a blocking human-action checkpoint. The user completed:
 
-1. Create a public GitHub repository at `https://github.com/organizations/honest-magic/repositories/new`
-   - Name: `homebrew-tap`
-   - Public visibility
-   - Empty (no README, no .gitignore)
-
-2. Clone and push the formula:
-   ```bash
-   cd /tmp
-   git clone git@github.com:honest-magic/homebrew-tap.git
-   cd homebrew-tap
-   mkdir -p Formula
-   cp /Users/mis/dev/mail_mcp/Formula/mail-mcp.rb Formula/
-   printf '# honest-magic/homebrew-tap\n\nHomebrew formulae for honest-magic projects.\n\n## Install\n\n```bash\nbrew tap honest-magic/tap\nbrew install mail-mcp\n```\n' > README.md
-   git add .
-   git commit -m "feat: add mail-mcp formula"
-   git push origin main
-   ```
-
-3. Verify:
-   ```bash
-   brew tap honest-magic/tap
-   brew install mail-mcp
-   mail-mcp accounts list
-   ```
+1. Created `honest-magic/homebrew-tap` as a public GitHub repo via `gh repo create`
+2. Pushed `Formula/mail-mcp.rb` and `README.md` to the tap repo
+3. Verified `brew tap honest-magic/tap` and `brew install mail-mcp` both succeed
+4. Confirmed binary at `/opt/homebrew/bin/mail-mcp` and `mail-mcp accounts list` works correctly
 
 ## Next Phase Readiness
 
-- Formula file is ready and committed at `Formula/mail-mcp.rb`
-- Once the user creates `honest-magic/homebrew-tap` and pushes the formula, DIST-01 is fully satisfied
-- Plan 01 (README + CI updates) can proceed in parallel — no dependency on this task
+- DIST-01 (Homebrew distribution) is fully satisfied
+- Phase 14 is fully complete — all plans (14-01 README/publish workflow, 14-02 Homebrew formula) delivered
+- No blockers. Project ready for v1.2.0 milestone verification (`/gsd:verify-work`)
 
 ## Known Stubs
 
