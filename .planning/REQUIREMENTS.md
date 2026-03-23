@@ -9,11 +9,11 @@ Requirements for Distribution & Documentation milestone. Each maps to roadmap ph
 
 ### Documentation
 
-- [ ] **DOC-01**: README.md contains a section explaining how to update the MCP server (npm update, npx, version pinning)
+- [x] **DOC-01**: README.md contains a section explaining how to update the MCP server (npm update, npx, version pinning)
 
 ### Distribution
 
-- [ ] **DIST-01**: A Homebrew formula exists that installs `mail-mcp` via `brew install`
+- [x] **DIST-01**: A Homebrew formula exists that installs `mail-mcp` via `brew install`
 
 ## Future Requirements
 
@@ -37,8 +37,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| DOC-01 | Phase 14 | Pending |
-| DIST-01 | Phase 14 | Pending |
+| DOC-01 | Phase 14 | Complete |
+| DIST-01 | Phase 14 | Complete |
 
 **Coverage:**
 - v1.2.0 requirements: 2 total

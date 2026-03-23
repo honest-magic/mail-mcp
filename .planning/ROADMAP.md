@@ -52,10 +52,10 @@ Full archive: `.planning/milestones/v1.1.0-ROADMAP.md`
   2. The README contains a dedicated section explaining how to update (npm update, npx re-run, version pinning)
   3. A Homebrew formula file exists in the repository with correct metadata (name, version, url, sha256, bin entry)
   4. A new user reading the README can determine which install method (npm vs Homebrew) suits their workflow
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 
 Plans:
-- [ ] 14-01-PLAN.md — README updates (Homebrew install, Updating section, comparison table) + GitHub Release workflow step
+- [x] 14-01-PLAN.md — README updates (Homebrew install, Updating section, comparison table) + GitHub Release workflow step
 - [ ] 14-02-PLAN.md — Homebrew formula creation + tap repo setup
 
 ## Progress
@@ -75,7 +75,7 @@ Plans:
 | 11. Input Validation | v1.1.0 | 2/2 | Complete | 2026-03-22 |
 | 12. Pagination & Reconnect | v1.1.0 | 2/2 | Complete | 2026-03-22 |
 | 13. Integration Tests | v1.1.0 | 2/2 | Complete | 2026-03-22 |
-| 14. Distribution & Documentation | v1.2.0 | 0/2 | Not started | - |
+| 14. Distribution & Documentation | v1.2.0 | 1/2 | In Progress|  |
 
 ---
 *Last updated: 2026-03-23 — Phase 14 plans created*
