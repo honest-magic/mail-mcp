@@ -13,7 +13,7 @@ MCP server for IMAP/SMTP email access — works with Claude and other MCP client
 |--------|----------------|----------|---------------|
 | npx (no install) | `npx @honest-magic/mail-mcp` | Trying it out, always-latest | Yes -- on each run |
 | Global npm | `npm install -g @honest-magic/mail-mcp` | Daily use, offline-friendly | No -- run `npm update -g` |
-| Homebrew | `brew tap honest-magic/tap && brew install mail-mcp` | macOS users who prefer brew | No -- run `brew upgrade` |
+| Homebrew | `brew tap honest-magic/tap && brew install mail-mcp` | macOS users who prefer brew | Formula updated on publish -- run `brew upgrade` |
 
 ### Run without installing (recommended)
 
@@ -48,6 +48,8 @@ npm update -g @honest-magic/mail-mcp
 ```
 
 ### Homebrew
+
+The Homebrew formula is updated automatically when a new version is published to npm.
 
 ```bash
 brew upgrade mail-mcp
