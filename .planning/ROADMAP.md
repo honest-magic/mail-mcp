@@ -4,7 +4,8 @@
 
 - ✅ **v1.0.0 Mail MCP Server** — Phases 1–9 (shipped 2026-03-22)
 - ✅ **v1.1.0 Hardening & Reliability** — Phases 10–13 (shipped 2026-03-22)
-- **v1.2.0 Distribution & Documentation** — Phase 14 (active)
+- ✅ **v1.2.0 Distribution & Documentation** — Phase 14 (shipped 2026-03-23)
+- **v1.3.0 Signature Support & Performance Improvements** — Phases 15–18 (active)
 
 ## Phases
 
@@ -37,26 +38,45 @@ Full archive: `.planning/milestones/v1.1.0-ROADMAP.md`
 
 </details>
 
-### v1.2.0 Distribution & Documentation (Phase 14)
+<details>
+<summary>✅ v1.2.0 Distribution & Documentation (Phase 14) — SHIPPED 2026-03-23</summary>
 
-- [x] **Phase 14: Distribution & Documentation** - Ship Homebrew install and README update guide (completed 2026-03-23)
+- [x] Phase 14: Distribution & Documentation (2/2 plans) — completed 2026-03-23
+
+</details>
+
+### v1.3.0 Signature Support & Performance Improvements (Phases 15–18)
+
+- [ ] **Phase 15: Upgrade GitHub Actions to Node.js 24** - Upgrade CI workflows before forced migration
+- [ ] **Phase 16: MCP Tool Description Improvements** - Better AI routing between mail-mcp and Gmail
+- [ ] **Phase 17: Email Signature Support** - Per-account signatures for send and draft
+- [ ] **Phase 18: Performance & Caching** - Connection pooling, response caching, faster search
 
 ## Phase Details
 
-### Phase 14: Distribution & Documentation
-**Goal**: Users can install and update mail-mcp via Homebrew, and existing npm users know how to keep their install current
-**Depends on**: Nothing (standalone docs and packaging work)
-**Requirements**: DOC-01, DIST-01
-**Success Criteria** (what must be TRUE):
-  1. A user can run `brew install mail-mcp` and get a working install
-  2. The README contains a dedicated section explaining how to update (npm update, npx re-run, version pinning)
-  3. A Homebrew formula file exists in the repository with correct metadata (name, version, url, sha256, bin entry)
-  4. A new user reading the README can determine which install method (npm vs Homebrew) suits their workflow
-**Plans:** 2/2 plans complete
+### Phase 15: Upgrade GitHub Actions to Node.js 24
+**Goal**: Upgrade actions/checkout and actions/setup-node to Node.js 24-compatible versions before forced migration on 2026-06-02
+**Depends on**: Nothing (standalone CI work)
+**Requirements**: TBD
+**Plans**: TBD
 
-Plans:
-- [x] 14-01-PLAN.md — README updates (Homebrew install, Updating section, comparison table) + GitHub Release workflow step
-- [x] 14-02-PLAN.md — Homebrew formula creation + tap repo setup
+### Phase 16: MCP Tool Description Improvements
+**Goal**: Make tool descriptions specific enough that AI clients prefer mail-mcp for IMAP accounts and Gmail MCP for Google accounts
+**Depends on**: Nothing (standalone metadata work)
+**Requirements**: TBD
+**Plans**: TBD
+
+### Phase 17: Email Signature Support
+**Goal**: Allow per-account email signatures that are automatically appended when sending or drafting emails
+**Depends on**: Nothing
+**Requirements**: TBD
+**Plans**: TBD
+
+### Phase 18: Performance & Caching
+**Goal**: Reduce latency across the full request path — IMAP connection pooling, response caching for repeated email/thread fetches, faster search on large mailboxes, efficient body/attachment parsing
+**Depends on**: Nothing (can run independently, but benefits from stable codebase)
+**Requirements**: TBD
+**Plans**: TBD
 
 ## Progress
 
@@ -75,45 +95,11 @@ Plans:
 | 11. Input Validation | v1.1.0 | 2/2 | Complete | 2026-03-22 |
 | 12. Pagination & Reconnect | v1.1.0 | 2/2 | Complete | 2026-03-22 |
 | 13. Integration Tests | v1.1.0 | 2/2 | Complete | 2026-03-22 |
-| 14. Distribution & Documentation | v1.2.0 | 2/2 | Complete    | 2026-03-23 |
-
-## Backlog
-
-### Phase 999.3: Upgrade GitHub Actions to Node.js 24-compatible versions (BACKLOG)
-
-**Goal:** Upgrade actions/checkout@v4 and actions/setup-node@v4 to Node.js 24-compatible versions before forced migration on 2026-06-02
-**Requirements:** TBD
-**Plans:** 0 plans
-
-Plans:
-- [ ] TBD (promote with /gsd:review-backlog when ready)
-
-### Phase 999.4: Improve MCP tool descriptions to distinguish mail-mcp from Gmail (BACKLOG)
-
-**Goal:** Make tool descriptions specific enough that AI clients prefer mail-mcp for IMAP accounts and Gmail MCP for Google accounts — add account type hints, negative guidance on Gmail tools, and priority routing hints
-**Requirements:** TBD
-**Plans:** 0 plans
-
-Plans:
-- [ ] TBD (promote with /gsd:review-backlog when ready)
-
-### Phase 999.5: Performance & Caching (BACKLOG)
-
-**Goal:** Reduce latency across the full request path — IMAP connection pooling, response caching for repeated email/thread fetches, faster search on large mailboxes, efficient body/attachment parsing
-**Requirements:** TBD
-**Plans:** 0 plans
-
-Plans:
-- [ ] TBD (promote with /gsd:review-backlog when ready)
-
-### Phase 999.6: Email signature support for sending (BACKLOG)
-
-**Goal:** Allow per-account email signatures that are automatically appended when sending or drafting emails
-**Requirements:** TBD
-**Plans:** 0 plans
-
-Plans:
-- [ ] TBD (promote with /gsd:review-backlog when ready)
+| 14. Distribution & Documentation | v1.2.0 | 2/2 | Complete | 2026-03-23 |
+| 15. GH Actions Node.js 24 | v1.3.0 | 0/? | Not started | - |
+| 16. Tool Descriptions | v1.3.0 | 0/? | Not started | - |
+| 17. Email Signatures | v1.3.0 | 0/? | Not started | - |
+| 18. Performance & Caching | v1.3.0 | 0/? | Not started | - |
 
 ---
-*Last updated: 2026-03-23 — Backlog item 999.6 added*
+*Last updated: 2026-03-23 — v1.3.0 roadmap created from promoted backlog items*

@@ -79,9 +79,15 @@ Empower AI agents to act as a personal mail assistant by providing structured, t
 | onClose callback (not EventEmitter) for reconnect | Zero new base class, minimal test churn, simple invalidation | ✓ Good |
 | smtp-server for integration tests (not Docker) | In-process, zero CI infrastructure, Nodemailer org maintained | ✓ Good |
 
-## Current Milestone: None (planning next)
+## Current Milestone: v1.3.0 Signature Support & Performance Improvements
 
-**Last shipped:** v1.2.0 Distribution & Documentation (2026-03-23)
+**Goal:** Add email signature support, improve performance with caching, upgrade CI to Node.js 24, and improve MCP tool descriptions for better AI routing.
+
+**Target features:**
+- Per-account email signatures for send/draft
+- IMAP connection pooling and response caching
+- GitHub Actions Node.js 24 upgrade
+- MCP tool description improvements for AI routing
 
 ## Deferred (v2+)
 
@@ -108,4 +114,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-03-23 — v1.2.0 shipped, backlog items parked*
+*Last updated: 2026-03-23 — v1.3.0 milestone created from promoted backlog items*
