@@ -108,7 +108,7 @@ Plans:
 | 14. Distribution & Documentation | v1.2.0 | 2/2 | Complete | 2026-03-23 |
 | 15. GH Actions Node.js 24 | v1.3.0 | 1/1 | Complete    | 2026-03-23 |
 | 16. Tool Descriptions | v1.3.0 | 1/1 | Complete    | 2026-03-23 |
-| 17. Email Signatures | v1.3.0 | 2/2 | Complete   | 2026-03-23 |
+| 17. Email Signatures | v1.3.0 | 2/2 | Complete    | 2026-03-23 |
 | 18. Performance & Caching | v1.3.0 | 0/? | Not started | - |
 
 ---
