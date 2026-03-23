@@ -69,6 +69,30 @@ describe('emailAccountSchema', () => {
     }
   });
 
+  it('account with signature string parses successfully and preserves the value', async () => {
+    const { emailAccountSchema } = await import('./config.js');
+    const result = emailAccountSchema.safeParse({ ...VALID_ACCOUNT, signature: 'Best, Alice' });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.signature).toBe('Best, Alice');
+    }
+  });
+
+  it('account with signature: undefined parses successfully', async () => {
+    const { emailAccountSchema } = await import('./config.js');
+    const result = emailAccountSchema.safeParse({ ...VALID_ACCOUNT, signature: undefined });
+    expect(result.success).toBe(true);
+  });
+
+  it('account without signature field parses successfully and produces signature === undefined', async () => {
+    const { emailAccountSchema } = await import('./config.js');
+    const result = emailAccountSchema.safeParse(VALID_ACCOUNT);
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.signature).toBeUndefined();
+    }
+  });
+
   it('validates smtpPort as optional positive integer', async () => {
     const { emailAccountSchema } = await import('./config.js');
 
