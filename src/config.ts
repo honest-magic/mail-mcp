@@ -30,6 +30,7 @@ export const emailAccountSchema = z.object({
   user: z.string().min(1),
   authType: z.enum(['login', 'oauth2']),
   useTLS: z.boolean(),
+  signature: z.string().optional(),
 });
 
 export type EmailAccount = z.infer<typeof emailAccountSchema>;
