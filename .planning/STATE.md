@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.3.0
 milestone_name: Signature Support & Performance Improvements
 status: unknown
-last_updated: "2026-03-23T19:29:39.153Z"
+last_updated: "2026-03-23T20:31:53.002Z"
 progress:
   total_phases: 4
-  completed_phases: 1
-  total_plans: 1
-  completed_plans: 1
+  completed_phases: 2
+  total_plans: 2
+  completed_plans: 2
 ---
 
 # Project State: Mail MCP Server
@@ -16,11 +16,11 @@ progress:
 ## Project Reference
 
 **Core Value:** Empower AI agents to act as a personal mail assistant by providing structured, tool-based access to existing email accounts through standard protocols.
-**Current Focus:** Phase 15 — upgrade-github-actions-to-node-js-24
+**Current Focus:** Phase 16 — mcp-tool-description-improvements
 
 ## Current Position
 
-Phase: 16
+Phase: 17
 Plan: Not started
 
 ## Accumulated Context
