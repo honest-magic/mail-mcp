@@ -66,8 +66,11 @@ Plans:
 ### Phase 16: MCP Tool Description Improvements
 **Goal**: Make tool descriptions specific enough that AI clients prefer mail-mcp for IMAP accounts and Gmail MCP for Google accounts
 **Depends on**: Nothing (standalone metadata work)
-**Requirements**: TBD
-**Plans**: TBD
+**Requirements**: None (metadata improvement)
+**Plans**: 1 plan
+
+Plans:
+- [ ] 16-01-PLAN.md — Update all 14 tool descriptions and server instructions with IMAP/provider keywords
 
 ### Phase 17: Email Signature Support
 **Goal**: Allow per-account email signatures that are automatically appended when sending or drafting emails
@@ -100,9 +103,9 @@ Plans:
 | 13. Integration Tests | v1.1.0 | 2/2 | Complete | 2026-03-22 |
 | 14. Distribution & Documentation | v1.2.0 | 2/2 | Complete | 2026-03-23 |
 | 15. GH Actions Node.js 24 | v1.3.0 | 1/1 | Complete    | 2026-03-23 |
-| 16. Tool Descriptions | v1.3.0 | 0/? | Not started | - |
+| 16. Tool Descriptions | v1.3.0 | 0/1 | Not started | - |
 | 17. Email Signatures | v1.3.0 | 0/? | Not started | - |
 | 18. Performance & Caching | v1.3.0 | 0/? | Not started | - |
 
 ---
-*Last updated: 2026-03-23 — Phase 15 planned (1 plan)*
+*Last updated: 2026-03-23 — Phase 16 planned (1 plan)*
