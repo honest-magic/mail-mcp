@@ -167,13 +167,10 @@ describe('applySignature helper', () => {
 
 describe('MailService sendEmail with signature', () => {
   const baseAccount = { id: 'test', name: 'Test', user: 'test@example.com', authType: 'login' as const, host: 'imap.example.com', port: 993, useTLS: true };
-  const mockAppendMessage = vi.fn().mockResolvedValue(undefined);
 
   beforeEach(() => {
     mockSmtpConnect.mockClear();
     mockSmtpSend.mockClear();
-    mockAppendMessage.mockClear();
-    // Re-apply appendMessage mock since the ImapClient vi.fn() may re-create instances
   });
 
   it('appends signature to body when account has signature and includeSignature is true (default)', async () => {
@@ -185,7 +182,7 @@ describe('MailService sendEmail with signature', () => {
       'to@example.com',
       'Hi',
       'Hello there\n-- \nBest regards,\nAlice',
-      undefined,
+      false,
       undefined,
       undefined
     );
@@ -215,7 +212,7 @@ describe('MailService sendEmail with signature', () => {
       'to@example.com',
       'Hi',
       'Hello there',
-      undefined,
+      false,
       undefined,
       undefined
     );

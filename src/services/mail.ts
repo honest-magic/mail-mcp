@@ -4,6 +4,24 @@ import { htmlToMarkdown } from '../utils/markdown.js';
 import { EmailAccount } from '../types/index.js';
 import { ValidationError } from '../errors.js';
 
+/**
+ * Pure helper — appends `signature` to `body` when `includeSignature` is true and
+ * `signature` is non-empty. Plain-text bodies get the RFC 3676 separator (`\n-- \n`);
+ * HTML bodies get the signature wrapped in a styled paragraph.
+ */
+export function applySignature(
+  body: string,
+  signature: string | undefined,
+  isHtml: boolean,
+  includeSignature: boolean
+): string {
+  if (!includeSignature || !signature) return body;
+  if (isHtml) {
+    return `${body}<br><br><p style="white-space: pre-line">-- \n${signature}</p>`;
+  }
+  return `${body}\n-- \n${signature}`;
+}
+
 export class MailService {
   private imapClient: ImapClient;
   private smtpClient: SmtpClient;
@@ -52,7 +70,9 @@ export class MailService {
     return this.imapClient.searchMessages(criteria, folder, count, offset);
   }
 
-  async sendEmail(to: string, subject: string, body: string, isHtml: boolean = false, cc?: string, bcc?: string): Promise<any> {
+  async sendEmail(to: string, subject: string, body: string, isHtml: boolean = false, cc?: string, bcc?: string, includeSignature: boolean = true): Promise<any> {
+    const effectiveBody = applySignature(body, this.account.signature, isHtml, includeSignature);
+
     // Build raw message before sending so we can append to Sent folder
     const rawMessage = [
       `From: ${this.account.user}`,
@@ -63,11 +83,11 @@ export class MailService {
       'MIME-Version: 1.0',
       `Content-Type: ${isHtml ? 'text/html' : 'text/plain'}; charset=utf-8`,
       '',
-      body
+      effectiveBody
     ].join('\r\n');
 
     await this.ensureSmtp();
-    const info = await this.smtpClient.send(to, subject, body, isHtml, cc, bcc);
+    const info = await this.smtpClient.send(to, subject, effectiveBody, isHtml, cc, bcc);
     try {
       await this.imapClient.appendMessage('Sent', rawMessage, ['\\Seen']);
     } catch (e) {
@@ -76,7 +96,9 @@ export class MailService {
     return info;
   }
 
-  async createDraft(to: string, subject: string, body: string, isHtml: boolean = false, cc?: string, bcc?: string): Promise<void> {
+  async createDraft(to: string, subject: string, body: string, isHtml: boolean = false, cc?: string, bcc?: string, includeSignature: boolean = true): Promise<void> {
+    const effectiveBody = applySignature(body, this.account.signature, isHtml, includeSignature);
+
     const headers = [
       `From: ${this.account.user}`,
       `To: ${to}`,
@@ -86,7 +108,7 @@ export class MailService {
       'MIME-Version: 1.0',
       `Content-Type: ${isHtml ? 'text/html' : 'text/plain'}; charset=utf-8`,
       '',
-      body
+      effectiveBody
     ].join('\r\n');
 
     await this.imapClient.appendMessage('Drafts', headers, ['\\Draft']);
