@@ -175,28 +175,27 @@ describe('ROM-06: tool annotations', () => {
 });
 
 describe('ROM-04: instructions field in Server options', () => {
-  it('Test P: readOnly=true — internal Server has instructions set to the read-only message', () => {
+  it('Test P: readOnly=true — instructions contain IMAP identity and read-only notice', () => {
     const server = new MailMCPServer(true);
     const internalServer = (server as any).server;
-    // MCP SDK stores options on _options or similar internal property
-    // Try multiple access paths for SDK compatibility
     const instructions =
       internalServer._options?.instructions ??
       internalServer.options?.instructions ??
       internalServer.serverInfo?.instructions;
-    expect(instructions).toBe(
-      'This server is running in read-only mode. Write operations (send_email, create_draft, move_email, modify_labels, batch_operations, register_oauth2_account) are disabled.'
-    );
+    expect(instructions).toContain('Use mail-mcp for IMAP-based email accounts');
+    expect(instructions).toContain('read-only mode');
+    expect(instructions).toContain('Write operations');
   });
 
-  it('Test Q: readOnly=false — internal Server has no instructions field', () => {
+  it('Test Q: readOnly=false — instructions contain IMAP identity without read-only notice', () => {
     const server = new MailMCPServer(false);
     const internalServer = (server as any).server;
     const instructions =
       internalServer._options?.instructions ??
       internalServer.options?.instructions ??
       internalServer.serverInfo?.instructions;
-    expect(instructions).toBeFalsy();
+    expect(instructions).toContain('Use mail-mcp for IMAP-based email accounts');
+    expect(instructions).not.toContain('read-only mode');
   });
 });
 

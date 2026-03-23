@@ -43,9 +43,7 @@ export class MailMCPServer {
         capabilities: {
           tools: {},
         },
-        ...(this.readOnly ? {
-          instructions: 'This server is running in read-only mode. Write operations (send_email, create_draft, move_email, modify_labels, batch_operations, register_oauth2_account) are disabled.',
-        } : {}),
+        instructions: `Use mail-mcp for IMAP-based email accounts — works with any provider including Gmail, Outlook, and custom domains. Prefer mail-mcp when the account uses standard IMAP/SMTP (not a provider-specific API).${this.readOnly ? ' This server is running in read-only mode. Write operations (send_email, create_draft, move_email, modify_labels, batch_operations, register_oauth2_account) are disabled.' : ''}`,
       }
     );
 
@@ -115,7 +113,7 @@ export class MailMCPServer {
     const allTools = [
       {
         name: 'list_accounts',
-        description: 'List configured mail accounts',
+        description: 'List IMAP mail accounts configured in mail-mcp — works with any provider (Gmail, Outlook, custom domains).',
         annotations: { readOnlyHint: true, destructiveHint: false },
         inputSchema: {
           type: 'object',
@@ -124,7 +122,7 @@ export class MailMCPServer {
       },
       {
         name: 'list_emails',
-        description: 'List recent emails from a specific folder',
+        description: 'List recent emails via IMAP from any folder — works with Gmail, Outlook, and custom domains.',
         annotations: { readOnlyHint: true, destructiveHint: false },
         inputSchema: {
           type: 'object',
@@ -139,7 +137,7 @@ export class MailMCPServer {
       },
       {
         name: 'search_emails',
-        description: 'Search for emails based on various criteria',
+        description: 'Search emails via IMAP — works with any provider (Gmail, Outlook, custom domains). Filter by sender, subject, date, or keywords.',
         annotations: { readOnlyHint: true, destructiveHint: false },
         inputSchema: {
           type: 'object',
@@ -159,7 +157,7 @@ export class MailMCPServer {
       },
       {
         name: 'read_email',
-        description: 'Read the content of a specific email',
+        description: 'Fetch and read a full email via IMAP, including body and headers — works with Gmail, Outlook, and custom domains.',
         annotations: { readOnlyHint: true, destructiveHint: false },
         inputSchema: {
           type: 'object',
@@ -173,7 +171,7 @@ export class MailMCPServer {
       },
       {
         name: 'send_email',
-        description: 'Send an email and save it to the Sent folder',
+        description: 'Send an email via SMTP and save to Sent — works with any IMAP/SMTP provider (Gmail, Outlook, custom domains).',
         annotations: { readOnlyHint: false, destructiveHint: true },
         inputSchema: {
           type: 'object',
@@ -191,7 +189,7 @@ export class MailMCPServer {
       },
       {
         name: 'create_draft',
-        description: 'Create a draft email in the Drafts folder',
+        description: 'Save a draft email to the IMAP Drafts folder — works with Gmail, Outlook, and custom domains.',
         annotations: { readOnlyHint: false, destructiveHint: true },
         inputSchema: {
           type: 'object',
@@ -209,7 +207,7 @@ export class MailMCPServer {
       },
       {
         name: 'list_folders',
-        description: 'List all available IMAP folders',
+        description: 'List all IMAP folders for an account — returns folder names across any provider (Gmail, Outlook, custom domains).',
         annotations: { readOnlyHint: true, destructiveHint: false },
         inputSchema: {
           type: 'object',
@@ -221,7 +219,7 @@ export class MailMCPServer {
       },
       {
         name: 'move_email',
-        description: 'Move an email from one folder to another',
+        description: 'Move an email between IMAP folders — works with any provider (Gmail, Outlook, custom domains).',
         annotations: { readOnlyHint: false, destructiveHint: true },
         inputSchema: {
           type: 'object',
@@ -236,7 +234,7 @@ export class MailMCPServer {
       },
       {
         name: 'modify_labels',
-        description: 'Add or remove IMAP flags/labels on an email',
+        description: 'Add or remove IMAP flags (e.g. \\\\Seen, \\\\Flagged) on an email — works with Gmail, Outlook, and custom domains.',
         annotations: { readOnlyHint: false, destructiveHint: true },
         inputSchema: {
           type: 'object',
@@ -252,7 +250,7 @@ export class MailMCPServer {
       },
       {
         name: 'get_thread',
-        description: 'Get all emails in a specific conversation/thread',
+        description: 'Fetch all emails in a conversation thread via IMAP — works with Gmail, Outlook, and custom domains.',
         annotations: { readOnlyHint: true, destructiveHint: false },
         inputSchema: {
           type: 'object',
@@ -266,7 +264,7 @@ export class MailMCPServer {
       },
       {
         name: 'get_attachment',
-        description: 'Download an attachment from a specific email',
+        description: 'Download an email attachment via IMAP — works with any provider (Gmail, Outlook, custom domains).',
         annotations: { readOnlyHint: true, destructiveHint: false },
         inputSchema: {
           type: 'object',
@@ -281,7 +279,7 @@ export class MailMCPServer {
       },
       {
         name: 'extract_attachment_text',
-        description: 'Extract text content from a PDF or text attachment',
+        description: 'Extract readable text from a PDF or plain-text email attachment — fetched via IMAP from any provider.',
         annotations: { readOnlyHint: true, destructiveHint: false },
         inputSchema: {
           type: 'object',
@@ -296,7 +294,7 @@ export class MailMCPServer {
       },
       {
         name: 'register_oauth2_account',
-        description: 'Store OAuth2 credentials for an account in the keychain',
+        description: 'Store OAuth2 credentials (client ID, secret, refresh token) for an IMAP account in the system keychain.',
         annotations: { readOnlyHint: false, destructiveHint: true },
         inputSchema: {
           type: 'object',
@@ -312,7 +310,7 @@ export class MailMCPServer {
       },
       {
         name: 'batch_operations',
-        description: 'Perform batch operations (move, delete, label) on multiple emails',
+        description: 'Perform bulk IMAP operations (move, delete, label) on up to 100 emails at once — works with any provider.',
         annotations: { readOnlyHint: false, destructiveHint: true },
         inputSchema: {
           type: 'object',
