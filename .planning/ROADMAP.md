@@ -50,7 +50,7 @@ Full archive: `.planning/milestones/v1.1.0-ROADMAP.md`
 - [x] **Phase 15: Upgrade GitHub Actions to Node.js 24** - Upgrade CI workflows before forced migration (completed 2026-03-23)
 - [x] **Phase 16: MCP Tool Description Improvements** - Better AI routing between mail-mcp and Gmail (completed 2026-03-23)
 - [x] **Phase 17: Email Signature Support** - Per-account signatures for send and draft (completed 2026-03-23)
-- [ ] **Phase 18: Performance & Caching** - Connection pooling, response caching, faster search
+- [x] **Phase 18: Performance & Caching** - Connection pooling, response caching, faster search (completed 2026-03-24)
 
 ## Phase Details
 
@@ -90,7 +90,7 @@ Plans:
 
 Plans:
 - [x] 18-01-PLAN.md — Create MessageBodyCache utility (TTL Map, 5 min / 100 entries, oldest-first eviction)
-- [ ] 18-02-PLAN.md — Wire cache into MailService.readEmail/downloadAttachment; invalidate on move_email
+- [x] 18-02-PLAN.md — Wire cache into MailService.readEmail/downloadAttachment; invalidate on move_email
 
 ## Progress
 
@@ -113,7 +113,7 @@ Plans:
 | 15. GH Actions Node.js 24 | v1.3.0 | 1/1 | Complete    | 2026-03-23 |
 | 16. Tool Descriptions | v1.3.0 | 1/1 | Complete    | 2026-03-23 |
 | 17. Email Signatures | v1.3.0 | 2/2 | Complete    | 2026-03-23 |
-| 18. Performance & Caching | v1.3.0 | 1/2 | In Progress|  |
+| 18. Performance & Caching | v1.3.0 | 2/2 | Complete   | 2026-03-24 |
 
 ---
 *Last updated: 2026-03-23 — Phase 18 planned (2 plans)*

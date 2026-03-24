@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v1.3.0
 milestone_name: Signature Support & Performance Improvements
-status: unknown
-last_updated: "2026-03-24T05:12:21.355Z"
+status: complete
+last_updated: "2026-03-24T05:15:27.467Z"
 progress:
   total_phases: 4
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 6
-  completed_plans: 5
+  completed_plans: 6
 ---
 
 # Project State: Mail MCP Server
@@ -20,8 +20,8 @@ progress:
 
 ## Current Position
 
-Phase: 18 (performance-and-caching) — EXECUTING
-Plan: 2 of 2
+Phase: 18 (performance-and-caching) — COMPLETE
+Plan: 2 of 2 (all complete)
 
 ## Accumulated Context
 
@@ -35,6 +35,7 @@ Carried from v1.2.0 — see PROJECT.md Key Decisions table for full history.
 - **17-02**: Default-true implemented via `args.includeSignature !== false` pattern (handles undefined/true/false correctly)
 - **18-01**: TTL and maxSize injected via constructor defaults to allow test-time override without module mutation
 - **18-01**: `size` getter reports raw store count (Map semantics) — avoids O(n) scan; stale entries counted until next `get()`
+- **18-02**: `invalidateBodyCache` placed as public method on MailService (cache is owned by MailService, not ImapClient); no try/catch needed as in-memory delete cannot throw
 
 ### Critical Blockers
 
@@ -46,5 +47,5 @@ Carried from v1.2.0 — see PROJECT.md Key Decisions table for full history.
 
 ## Session Continuity
 
-**Last Action:** Completed 18-01-PLAN.md — implemented MessageBodyCache utility with TTL expiry, oldest-first eviction, full TDD coverage (15 tests).
-**Next Step:** Execute 18-02 — wire MessageBodyCache into MailService/ImapClient for read_email deduplication.
+**Last Action:** Completed 18-02-PLAN.md — wired MessageBodyCache into MailService (readEmail, downloadAttachment) with invalidation on move_email. Phase 18 complete.
+**Next Step:** Milestone v1.3.0 complete — all 6 plans across 4 phases done.
