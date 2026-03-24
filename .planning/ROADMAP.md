@@ -80,5 +80,16 @@ Full archive: `.planning/milestones/v1.3.0-ROADMAP.md`
 | 17. Email Signatures | v1.3.0 | 2/2 | Complete    | 2026-03-23 |
 | 18. Performance & Caching | v1.3.0 | 2/2 | Complete    | 2026-03-24 |
 
+## Backlog
+
+### Phase 999.4: Extract List-Unsubscribe headers for mailing list management (BACKLOG)
+
+**Goal:** Surface RFC 2369 List-Unsubscribe headers (mailto: and https: URLs) as structured data in read_email output, enabling AI agents to automate mailing list unsubscription — mailto: via send_email, https: via browser tools
+**Requirements:** TBD
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (promote with /gsd:review-backlog when ready)
+
 ---
-*Last updated: 2026-03-24 — v1.3.0 milestone completed*
+*Last updated: 2026-03-24 — Backlog item 999.4 added*
