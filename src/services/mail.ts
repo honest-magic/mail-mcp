@@ -3,6 +3,8 @@ import { SmtpClient } from '../protocol/smtp.js';
 import { htmlToMarkdown } from '../utils/markdown.js';
 import { EmailAccount } from '../types/index.js';
 import { ValidationError } from '../errors.js';
+import { MessageBodyCache } from '../utils/message-cache.js';
+import type { ParsedMail } from 'mailparser';
 
 /**
  * Pure helper — appends `signature` to `body` when `includeSignature` is true and
@@ -28,6 +30,7 @@ export class MailService {
   private account: EmailAccount;
 
   private smtpConnected = false;
+  private readonly bodyCache = new MessageBodyCache();
 
   constructor(account: EmailAccount, private readonly readOnly: boolean = false) {
     this.account = account;
@@ -114,8 +117,21 @@ export class MailService {
     await this.imapClient.appendMessage('Drafts', headers, ['\\Draft']);
   }
 
-  async readEmail(uid: string, folder: string = 'INBOX'): Promise<string> {
+  private async _cachedFetchBody(uid: string, folder: string): Promise<ParsedMail> {
+    const key = `${this.account.id}:${folder}:${uid}`;
+    const cached = this.bodyCache.get(key);
+    if (cached) return cached;
     const parsed = await this.imapClient.fetchMessageBody(uid, folder);
+    this.bodyCache.set(key, parsed);
+    return parsed;
+  }
+
+  invalidateBodyCache(folder: string, uid: string): void {
+    this.bodyCache.delete(`${this.account.id}:${folder}:${uid}`);
+  }
+
+  async readEmail(uid: string, folder: string = 'INBOX'): Promise<string> {
+    const parsed = await this._cachedFetchBody(uid, folder);
     
     let content = '';
 
@@ -185,7 +201,7 @@ export class MailService {
         `Attachment "${filename}" is ${Math.round(size / 1024 / 1024)} MB, which exceeds the ${Math.round(maxBytes / 1024 / 1024)} MB limit. Use an email client to download large attachments directly.`
       );
     }
-    const parsed = await this.imapClient.fetchMessageBody(uid, folder);
+    const parsed = await this._cachedFetchBody(uid, folder);
     if (!parsed.attachments || parsed.attachments.length === 0) {
       throw new Error('No attachments found in this email');
     }
