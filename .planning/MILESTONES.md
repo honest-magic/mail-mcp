@@ -1,5 +1,17 @@
 # Milestones
 
+## v1.3.0 Signature Support & Performance Improvements (Shipped: 2026-03-24)
+
+**Phases completed:** 4 phases, 6 plans, 4 tasks
+
+**Key accomplishments:**
+
+- `applySignature()` helper wires RFC 3676 plain-text and HTML signature append into sendEmail/createDraft, controlled by per-call `includeSignature` boolean (default true)
+- One-liner:
+- One-liner:
+
+---
+
 ## v1.1.0 Hardening & Reliability (Shipped: 2026-03-22)
 
 **Phases completed:** 6 phases, 9 plans, 4 tasks

@@ -10,11 +10,13 @@ Empower AI agents to act as a personal mail assistant by providing structured, t
 
 ## Current State
 
-**v1.2.0 shipped 2026-03-23.** Added Homebrew install (`brew tap honest-magic/tap && brew install mail-mcp`), `--version` and `--help` CLI flags, README update guide with install method comparison, GitHub Release auto-creation on publish, and auto-update of Homebrew formula via CI.
+**v1.3.0 shipped 2026-03-24.** Per-account email signatures (auto-appended via RFC 3676 separator, opt-out per message), in-memory message body cache (5 min TTL, 100 entries), improved MCP tool descriptions for IMAP routing, CI upgraded to Node.js 22.
 
-**v1.1.0 shipped 2026-03-22.** 14 MCP tools with production hardening — typed error hierarchy, Zod config validation, email address validation, attachment size guards, per-account rate limiting, graceful shutdown, IMAP auto-reconnect, pagination, and integration tests.
+**v1.2.0 shipped 2026-03-23.** Homebrew install, `--version`/`--help` CLI flags, README update guide, GitHub Release auto-creation, Homebrew formula auto-update via CI.
 
-- 1,996 TypeScript LOC (src), 2,416 test LOC, 177 unit tests + 6 integration tests
+**v1.1.0 shipped 2026-03-22.** Production hardening — typed errors, Zod validation, rate limiting, graceful shutdown, auto-reconnect, pagination, integration tests.
+
+- 2,132 TypeScript LOC (src), 2,588 test LOC, 206 unit tests + 6 integration tests
 - Stack: imapflow, nodemailer, mailparser, pdf-parse, zod, rate-limiter-flexible, @modelcontextprotocol/sdk
 - Repo: `github.com/honest-magic/mail-mcp`
 
@@ -44,6 +46,12 @@ Empower AI agents to act as a personal mail assistant by providing structured, t
 - ✓ **SAFE-03**: Per-account in-memory rate limiter (100 req/60s sliding window) — v1.1.0
 - ✓ **QUAL-01**: Pagination via offset parameter on list_emails and search_emails — v1.1.0
 - ✓ **QUAL-02**: Integration test suite (SMTP via smtp-server, IMAP credential-gated) — v1.1.0
+- ✓ **DOC-01**: README update guide (npm/npx/brew updating, version pinning, install comparison table) — v1.2.0
+- ✓ **DIST-01**: Homebrew formula (`brew tap honest-magic/tap && brew install mail-mcp`) — v1.2.0
+- ✓ **CI-01**: GitHub Actions upgraded to Node.js 22, Node.js 24-compatible action versions — v1.3.0
+- ✓ **META-01**: MCP tool descriptions with IMAP/provider identity signals for AI client routing — v1.3.0
+- ✓ **SIG-01**: Per-account email signatures with RFC 3676 separator, opt-out via includeSignature param — v1.3.0
+- ✓ **PERF-01**: In-memory message body cache (5 min TTL, 100 entries) with move invalidation — v1.3.0
 
 ### Out of Scope
 
@@ -79,15 +87,9 @@ Empower AI agents to act as a personal mail assistant by providing structured, t
 | onClose callback (not EventEmitter) for reconnect | Zero new base class, minimal test churn, simple invalidation | ✓ Good |
 | smtp-server for integration tests (not Docker) | In-process, zero CI infrastructure, Nodemailer org maintained | ✓ Good |
 
-## Current Milestone: v1.3.0 Signature Support & Performance Improvements
+## Current Milestone: None (planning next)
 
-**Goal:** Add email signature support, improve performance with caching, upgrade CI to Node.js 24, and improve MCP tool descriptions for better AI routing.
-
-**Target features:**
-- Per-account email signatures for send/draft
-- IMAP connection pooling and response caching
-- GitHub Actions Node.js 24 upgrade
-- MCP tool description improvements for AI routing
+**Last shipped:** v1.3.0 Signature Support & Performance Improvements (2026-03-24)
 
 ## Deferred (v2+)
 
@@ -114,4 +116,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-03-23 — v1.3.0 milestone created from promoted backlog items*
+*Last updated: 2026-03-24 — v1.3.0 milestone shipped*
