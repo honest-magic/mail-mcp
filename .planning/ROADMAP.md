@@ -91,5 +91,41 @@ Full archive: `.planning/milestones/v1.3.0-ROADMAP.md`
 Plans:
 - [ ] TBD (promote with /gsd:review-backlog when ready)
 
+### Phase 999.5: Reply and forward with proper threading headers (BACKLOG)
+
+**Goal:** Add reply_email and forward_email tools that set In-Reply-To and References headers correctly so AI-composed replies appear in the original conversation thread
+**Requirements:** TBD
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (promote with /gsd:review-backlog when ready)
+
+### Phase 999.6: Contact extraction and frequency analysis (BACKLOG)
+
+**Goal:** New tool to extract structured contact data (name, email, frequency) from mailbox — enables "who emails me most?" and "find emails from my manager" workflows
+**Requirements:** TBD
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (promote with /gsd:review-backlog when ready)
+
+### Phase 999.7: Mailbox stats — unread count, folder sizes (BACKLOG)
+
+**Goal:** New tool to return mailbox statistics (unread count per folder, message counts, storage usage) without listing individual emails — fast triage for AI agents
+**Requirements:** TBD
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (promote with /gsd:review-backlog when ready)
+
+### Phase 999.8: Header-only fetch for fast email triage (BACKLOG)
+
+**Goal:** Lightweight fetch mode that returns email metadata (subject, from, date, flags) without downloading body — enables fast inbox scanning and triage at scale
+**Requirements:** TBD
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (promote with /gsd:review-backlog when ready)
+
 ---
-*Last updated: 2026-03-24 — Backlog item 999.4 added*
+*Last updated: 2026-03-24 — Backlog items 999.5–999.8 added*
