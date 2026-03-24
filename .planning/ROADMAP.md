@@ -163,5 +163,59 @@ Plans:
 Plans:
 - [ ] TBD (promote with /gsd:review-backlog when ready)
 
+### Phase 999.13: Audit logging for all MCP tool calls (BACKLOG)
+
+**Goal:** Log every tool invocation (tool name, accountId, key args, timestamp) to a local audit file — accountability for what AI agents do with the mailbox
+**Requirements:** TBD
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (promote with /gsd:review-backlog when ready)
+
+### Phase 999.14: Confirmation mode for destructive operations (BACKLOG)
+
+**Goal:** Optional mode where send/move/delete operations return a confirmation prompt instead of executing immediately — human-in-the-loop safety net beyond read-only mode
+**Requirements:** TBD
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (promote with /gsd:review-backlog when ready)
+
+### Phase 999.15: Per-tool allow-listing beyond read-only mode (BACKLOG)
+
+**Goal:** Granular tool permissions (e.g., allow send_email but not batch_operations/delete) instead of binary read-only vs full-write — configurable per account
+**Requirements:** TBD
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (promote with /gsd:review-backlog when ready)
+
+### Phase 999.16: Sensitive content redaction in email output (BACKLOG)
+
+**Goal:** Detect and mask credit card numbers, SSNs, passwords, and other PII in email body content before returning to AI agents — prevent sensitive data leaking into AI context
+**Requirements:** TBD
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (promote with /gsd:review-backlog when ready)
+
+### Phase 999.17: Per-tool-type rate limits — reads vs writes (BACKLOG)
+
+**Goal:** Separate rate limit tiers for read operations (higher) vs write operations (lower/stricter) — prevent AI agents from mass-sending or bulk-deleting
+**Requirements:** TBD
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (promote with /gsd:review-backlog when ready)
+
+### Phase 999.18: Send recipient allowlist by domain or address (BACKLOG)
+
+**Goal:** Optional allowlist of permitted recipient domains/addresses — AI can only send to pre-approved contacts, preventing accidental emails to wrong recipients
+**Requirements:** TBD
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (promote with /gsd:review-backlog when ready)
+
 ---
-*Last updated: 2026-03-24 — Backlog items 999.9–999.12 added*
+*Last updated: 2026-03-24 — Backlog items 999.13–999.18 added*
