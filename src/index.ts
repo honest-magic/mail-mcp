@@ -590,6 +590,8 @@ export class MailMCPServer {
           const args = request.params.arguments as { accountId: string; uid: string; sourceFolder: string; targetFolder: string };
           const service = await this.getService(args.accountId);
           await service.moveMessage(args.uid, args.sourceFolder, args.targetFolder);
+          // Invalidate cached body for the moved message (D-01 from 18-CONTEXT)
+          service.invalidateBodyCache(args.sourceFolder, args.uid);
           return {
             content: [
               {
