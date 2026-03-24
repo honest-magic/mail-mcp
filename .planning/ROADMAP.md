@@ -127,5 +127,41 @@ Plans:
 Plans:
 - [ ] TBD (promote with /gsd:review-backlog when ready)
 
+### Phase 999.9: Email templates for reusable reply and compose patterns (BACKLOG)
+
+**Goal:** Let users define reusable email templates (per-account or global) that AI agents can fill in — standard replies, acknowledgments, out-of-office, etc.
+**Requirements:** TBD
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (promote with /gsd:review-backlog when ready)
+
+### Phase 999.10: Folder rules and filters via SIEVE scripts (BACKLOG)
+
+**Goal:** Allow AI agents to create and manage server-side IMAP filters (SIEVE scripts) for automated mail sorting, forwarding, and flagging
+**Requirements:** TBD
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (promote with /gsd:review-backlog when ready)
+
+### Phase 999.11: Dedicated mark read/unread and star/unstar tools (BACKLOG)
+
+**Goal:** Add simple mark_read, mark_unread, star, and unstar tools so AI agents don't need to know IMAP flag syntax (\\Seen, \\Flagged)
+**Requirements:** TBD
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (promote with /gsd:review-backlog when ready)
+
+### Phase 999.12: Dedicated delete email tool (BACKLOG)
+
+**Goal:** Add a delete_email tool for single-message deletion without using batch_operations or move-to-Trash workarounds
+**Requirements:** TBD
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (promote with /gsd:review-backlog when ready)
+
 ---
-*Last updated: 2026-03-24 — Backlog items 999.5–999.8 added*
+*Last updated: 2026-03-24 — Backlog items 999.9–999.12 added*
