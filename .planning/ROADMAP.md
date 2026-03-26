@@ -6,6 +6,7 @@
 - ✅ **v1.1.0 Hardening & Reliability** — Phases 10–13 (shipped 2026-03-22)
 - ✅ **v1.2.0 Distribution & Documentation** — Phase 14 (shipped 2026-03-23)
 - ✅ **v1.3.0 Signature Support & Performance Improvements** — Phases 15–18 (shipped 2026-03-24)
+- **v1.4.0 AI Mail Assistant Features** — Phases 19–34 (active)
 
 ## Phases
 
@@ -79,152 +80,139 @@ Full archive: `.planning/milestones/v1.3.0-ROADMAP.md`
 | 16. Tool Descriptions | v1.3.0 | 1/1 | Complete    | 2026-03-23 |
 | 17. Email Signatures | v1.3.0 | 2/2 | Complete    | 2026-03-23 |
 | 18. Performance & Caching | v1.3.0 | 2/2 | Complete    | 2026-03-24 |
+| 19. List-Unsubscribe | v1.4.0 | 0/? | Not started | - |
+| 20. Reply/Forward Threading | v1.4.0 | 0/? | Not started | - |
+| 21. Contact Extraction | v1.4.0 | 0/? | Not started | - |
+| 22. Mailbox Stats | v1.4.0 | 0/? | Not started | - |
+| 23. Header-Only Fetch | v1.4.0 | 0/? | Not started | - |
+| 24. Email Templates | v1.4.0 | 0/? | Not started | - |
+| 25. SIEVE Folder Rules | v1.4.0 | 0/? | Not started | - |
+| 26. Mark Read/Star Tools | v1.4.0 | 0/? | Not started | - |
+| 27. Delete Email Tool | v1.4.0 | 0/? | Not started | - |
+| 28. Audit Logging | v1.4.0 | 0/? | Not started | - |
+| 29. Confirmation Mode | v1.4.0 | 0/? | Not started | - |
+| 30. Per-Tool Allow-Listing | v1.4.0 | 0/? | Not started | - |
+| 31. Content Redaction | v1.4.0 | 0/? | Not started | - |
+| 32. Tool-Type Rate Limits | v1.4.0 | 0/? | Not started | - |
+| 33. Recipient Allowlist | v1.4.0 | 0/? | Not started | - |
+| 34. Install Claude CLI | v1.4.0 | 0/? | Not started | - |
 
-## Backlog
+### v1.4.0 AI Mail Assistant Features (Phases 19–34)
 
-### Phase 999.4: Extract List-Unsubscribe headers for mailing list management (BACKLOG)
+- [ ] **Phase 19: List-Unsubscribe Headers** - Extract RFC 2369 headers for automated mailing list management
+- [ ] **Phase 20: Reply & Forward Threading** - In-Reply-To/References headers for proper conversation threading
+- [ ] **Phase 21: Contact Extraction** - Structured contact data with frequency analysis
+- [ ] **Phase 22: Mailbox Stats** - Unread count, folder sizes without listing emails
+- [ ] **Phase 23: Header-Only Fetch** - Fast metadata-only triage at scale
+- [ ] **Phase 24: Email Templates** - Reusable reply/compose patterns for AI agents
+- [ ] **Phase 25: SIEVE Folder Rules** - Server-side mail filters via AI
+- [ ] **Phase 26: Mark Read/Star Tools** - Simple tools instead of IMAP flag syntax
+- [ ] **Phase 27: Delete Email Tool** - Single-message delete without batch workaround
+- [ ] **Phase 28: Audit Logging** - Log all AI tool calls to local file
+- [ ] **Phase 29: Confirmation Mode** - Human-in-the-loop for destructive operations
+- [ ] **Phase 30: Per-Tool Allow-Listing** - Granular permissions beyond read-only
+- [ ] **Phase 31: Sensitive Content Redaction** - Mask PII before returning to AI
+- [ ] **Phase 32: Per-Tool-Type Rate Limits** - Separate read vs write rate limits
+- [ ] **Phase 33: Send Recipient Allowlist** - Only allow sending to approved addresses
+- [ ] **Phase 34: Install Claude CLI Command** - `mail-mcp --install-claude` for one-command setup
 
-**Goal:** Surface RFC 2369 List-Unsubscribe headers (mailto: and https: URLs) as structured data in read_email output, enabling AI agents to automate mailing list unsubscription — mailto: via send_email, https: via browser tools
-**Requirements:** TBD
-**Plans:** 0 plans
+## Phase Details
 
-Plans:
-- [ ] TBD (promote with /gsd:review-backlog when ready)
+### Phase 19: List-Unsubscribe Headers
+**Goal**: Surface RFC 2369 List-Unsubscribe headers (mailto: and https: URLs) as structured data in read_email output
+**Depends on**: Nothing
+**Requirements**: TBD
+**Plans**: TBD
 
-### Phase 999.5: Reply and forward with proper threading headers (BACKLOG)
+### Phase 20: Reply & Forward Threading
+**Goal**: Add reply_email and forward_email tools with correct In-Reply-To and References headers
+**Depends on**: Nothing
+**Requirements**: TBD
+**Plans**: TBD
 
-**Goal:** Add reply_email and forward_email tools that set In-Reply-To and References headers correctly so AI-composed replies appear in the original conversation thread
-**Requirements:** TBD
-**Plans:** 0 plans
+### Phase 21: Contact Extraction
+**Goal**: Extract structured contact data (name, email, frequency) from mailbox
+**Depends on**: Nothing
+**Requirements**: TBD
+**Plans**: TBD
 
-Plans:
-- [ ] TBD (promote with /gsd:review-backlog when ready)
+### Phase 22: Mailbox Stats
+**Goal**: Return mailbox statistics (unread count per folder, message counts) without listing emails
+**Depends on**: Nothing
+**Requirements**: TBD
+**Plans**: TBD
 
-### Phase 999.6: Contact extraction and frequency analysis (BACKLOG)
+### Phase 23: Header-Only Fetch
+**Goal**: Lightweight fetch returning email metadata (subject, from, date, flags) without body
+**Depends on**: Nothing
+**Requirements**: TBD
+**Plans**: TBD
 
-**Goal:** New tool to extract structured contact data (name, email, frequency) from mailbox — enables "who emails me most?" and "find emails from my manager" workflows
-**Requirements:** TBD
-**Plans:** 0 plans
+### Phase 24: Email Templates
+**Goal**: Reusable email templates (per-account or global) that AI agents can fill in
+**Depends on**: Nothing
+**Requirements**: TBD
+**Plans**: TBD
 
-Plans:
-- [ ] TBD (promote with /gsd:review-backlog when ready)
+### Phase 25: SIEVE Folder Rules
+**Goal**: Create and manage server-side IMAP filters via SIEVE scripts
+**Depends on**: Nothing
+**Requirements**: TBD
+**Plans**: TBD
 
-### Phase 999.7: Mailbox stats — unread count, folder sizes (BACKLOG)
+### Phase 26: Mark Read/Star Tools
+**Goal**: Simple mark_read, mark_unread, star, unstar tools without IMAP flag syntax
+**Depends on**: Nothing
+**Requirements**: TBD
+**Plans**: TBD
 
-**Goal:** New tool to return mailbox statistics (unread count per folder, message counts, storage usage) without listing individual emails — fast triage for AI agents
-**Requirements:** TBD
-**Plans:** 0 plans
+### Phase 27: Delete Email Tool
+**Goal**: Single-message delete_email tool without batch_operations workaround
+**Depends on**: Nothing
+**Requirements**: TBD
+**Plans**: TBD
 
-Plans:
-- [ ] TBD (promote with /gsd:review-backlog when ready)
+### Phase 28: Audit Logging
+**Goal**: Log every tool invocation (tool name, accountId, key args, timestamp) to local audit file
+**Depends on**: Nothing
+**Requirements**: TBD
+**Plans**: TBD
 
-### Phase 999.8: Header-only fetch for fast email triage (BACKLOG)
+### Phase 29: Confirmation Mode
+**Goal**: Optional mode where destructive operations return a confirmation prompt before executing
+**Depends on**: Nothing
+**Requirements**: TBD
+**Plans**: TBD
 
-**Goal:** Lightweight fetch mode that returns email metadata (subject, from, date, flags) without downloading body — enables fast inbox scanning and triage at scale
-**Requirements:** TBD
-**Plans:** 0 plans
+### Phase 30: Per-Tool Allow-Listing
+**Goal**: Granular tool permissions (e.g., allow send_email but not delete) instead of binary read-only
+**Depends on**: Nothing
+**Requirements**: TBD
+**Plans**: TBD
 
-Plans:
-- [ ] TBD (promote with /gsd:review-backlog when ready)
+### Phase 31: Sensitive Content Redaction
+**Goal**: Detect and mask credit card numbers, SSNs, passwords, PII in email content before returning to AI
+**Depends on**: Nothing
+**Requirements**: TBD
+**Plans**: TBD
 
-### Phase 999.9: Email templates for reusable reply and compose patterns (BACKLOG)
+### Phase 32: Per-Tool-Type Rate Limits
+**Goal**: Separate rate limit tiers for read operations (higher) vs write operations (stricter)
+**Depends on**: Nothing
+**Requirements**: TBD
+**Plans**: TBD
 
-**Goal:** Let users define reusable email templates (per-account or global) that AI agents can fill in — standard replies, acknowledgments, out-of-office, etc.
-**Requirements:** TBD
-**Plans:** 0 plans
+### Phase 33: Send Recipient Allowlist
+**Goal**: Optional allowlist of permitted recipient domains/addresses for send_email
+**Depends on**: Nothing
+**Requirements**: TBD
+**Plans**: TBD
 
-Plans:
-- [ ] TBD (promote with /gsd:review-backlog when ready)
-
-### Phase 999.10: Folder rules and filters via SIEVE scripts (BACKLOG)
-
-**Goal:** Allow AI agents to create and manage server-side IMAP filters (SIEVE scripts) for automated mail sorting, forwarding, and flagging
-**Requirements:** TBD
-**Plans:** 0 plans
-
-Plans:
-- [ ] TBD (promote with /gsd:review-backlog when ready)
-
-### Phase 999.11: Dedicated mark read/unread and star/unstar tools (BACKLOG)
-
-**Goal:** Add simple mark_read, mark_unread, star, and unstar tools so AI agents don't need to know IMAP flag syntax (\\Seen, \\Flagged)
-**Requirements:** TBD
-**Plans:** 0 plans
-
-Plans:
-- [ ] TBD (promote with /gsd:review-backlog when ready)
-
-### Phase 999.12: Dedicated delete email tool (BACKLOG)
-
-**Goal:** Add a delete_email tool for single-message deletion without using batch_operations or move-to-Trash workarounds
-**Requirements:** TBD
-**Plans:** 0 plans
-
-Plans:
-- [ ] TBD (promote with /gsd:review-backlog when ready)
-
-### Phase 999.13: Audit logging for all MCP tool calls (BACKLOG)
-
-**Goal:** Log every tool invocation (tool name, accountId, key args, timestamp) to a local audit file — accountability for what AI agents do with the mailbox
-**Requirements:** TBD
-**Plans:** 0 plans
-
-Plans:
-- [ ] TBD (promote with /gsd:review-backlog when ready)
-
-### Phase 999.14: Confirmation mode for destructive operations (BACKLOG)
-
-**Goal:** Optional mode where send/move/delete operations return a confirmation prompt instead of executing immediately — human-in-the-loop safety net beyond read-only mode
-**Requirements:** TBD
-**Plans:** 0 plans
-
-Plans:
-- [ ] TBD (promote with /gsd:review-backlog when ready)
-
-### Phase 999.15: Per-tool allow-listing beyond read-only mode (BACKLOG)
-
-**Goal:** Granular tool permissions (e.g., allow send_email but not batch_operations/delete) instead of binary read-only vs full-write — configurable per account
-**Requirements:** TBD
-**Plans:** 0 plans
-
-Plans:
-- [ ] TBD (promote with /gsd:review-backlog when ready)
-
-### Phase 999.16: Sensitive content redaction in email output (BACKLOG)
-
-**Goal:** Detect and mask credit card numbers, SSNs, passwords, and other PII in email body content before returning to AI agents — prevent sensitive data leaking into AI context
-**Requirements:** TBD
-**Plans:** 0 plans
-
-Plans:
-- [ ] TBD (promote with /gsd:review-backlog when ready)
-
-### Phase 999.17: Per-tool-type rate limits — reads vs writes (BACKLOG)
-
-**Goal:** Separate rate limit tiers for read operations (higher) vs write operations (lower/stricter) — prevent AI agents from mass-sending or bulk-deleting
-**Requirements:** TBD
-**Plans:** 0 plans
-
-Plans:
-- [ ] TBD (promote with /gsd:review-backlog when ready)
-
-### Phase 999.18: Send recipient allowlist by domain or address (BACKLOG)
-
-**Goal:** Optional allowlist of permitted recipient domains/addresses — AI can only send to pre-approved contacts, preventing accidental emails to wrong recipients
-**Requirements:** TBD
-**Plans:** 0 plans
-
-Plans:
-- [ ] TBD (promote with /gsd:review-backlog when ready)
-
-### Phase 999.19: CLI command to install mail-mcp for Claude Code (BACKLOG)
-
-**Goal:** Add `mail-mcp --install-claude` command that writes the MCP server config to `~/.claude/settings.json` (or the appropriate Claude Code config path) so users can set up mail-mcp with a single command
-**Requirements:** TBD
-**Plans:** 0 plans
-
-Plans:
-- [ ] TBD (promote with /gsd:review-backlog when ready)
+### Phase 34: Install Claude CLI Command
+**Goal**: `mail-mcp --install-claude` writes MCP server config to Claude Code settings for one-command setup
+**Depends on**: Nothing
+**Requirements**: TBD
+**Plans**: TBD
 
 ---
-*Last updated: 2026-03-24 — Backlog item 999.19 added*
+*Last updated: 2026-03-24 — All backlog promoted to v1.4.0 (Phases 19–34)*

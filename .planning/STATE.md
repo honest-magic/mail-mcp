@@ -1,8 +1,8 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.3.0
-milestone_name: Signature Support & Performance Improvements
-status: unknown
+milestone: v1.4.0
+milestone_name: AI Mail Assistant Features
+status: roadmap_ready
 last_updated: "2026-03-24T05:17:29.547Z"
 progress:
   total_phases: 4
@@ -16,12 +16,12 @@ progress:
 ## Project Reference
 
 **Core Value:** Empower AI agents to act as a personal mail assistant by providing structured, tool-based access to existing email accounts through standard protocols.
-**Current Focus:** Phase 18 — performance-and-caching
+**Current Focus:** Phase 19 — List-Unsubscribe Headers
 
 ## Current Position
 
-Phase: 18
-Plan: Not started
+Phase: 19 (not started)
+Plan: —
 
 ## Accumulated Context
 
@@ -47,5 +47,5 @@ Carried from v1.2.0 — see PROJECT.md Key Decisions table for full history.
 
 ## Session Continuity
 
-**Last Action:** Completed 18-02-PLAN.md — wired MessageBodyCache into MailService (readEmail, downloadAttachment) with invalidation on move_email. Phase 18 complete.
-**Next Step:** Milestone v1.3.0 complete — all 6 plans across 4 phases done.
+**Last Action:** Promoted all 16 backlog items to v1.4.0 milestone (Phases 19–34).
+**Next Step:** Run `/gsd:discuss-phase 19` or `/gsd:autonomous` to start.

@@ -87,9 +87,11 @@ Empower AI agents to act as a personal mail assistant by providing structured, t
 | onClose callback (not EventEmitter) for reconnect | Zero new base class, minimal test churn, simple invalidation | ✓ Good |
 | smtp-server for integration tests (not Docker) | In-process, zero CI infrastructure, Nodemailer org maintained | ✓ Good |
 
-## Current Milestone: None (planning next)
+## Current Milestone: v1.4.0 AI Mail Assistant Features
 
-**Last shipped:** v1.3.0 Signature Support & Performance Improvements (2026-03-24)
+**Goal:** Transform mail-mcp from a basic IMAP/SMTP gateway into a full AI mail assistant toolkit — threading, contacts, templates, security controls, and developer UX improvements.
+
+**16 phases:** Reply/forward threading, List-Unsubscribe, contact extraction, mailbox stats, header-only fetch, email templates, SIEVE filters, mark/star/delete tools, audit logging, confirmation mode, per-tool permissions, content redaction, rate limits, recipient allowlist, install CLI command.
 
 ## Deferred (v2+)
 
@@ -116,4 +118,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-03-24 — v1.3.0 milestone shipped*
+*Last updated: 2026-03-24 — v1.4.0 milestone created from promoted backlog*
