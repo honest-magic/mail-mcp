@@ -71,6 +71,9 @@ const WRITE_TOOL_NAMES = [
   'mark_unread',
   'star',
   'unstar',
+  'delete_email',
+  'set_filter',
+  'delete_filter',
 ];
 
 const READ_TOOL_NAMES = [
@@ -86,6 +89,8 @@ const READ_TOOL_NAMES = [
   'mailbox_stats',
   'list_templates',
   'use_template',
+  'list_filters',
+  'get_filter',
 ];
 
 describe('ROM-01: readOnly constructor field', () => {
@@ -120,7 +125,7 @@ describe('ROM-05: list-time filtering', () => {
     expect(names).not.toContain('send_email');
   });
 
-  it('Test F: getTools(true) does NOT include any of the 12 write tools', () => {
+  it('Test F: getTools(true) does NOT include any of the 15 write tools', () => {
     const server = new MailMCPServer(true);
     const tools = (server as any).getTools(true);
     const names: string[] = tools.map((t: any) => t.name);
@@ -143,7 +148,7 @@ describe('ROM-02: call-time guard for write tools', () => {
     expect(result.content[0].text).toContain("Tool 'send_email' is not available");
   });
 
-  it('Test I: all 8 write tool names return isError: true in read-only mode', async () => {
+  it('Test I: all 15 write tool names return isError: true in read-only mode', async () => {
     const server = new MailMCPServer(true);
     for (const toolName of WRITE_TOOL_NAMES) {
       const result = await (server as any).dispatchTool(toolName, true, {});
@@ -193,7 +198,7 @@ describe('ROM-06: tool annotations', () => {
     const server = new MailMCPServer(false);
     const tools = (server as any).getTools(false);
     const readTools = tools.filter((t: any) => READ_TOOL_NAMES.includes(t.name));
-    expect(readTools).toHaveLength(12);
+    expect(readTools).toHaveLength(14);
     for (const tool of readTools) {
       expect(tool.annotations.readOnlyHint).toBe(true);
       expect(tool.annotations.destructiveHint).toBe(false);
@@ -1047,7 +1052,7 @@ describe('THREAD-02: reply_email and forward_email are WRITE tools', () => {
     expect(result.content[0].text).toContain("Tool 'forward_email' is not available");
   });
 
-  it('all 8 write tools return isError: true in read-only mode', async () => {
+  it('all reply/forward write tools return isError: true in read-only mode', async () => {
     const server = new MailMCPServer(true);
     for (const toolName of ALL_WRITE_TOOL_NAMES_20) {
       const result = await (server as any).dispatchTool(toolName, true, {});
