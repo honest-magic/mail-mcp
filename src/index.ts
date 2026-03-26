@@ -19,6 +19,7 @@ import { validateEmailAddresses } from './utils/validation.js';
 import { getTemplates, applyVariables } from './utils/templates.js';
 import { SieveClient } from './protocol/sieve.js';
 import { AuditLogger } from './utils/audit-logger.js';
+import { ConfirmationStore } from './utils/confirmation-store.js';
 import { AUDIT_LOG_PATH } from './config.js';
 
 const WRITE_TOOLS = new Set<string>([
@@ -39,6 +40,50 @@ const WRITE_TOOLS = new Set<string>([
   'delete_filter',
 ]);
 
+/**
+ * Build a human-readable description of a write tool action for the confirmation prompt.
+ */
+function buildConfirmationDescription(toolName: string, args: Record<string, unknown>): string {
+  const uid = args.uid as string | undefined;
+  const folder = (args.folder as string | undefined) || 'INBOX';
+  switch (toolName) {
+    case 'send_email':
+      return `Send email to ${args.to as string} with subject '${args.subject as string}'`;
+    case 'create_draft':
+      return `Save draft to ${args.to as string} with subject '${args.subject as string}'`;
+    case 'reply_email':
+      return `Reply to email UID ${uid} in ${folder}`;
+    case 'forward_email':
+      return `Forward email UID ${uid} to ${args.to as string}`;
+    case 'delete_email':
+      return `Permanently delete email UID ${uid} from ${folder}`;
+    case 'move_email':
+      return `Move email UID ${uid} from ${args.sourceFolder as string} to ${args.targetFolder as string}`;
+    case 'batch_operations': {
+      const uids = args.uids as string[] | undefined;
+      return `Batch ${args.action as string} ${uids ? uids.length : 0} emails in ${folder}`;
+    }
+    case 'modify_labels':
+      return `Modify labels on email UID ${uid} in ${folder}`;
+    case 'mark_read':
+      return `Mark email UID ${uid} as read in ${folder}`;
+    case 'mark_unread':
+      return `Mark email UID ${uid} as unread in ${folder}`;
+    case 'star':
+      return `Star email UID ${uid} in ${folder}`;
+    case 'unstar':
+      return `Unstar email UID ${uid} in ${folder}`;
+    case 'register_oauth2_account':
+      return `Register OAuth2 credentials for account ${args.accountId as string}`;
+    case 'set_filter':
+      return `Create/update SIEVE filter '${args.name as string}' on account ${args.accountId as string}`;
+    case 'delete_filter':
+      return `Delete SIEVE filter '${args.name as string}' on account ${args.accountId as string}`;
+    default:
+      return `Execute ${toolName}`;
+  }
+}
+
 export class MailMCPServer {
   private server: Server;
   private services: Map<string, MailService> = new Map();
@@ -46,10 +91,15 @@ export class MailMCPServer {
   private inFlightCount = 0;
   private readonly rateLimiter = new AccountRateLimiter();
   private readonly allowedTools?: Set<string>;
+  private readonly confirmMode: boolean;
+  private readonly confirmStore: ConfirmationStore;
+  private readonly auditLogger?: AuditLogger;
 
   constructor(
     private readonly readOnly: boolean = false,
-    allowedTools?: Set<string>
+    allowedTools?: Set<string>,
+    auditLogger?: AuditLogger,
+    confirmMode: boolean = false
   ) {
     if (readOnly && allowedTools !== undefined) {
       throw new Error(
@@ -58,6 +108,9 @@ export class MailMCPServer {
     }
 
     this.allowedTools = allowedTools;
+    this.auditLogger = auditLogger;
+    this.confirmMode = confirmMode;
+    this.confirmStore = new ConfirmationStore();
 
     const instructionsSuffix = (() => {
       if (readOnly) {
@@ -66,6 +119,9 @@ export class MailMCPServer {
       if (allowedTools !== undefined) {
         const list = [...allowedTools].join(', ') || 'none';
         return ` This server is running with allow-listed tools. Only these write operations are enabled: ${list}. All other write tools are disabled.`;
+      }
+      if (confirmMode) {
+        return ' This server is running in confirmation mode. Write operations require a two-step confirmation: the first call returns a confirmationId; include it in the second call to execute the action.';
       }
       return '';
     })();
@@ -223,7 +279,8 @@ export class MailMCPServer {
             includeSignature: {
               type: 'boolean',
               description: 'Whether to append the account signature (default: true). Set to false to suppress the signature for this message.'
-            }
+            },
+            confirmationId: { type: 'string', description: 'Confirmation token from a prior confirmation-required response. Required to execute write operations when server is in --confirm mode.' }
           },
           required: ['accountId', 'to', 'subject', 'body']
         }
@@ -245,7 +302,8 @@ export class MailMCPServer {
             includeSignature: {
               type: 'boolean',
               description: 'Whether to append the account signature (default: true). Set to false to suppress the signature for this draft.'
-            }
+            },
+            confirmationId: { type: 'string', description: 'Confirmation token from a prior confirmation-required response. Required to execute write operations when server is in --confirm mode.' }
           },
           required: ['accountId', 'to', 'subject', 'body']
         }
@@ -272,7 +330,8 @@ export class MailMCPServer {
             accountId: { type: 'string', description: 'The ID of the account to use' },
             uid: { type: 'string', description: 'The UID of the email to move' },
             sourceFolder: { type: 'string', description: 'The current folder of the email' },
-            targetFolder: { type: 'string', description: 'The destination folder' }
+            targetFolder: { type: 'string', description: 'The destination folder' },
+            confirmationId: { type: 'string', description: 'Confirmation token from a prior confirmation-required response. Required to execute write operations when server is in --confirm mode.' }
           },
           required: ['accountId', 'uid', 'sourceFolder', 'targetFolder']
         }
@@ -288,7 +347,8 @@ export class MailMCPServer {
             uid: { type: 'string', description: 'The UID of the email' },
             folder: { type: 'string', description: 'The folder containing the email' },
             addLabels: { type: 'array', items: { type: 'string' }, description: 'Labels to add (e.g. \\Seen, \\Flagged)' },
-            removeLabels: { type: 'array', items: { type: 'string' }, description: 'Labels to remove' }
+            removeLabels: { type: 'array', items: { type: 'string' }, description: 'Labels to remove' },
+            confirmationId: { type: 'string', description: 'Confirmation token from a prior confirmation-required response. Required to execute write operations when server is in --confirm mode.' }
           },
           required: ['accountId', 'uid', 'folder']
         }
@@ -348,7 +408,8 @@ export class MailMCPServer {
             clientId: { type: 'string', description: 'OAuth2 Client ID' },
             clientSecret: { type: 'string', description: 'OAuth2 Client Secret' },
             refreshToken: { type: 'string', description: 'OAuth2 Refresh Token' },
-            tokenEndpoint: { type: 'string', description: 'OAuth2 Token Endpoint URL' }
+            tokenEndpoint: { type: 'string', description: 'OAuth2 Token Endpoint URL' },
+            confirmationId: { type: 'string', description: 'Confirmation token from a prior confirmation-required response. Required to execute write operations when server is in --confirm mode.' }
           },
           required: ['accountId', 'clientId', 'clientSecret', 'refreshToken', 'tokenEndpoint']
         }
@@ -366,7 +427,8 @@ export class MailMCPServer {
             action: { type: 'string', enum: ['move', 'delete', 'label'], description: 'The batch action to perform' },
             targetFolder: { type: 'string', description: 'Target folder (required for move action)' },
             addLabels: { type: 'array', items: { type: 'string' }, description: 'Labels to add (for label action)' },
-            removeLabels: { type: 'array', items: { type: 'string' }, description: 'Labels to remove (for label action)' }
+            removeLabels: { type: 'array', items: { type: 'string' }, description: 'Labels to remove (for label action)' },
+            confirmationId: { type: 'string', description: 'Confirmation token from a prior confirmation-required response. Required to execute write operations when server is in --confirm mode.' }
           },
           required: ['accountId', 'uids', 'folder', 'action']
         }
@@ -380,7 +442,8 @@ export class MailMCPServer {
           properties: {
             accountId: { type: 'string', description: 'The ID of the account to use' },
             uid: { type: 'string', description: 'The UID of the email to delete' },
-            folder: { type: 'string', description: 'The folder containing the email (default: INBOX)' }
+            folder: { type: 'string', description: 'The folder containing the email (default: INBOX)' },
+            confirmationId: { type: 'string', description: 'Confirmation token from a prior confirmation-required response. Required to execute write operations when server is in --confirm mode.' }
           },
           required: ['accountId', 'uid']
         }
@@ -402,7 +465,8 @@ export class MailMCPServer {
             includeSignature: {
               type: 'boolean',
               description: 'Whether to append the account signature (default: true). Set to false to suppress the signature.'
-            }
+            },
+            confirmationId: { type: 'string', description: 'Confirmation token from a prior confirmation-required response. Required to execute write operations when server is in --confirm mode.' }
           },
           required: ['accountId', 'uid', 'body']
         }
@@ -425,7 +489,8 @@ export class MailMCPServer {
             includeSignature: {
               type: 'boolean',
               description: 'Whether to append the account signature (default: true). Set to false to suppress the signature.'
-            }
+            },
+            confirmationId: { type: 'string', description: 'Confirmation token from a prior confirmation-required response. Required to execute write operations when server is in --confirm mode.' }
           },
           required: ['accountId', 'uid', 'to']
         }
@@ -973,6 +1038,9 @@ export class MailMCPServer {
         };
       }
       this.inFlightCount++;
+      const _auditStart = Date.now();
+      let _auditIsError = false;
+      let _auditErrorMsg: string | undefined;
       try {
         const toolName = request.params.name;
 
@@ -995,6 +1063,43 @@ export class MailMCPServer {
             }],
             isError: true,
           };
+        }
+
+        // Confirmation mode gate — intercept write tools when --confirm is active
+        if (this.confirmMode && WRITE_TOOLS.has(toolName)) {
+          const reqArgs = (request.params.arguments ?? {}) as Record<string, unknown>;
+          const confirmationId = reqArgs.confirmationId as string | undefined;
+          if (confirmationId) {
+            const pending = this.confirmStore.consume(confirmationId);
+            if (!pending) {
+              return {
+                content: [{
+                  type: 'text',
+                  text: 'Confirmation token invalid or expired. Call the tool again without confirmationId to get a new token.',
+                }],
+                isError: true,
+              };
+            }
+            // Token valid — replace request args with stored args (strip confirmationId)
+            (request.params as Record<string, unknown>).arguments = pending.args;
+          } else {
+            const argsForStore = { ...reqArgs };
+            delete argsForStore.confirmationId;
+            const id = this.confirmStore.create(toolName, argsForStore);
+            const description = buildConfirmationDescription(toolName, reqArgs);
+            return {
+              content: [{
+                type: 'text',
+                text: JSON.stringify({
+                  confirmationRequired: true,
+                  action: toolName,
+                  description,
+                  confirmationId: id,
+                  expiresIn: '5 minutes',
+                }, null, 2),
+              }],
+            };
+          }
         }
 
         // Rate limit guard — before any I/O
@@ -1414,12 +1519,29 @@ export class MailMCPServer {
           : error instanceof Error
             ? error.message
             : String(error);
+        _auditIsError = true;
+        _auditErrorMsg = message;
         return {
           content: [{ type: 'text', text: message }],
           isError: true,
         };
       } finally {
         this.inFlightCount--;
+        if (this.auditLogger) {
+          const _toolName = request.params.name;
+          const _rawArgs = (request.params.arguments ?? {}) as Record<string, unknown>;
+          const _accountId = _rawArgs.accountId as string | undefined;
+          const _errMsg = _auditIsError ? (_auditErrorMsg ?? '(error)') : undefined;
+          this.auditLogger.log({
+            timestamp: new Date().toISOString(),
+            tool: _toolName,
+            ...(_accountId !== undefined ? { accountId: _accountId } : {}),
+            args: _rawArgs,
+            success: !_auditIsError,
+            durationMs: Date.now() - _auditStart,
+            ...(_auditIsError ? { error: _errMsg } : {}),
+          }).catch(() => {});
+        }
       }
     });
   }
@@ -1479,6 +1601,8 @@ async function main() {
     options: {
       'read-only': { type: 'boolean', default: false },
       'allow-tools': { type: 'string' },
+      'confirm': { type: 'boolean', default: false },
+      'audit-log': { type: 'boolean', default: false },
       'validate-accounts': { type: 'boolean', default: false },
       'version': { type: 'boolean', default: false },
       'help': { type: 'boolean', short: 'h', default: false },
@@ -1510,6 +1634,8 @@ Commands:
 Options:
   --read-only                 Start in read-only mode (no send/move/label tools)
   --allow-tools t1,t2,...     Allow only specific write tools (comma-separated). Mutually exclusive with --read-only.
+  --confirm                   Enable confirmation mode — write tools require a two-step call (first returns confirmationId, second executes)
+  --audit-log                 Append a JSONL entry for every tool call to ~/.config/mail-mcp/audit.log
   --validate-accounts         Probe IMAP/SMTP connections and exit
   --version                   Show version number
   -h, --help                  Show this help message`);
@@ -1533,7 +1659,11 @@ Options:
     ? new Set(allowToolsRaw.split(',').map(t => t.trim()).filter(t => t.length > 0))
     : undefined;
 
-  const server = new MailMCPServer(readOnly, allowedTools);
+  const confirmMode = (values['confirm'] as boolean | undefined) ?? false;
+
+  const auditLogEnabled = (values['audit-log'] as boolean | undefined) ?? false;
+  const auditLogger = new AuditLogger(AUDIT_LOG_PATH, auditLogEnabled);
+  const server = new MailMCPServer(readOnly, allowedTools, auditLogger, confirmMode);
 
   const shutdown = async () => {
     const timer = setTimeout(() => {
