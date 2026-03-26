@@ -89,4 +89,35 @@ describe('SmtpClient', () => {
     expect(callArgs.html).toBe('<b>HTML body</b>');
     expect(callArgs.text).toBeUndefined();
   });
+
+  it('passes extraHeaders to sendMail when provided', async () => {
+    const client = new SmtpClient(account);
+    await client.connect();
+    mockSendMail.mockClear();
+    const extraHeaders = {
+      'In-Reply-To': '<original-msg-id@example.com>',
+      'References': '<original-msg-id@example.com>',
+    };
+    await client.send('to@example.com', 'Subject', 'Body', false, undefined, undefined, extraHeaders);
+    const callArgs = mockSendMail.mock.calls[0][0];
+    expect(callArgs.headers).toEqual(extraHeaders);
+  });
+
+  it('does not set headers field when extraHeaders is not provided', async () => {
+    const client = new SmtpClient(account);
+    await client.connect();
+    mockSendMail.mockClear();
+    await client.send('to@example.com', 'Subject', 'Body');
+    const callArgs = mockSendMail.mock.calls[0][0];
+    expect(callArgs.headers).toBeUndefined();
+  });
+
+  it('does not set headers field when extraHeaders is empty object', async () => {
+    const client = new SmtpClient(account);
+    await client.connect();
+    mockSendMail.mockClear();
+    await client.send('to@example.com', 'Subject', 'Body', false, undefined, undefined, {});
+    const callArgs = mockSendMail.mock.calls[0][0];
+    expect(callArgs.headers).toBeUndefined();
+  });
 });
