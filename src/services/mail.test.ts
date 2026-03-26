@@ -446,6 +446,141 @@ describe('MailService replyEmail', () => {
   });
 });
 
+// ---------------------------------------------------------------------------
+// forwardEmail tests
+// ---------------------------------------------------------------------------
+
+describe('MailService forwardEmail', () => {
+  const baseAccount = {
+    id: 'test',
+    name: 'Test',
+    user: 'forwarder@example.com',
+    authType: 'login' as const,
+    host: 'imap.example.com',
+    port: 993,
+    useTLS: true,
+  };
+
+  beforeEach(() => {
+    mockSmtpConnect.mockClear();
+    mockSmtpSend.mockClear();
+    mockImapAppendMessage.mockClear();
+    mockFetchMessageBody.mockClear();
+  });
+
+  function makeOriginalMail(overrides: Partial<any> = {}): any {
+    const headersMap = new Map<string, string>();
+    headersMap.set('message-id', '<orig@example.com>');
+    return {
+      messageId: '<orig@example.com>',
+      from: { value: [{ address: 'author@example.com' }], text: 'author@example.com' },
+      to: { text: 'forwarder@example.com' },
+      subject: 'Original Subject',
+      date: new Date('2026-01-15T10:00:00Z'),
+      text: 'Original message content.',
+      headers: headersMap,
+      attachments: [],
+      ...overrides,
+    };
+  }
+
+  it('sends to the specified "to" address', async () => {
+    mockFetchMessageBody.mockResolvedValue(makeOriginalMail());
+    const service = new MailService(baseAccount, false);
+    await service.connect();
+    await service.forwardEmail('42', 'INBOX', 'friend@example.com', 'FYI');
+    expect(mockSmtpSend.mock.calls[0][0]).toBe('friend@example.com');
+  });
+
+  it('prepends "Fwd: " to subject when not already present', async () => {
+    mockFetchMessageBody.mockResolvedValue(makeOriginalMail());
+    const service = new MailService(baseAccount, false);
+    await service.connect();
+    await service.forwardEmail('42', 'INBOX', 'friend@example.com', 'FYI');
+    expect(mockSmtpSend.mock.calls[0][1]).toBe('Fwd: Original Subject');
+  });
+
+  it('does not double-prepend "Fwd: " when subject already starts with "Fwd: "', async () => {
+    mockFetchMessageBody.mockResolvedValue(makeOriginalMail({ subject: 'Fwd: Original Subject' }));
+    const service = new MailService(baseAccount, false);
+    await service.connect();
+    await service.forwardEmail('42', 'INBOX', 'friend@example.com', 'FYI');
+    expect(mockSmtpSend.mock.calls[0][1]).toBe('Fwd: Original Subject');
+  });
+
+  it('includes "--- Forwarded message ---" separator in body', async () => {
+    mockFetchMessageBody.mockResolvedValue(makeOriginalMail());
+    const service = new MailService(baseAccount, false);
+    await service.connect();
+    await service.forwardEmail('42', 'INBOX', 'friend@example.com', 'FYI');
+    const sentBody: string = mockSmtpSend.mock.calls[0][2];
+    expect(sentBody).toContain('--- Forwarded message ---');
+  });
+
+  it('includes original message body in forwarded content', async () => {
+    mockFetchMessageBody.mockResolvedValue(makeOriginalMail());
+    const service = new MailService(baseAccount, false);
+    await service.connect();
+    await service.forwardEmail('42', 'INBOX', 'friend@example.com', 'FYI');
+    const sentBody: string = mockSmtpSend.mock.calls[0][2];
+    expect(sentBody).toContain('Original message content.');
+  });
+
+  it('includes user preamble before forwarded block', async () => {
+    mockFetchMessageBody.mockResolvedValue(makeOriginalMail());
+    const service = new MailService(baseAccount, false);
+    await service.connect();
+    await service.forwardEmail('42', 'INBOX', 'friend@example.com', 'Check this out!');
+    const sentBody: string = mockSmtpSend.mock.calls[0][2];
+    expect(sentBody).toContain('Check this out!');
+    // preamble should appear before the forwarded block
+    const preambleIdx = sentBody.indexOf('Check this out!');
+    const forwardIdx = sentBody.indexOf('--- Forwarded message ---');
+    expect(preambleIdx).toBeLessThan(forwardIdx);
+  });
+
+  it('does not set In-Reply-To or References headers (forwards break thread chain)', async () => {
+    mockFetchMessageBody.mockResolvedValue(makeOriginalMail());
+    const service = new MailService(baseAccount, false);
+    await service.connect();
+    await service.forwardEmail('42', 'INBOX', 'friend@example.com', '');
+    // extraHeaders (7th arg) should be absent or empty
+    const extraHeaders = mockSmtpSend.mock.calls[0][6];
+    const hasThreadingHeaders =
+      extraHeaders &&
+      (extraHeaders['In-Reply-To'] || extraHeaders['References']);
+    expect(hasThreadingHeaders).toBeFalsy();
+  });
+
+  it('saves to Sent folder via IMAP append', async () => {
+    mockFetchMessageBody.mockResolvedValue(makeOriginalMail());
+    const service = new MailService(baseAccount, false);
+    await service.connect();
+    await service.forwardEmail('42', 'INBOX', 'friend@example.com', '');
+    expect(mockImapAppendMessage).toHaveBeenCalledWith('Sent', expect.any(String), ['\\Seen']);
+  });
+
+  it('applies signature when account has one and includeSignature is true', async () => {
+    mockFetchMessageBody.mockResolvedValue(makeOriginalMail());
+    const account = { ...baseAccount, signature: 'Cheers' };
+    const service = new MailService(account, false);
+    await service.connect();
+    await service.forwardEmail('42', 'INBOX', 'friend@example.com', 'FYI');
+    const sentBody: string = mockSmtpSend.mock.calls[0][2];
+    expect(sentBody).toContain('-- \nCheers');
+  });
+
+  it('does not append signature when includeSignature is false', async () => {
+    mockFetchMessageBody.mockResolvedValue(makeOriginalMail());
+    const account = { ...baseAccount, signature: 'Cheers' };
+    const service = new MailService(account, false);
+    await service.connect();
+    await service.forwardEmail('42', 'INBOX', 'friend@example.com', 'FYI', false, undefined, undefined, false);
+    const sentBody: string = mockSmtpSend.mock.calls[0][2];
+    expect(sentBody).not.toContain('Cheers');
+  });
+});
+
 describe('MailService createDraft with signature', () => {
   const baseAccount = { id: 'test', name: 'Test', user: 'test@example.com', authType: 'login' as const, host: 'imap.example.com', port: 993, useTLS: true };
 
