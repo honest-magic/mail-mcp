@@ -43,6 +43,9 @@ vi.mock('imapflow', () => {
         messageFlagsAdd: vi.fn().mockResolvedValue(undefined),
         messageFlagsRemove: vi.fn().mockResolvedValue(undefined),
         messageDelete: vi.fn().mockResolvedValue(undefined),
+        status: vi.fn().mockImplementation((folder: string) =>
+          Promise.resolve({ messages: 100, unseen: 5, recent: 2, path: folder })
+        ),
         once: vi.fn(),
         mailbox: {
           exists: 1
@@ -418,6 +421,137 @@ describe('ImapClient', () => {
       const messages = await client.searchMessages({}, 'INBOX', 2, 5);
       expect(messages).toHaveLength(0);
       expect(fetchMock).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('CE-01: scanSenderEnvelopes', () => {
+    it('returns [] when mailbox has 0 messages', async () => {
+      const { ImapFlow } = await import('imapflow');
+      const MockImapFlow = ImapFlow as any;
+      MockImapFlow.mockImplementationOnce(function () {
+        return {
+          connect: vi.fn().mockResolvedValue(undefined),
+          once: vi.fn(),
+          getMailboxLock: vi.fn().mockResolvedValue({ release: vi.fn() }),
+          fetch: vi.fn().mockImplementation(async function* () {}),
+          mailbox: { exists: 0 },
+        };
+      });
+      const client = new ImapClient(account);
+      await client.connect();
+      const result = await client.scanSenderEnvelopes('INBOX', 100);
+      expect(result).toEqual([]);
+    });
+
+    it('returns SenderEnvelope[] with name, email, date for each message', async () => {
+      const { ImapFlow } = await import('imapflow');
+      const MockImapFlow = ImapFlow as any;
+      const fixedDate = new Date('2024-01-15T10:00:00Z');
+      MockImapFlow.mockImplementationOnce(function () {
+        return {
+          connect: vi.fn().mockResolvedValue(undefined),
+          once: vi.fn(),
+          getMailboxLock: vi.fn().mockResolvedValue({ release: vi.fn() }),
+          fetch: vi.fn().mockImplementation(async function* () {
+            yield {
+              uid: 1,
+              envelope: {
+                from: [{ name: 'Alice Smith', address: 'alice@example.com' }],
+                date: fixedDate,
+              },
+            };
+            yield {
+              uid: 2,
+              envelope: {
+                from: [{ name: '', address: 'bob@example.com' }],
+                date: fixedDate,
+              },
+            };
+          }),
+          mailbox: { exists: 2 },
+        };
+      });
+      const client = new ImapClient(account);
+      await client.connect();
+      const result = await client.scanSenderEnvelopes('INBOX', 10);
+      expect(result).toHaveLength(2);
+      expect(result[0]).toEqual({ name: 'Alice Smith', email: 'alice@example.com', date: fixedDate });
+      expect(result[1]).toEqual({ name: '', email: 'bob@example.com', date: fixedDate });
+    });
+
+    it('normalizes email addresses to lowercase', async () => {
+      const { ImapFlow } = await import('imapflow');
+      const MockImapFlow = ImapFlow as any;
+      MockImapFlow.mockImplementationOnce(function () {
+        return {
+          connect: vi.fn().mockResolvedValue(undefined),
+          once: vi.fn(),
+          getMailboxLock: vi.fn().mockResolvedValue({ release: vi.fn() }),
+          fetch: vi.fn().mockImplementation(async function* () {
+            yield {
+              uid: 1,
+              envelope: {
+                from: [{ name: 'Alice', address: 'Alice@Example.COM' }],
+                date: new Date(),
+              },
+            };
+          }),
+          mailbox: { exists: 1 },
+        };
+      });
+      const client = new ImapClient(account);
+      await client.connect();
+      const result = await client.scanSenderEnvelopes();
+      expect(result[0].email).toBe('alice@example.com');
+    });
+
+    it('caps count to 500', async () => {
+      const { ImapFlow } = await import('imapflow');
+      const MockImapFlow = ImapFlow as any;
+      const fetchMock = vi.fn().mockImplementation(async function* () {});
+      MockImapFlow.mockImplementationOnce(function () {
+        return {
+          connect: vi.fn().mockResolvedValue(undefined),
+          once: vi.fn(),
+          getMailboxLock: vi.fn().mockResolvedValue({ release: vi.fn() }),
+          fetch: fetchMock,
+          mailbox: { exists: 1000 },
+        };
+      });
+      const client = new ImapClient(account);
+      await client.connect();
+      // Request 999 but should be capped at 500 → range 501:1000
+      await client.scanSenderEnvelopes('INBOX', 999);
+      expect(fetchMock).toHaveBeenCalledWith('501:1000', expect.objectContaining({ envelope: true }));
+    });
+
+    it('skips messages with no from address without throwing', async () => {
+      const { ImapFlow } = await import('imapflow');
+      const MockImapFlow = ImapFlow as any;
+      MockImapFlow.mockImplementationOnce(function () {
+        return {
+          connect: vi.fn().mockResolvedValue(undefined),
+          once: vi.fn(),
+          getMailboxLock: vi.fn().mockResolvedValue({ release: vi.fn() }),
+          fetch: vi.fn().mockImplementation(async function* () {
+            yield { uid: 1, envelope: { from: null, date: new Date() } };
+            yield { uid: 2, envelope: { from: [], date: new Date() } };
+            yield {
+              uid: 3,
+              envelope: {
+                from: [{ name: 'Valid', address: 'valid@example.com' }],
+                date: new Date(),
+              },
+            };
+          }),
+          mailbox: { exists: 3 },
+        };
+      });
+      const client = new ImapClient(account);
+      await client.connect();
+      const result = await client.scanSenderEnvelopes();
+      expect(result).toHaveLength(1);
+      expect(result[0].email).toBe('valid@example.com');
     });
   });
 
