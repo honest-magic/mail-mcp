@@ -16,6 +16,7 @@ import { AccountRateLimiter } from './utils/rate-limiter.js';
 import { ImapClient } from './protocol/imap.js';
 import { SmtpClient } from './protocol/smtp.js';
 import { validateEmailAddresses } from './utils/validation.js';
+import { getTemplates, applyVariables } from './utils/templates.js';
 
 const WRITE_TOOLS = new Set<string>([
   'send_email',
@@ -413,6 +414,38 @@ export class MailMCPServer {
           required: ['accountId'],
         },
       },
+      {
+        name: 'list_templates',
+        description: 'List configured email templates — reusable message skeletons with {{variable}} placeholders for standard replies, acknowledgements, out-of-office notices, etc. Optionally filter by account to show global and account-specific templates.',
+        annotations: { readOnlyHint: true, destructiveHint: false },
+        inputSchema: {
+          type: 'object',
+          properties: {
+            accountId: { type: 'string', description: 'Optional account ID — returns global templates plus templates scoped to this account. Omit to return all templates.' },
+          },
+        },
+      },
+      {
+        name: 'use_template',
+        description: 'Apply a configured email template — fills {{variable}} placeholders with provided values and returns ready-to-use arguments for send_email or create_draft. Does not send; call send_email or create_draft with the returned args.',
+        annotations: { readOnlyHint: true, destructiveHint: false },
+        inputSchema: {
+          type: 'object',
+          properties: {
+            templateId: { type: 'string', description: 'The ID of the template to use' },
+            variables: {
+              type: 'object',
+              description: 'Key-value pairs to substitute into {{variable}} placeholders in the template subject and body',
+              additionalProperties: { type: 'string' },
+            },
+            to: { type: 'string', description: 'Recipient email address to include in the returned args' },
+            cc: { type: 'string', description: 'CC recipients to include in the returned args' },
+            bcc: { type: 'string', description: 'BCC recipients to include in the returned args' },
+            accountId: { type: 'string', description: 'Account ID to include in the returned args' },
+          },
+          required: ['templateId'],
+        },
+      },
     ];
     return readOnly ? allTools.filter(t => !WRITE_TOOLS.has(t.name)) : allTools;
   }
@@ -562,6 +595,44 @@ export class MailMCPServer {
         }).join('\n');
         return {
           content: [{ type: 'text', text: header + rows }],
+        };
+      }
+
+      if (name === 'list_templates') {
+        const accountId = args.accountId as string | undefined;
+        const templates = await getTemplates();
+        const filtered = accountId
+          ? templates.filter(t => !t.accountId || t.accountId === accountId)
+          : templates;
+        return {
+          content: [{ type: 'text', text: JSON.stringify(filtered, null, 2) }],
+        };
+      }
+
+      if (name === 'use_template') {
+        const templateId = args.templateId as string;
+        const variables = (args.variables as Record<string, string> | undefined) ?? {};
+        const templates = await getTemplates();
+        const template = templates.find(t => t.id === templateId);
+        if (!template) {
+          return {
+            content: [{ type: 'text', text: `Template not found: "${templateId}". Use list_templates to see available templates.` }],
+            isError: true,
+          };
+        }
+        const result: Record<string, unknown> = {
+          body: applyVariables(template.body, variables),
+        };
+        if (template.subject !== undefined) {
+          result.subject = applyVariables(template.subject, variables);
+        }
+        if (template.isHtml !== undefined) result.isHtml = template.isHtml;
+        if (args.to !== undefined) result.to = args.to;
+        if (args.cc !== undefined) result.cc = args.cc;
+        if (args.bcc !== undefined) result.bcc = args.bcc;
+        if (args.accountId !== undefined) result.accountId = args.accountId;
+        return {
+          content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
         };
       }
 
