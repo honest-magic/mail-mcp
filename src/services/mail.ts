@@ -130,6 +130,28 @@ export class MailService {
     this.bodyCache.delete(`${this.account.id}:${folder}:${uid}`);
   }
 
+  /**
+   * Parses the raw value of a `List-Unsubscribe` header.
+   * The header contains angle-bracket-delimited tokens, e.g.:
+   *   `<mailto:unsub@example.com>, <https://example.com/unsub>`
+   * Returns separate arrays for https URLs and mailto addresses.
+   */
+  private parseUnsubscribeHeader(raw: string): { https: string[]; mailto: string[] } {
+    const https: string[] = [];
+    const mailto: string[] = [];
+    const tokenRegex = /<([^>]+)>/g;
+    let match: RegExpExecArray | null;
+    while ((match = tokenRegex.exec(raw)) !== null) {
+      const value = match[1].trim();
+      if (value.startsWith('https://') || value.startsWith('http://')) {
+        https.push(value);
+      } else if (value.startsWith('mailto:')) {
+        mailto.push(value.slice('mailto:'.length));
+      }
+    }
+    return { https, mailto };
+  }
+
   async readEmail(uid: string, folder: string = 'INBOX'): Promise<string> {
     const parsed = await this._cachedFetchBody(uid, folder);
     
@@ -183,6 +205,22 @@ export class MailService {
     const messageId = parsed.messageId || parsed.headers.get('message-id');
     if (messageId) {
       header += `**Message-ID:** ${messageId}\n`;
+    }
+
+    // Extract RFC 2369 List-Unsubscribe headers for mailing list management
+    const rawUnsub = parsed.headers.get('list-unsubscribe');
+    if (rawUnsub) {
+      const { https: httpsUrls, mailto: mailtoAddresses } = this.parseUnsubscribeHeader(String(rawUnsub));
+      for (const url of httpsUrls) {
+        header += `**Unsubscribe:** ${url}\n`;
+      }
+      const rawUnsubPost = parsed.headers.get('list-unsubscribe-post');
+      if (rawUnsubPost && String(rawUnsubPost).includes('List-Unsubscribe=One-Click')) {
+        header += `**Unsubscribe (one-click):** yes\n`;
+      }
+      for (const address of mailtoAddresses) {
+        header += `**Unsubscribe (mailto):** ${address}\n`;
+      }
     }
 
     header += `\n---\n\n`;
