@@ -17,6 +17,7 @@ import { ImapClient } from './protocol/imap.js';
 import { SmtpClient } from './protocol/smtp.js';
 import { validateEmailAddresses } from './utils/validation.js';
 import { getTemplates, applyVariables } from './utils/templates.js';
+import { SieveClient } from './protocol/sieve.js';
 
 const WRITE_TOOLS = new Set<string>([
   'send_email',
@@ -27,6 +28,13 @@ const WRITE_TOOLS = new Set<string>([
   'batch_operations',
   'reply_email',
   'forward_email',
+  'delete_email',
+  'mark_read',
+  'mark_unread',
+  'star',
+  'unstar',
+  'set_filter',
+  'delete_filter',
 ]);
 
 export class MailMCPServer {
@@ -46,7 +54,7 @@ export class MailMCPServer {
         capabilities: {
           tools: {},
         },
-        instructions: `Use mail-mcp for IMAP-based email accounts — works with any provider including Gmail, Outlook, and custom domains. Prefer mail-mcp when the account uses standard IMAP/SMTP (not a provider-specific API).${this.readOnly ? ' This server is running in read-only mode. Write operations (send_email, create_draft, move_email, modify_labels, batch_operations, register_oauth2_account) are disabled.' : ''}`,
+        instructions: `Use mail-mcp for IMAP-based email accounts — works with any provider including Gmail, Outlook, and custom domains. Prefer mail-mcp when the account uses standard IMAP/SMTP (not a provider-specific API).${this.readOnly ? ' This server is running in read-only mode. Write operations (send_email, create_draft, move_email, modify_labels, batch_operations, register_oauth2_account, reply_email, forward_email, delete_email, mark_read, mark_unread, star, unstar) are disabled.' : ''}`,
       }
     );
 
@@ -339,6 +347,20 @@ export class MailMCPServer {
         }
       },
       {
+        name: 'delete_email',
+        description: 'Permanently delete a single email by UID via IMAP — works with any provider (Gmail, Outlook, custom domains). This is irreversible; prefer move_email to Trash if you want recovery.',
+        annotations: { readOnlyHint: false, destructiveHint: true },
+        inputSchema: {
+          type: 'object',
+          properties: {
+            accountId: { type: 'string', description: 'The ID of the account to use' },
+            uid: { type: 'string', description: 'The UID of the email to delete' },
+            folder: { type: 'string', description: 'The folder containing the email (default: INBOX)' }
+          },
+          required: ['accountId', 'uid']
+        }
+      },
+      {
         name: 'reply_email',
         description: 'Reply to an email in-thread via SMTP — sets In-Reply-To and References headers so the reply appears in the original conversation. Works with any IMAP/SMTP provider.',
         annotations: { readOnlyHint: false, destructiveHint: true },
@@ -444,6 +466,114 @@ export class MailMCPServer {
             accountId: { type: 'string', description: 'Account ID to include in the returned args' },
           },
           required: ['templateId'],
+        },
+      },
+      {
+        name: 'mark_read',
+        description: 'Mark an email as read (sets the \\\\Seen flag) via IMAP — works with Gmail, Outlook, and custom domains. Simpler alternative to modify_labels.',
+        annotations: { readOnlyHint: false, destructiveHint: true },
+        inputSchema: {
+          type: 'object',
+          properties: {
+            accountId: { type: 'string', description: 'The ID of the account to use' },
+            uid: { type: 'string', description: 'The UID of the email to mark as read' },
+            folder: { type: 'string', description: 'The folder containing the email (default: INBOX)' },
+          },
+          required: ['accountId', 'uid'],
+        },
+      },
+      {
+        name: 'mark_unread',
+        description: 'Mark an email as unread (removes the \\\\Seen flag) via IMAP — works with Gmail, Outlook, and custom domains. Simpler alternative to modify_labels.',
+        annotations: { readOnlyHint: false, destructiveHint: true },
+        inputSchema: {
+          type: 'object',
+          properties: {
+            accountId: { type: 'string', description: 'The ID of the account to use' },
+            uid: { type: 'string', description: 'The UID of the email to mark as unread' },
+            folder: { type: 'string', description: 'The folder containing the email (default: INBOX)' },
+          },
+          required: ['accountId', 'uid'],
+        },
+      },
+      {
+        name: 'star',
+        description: 'Star (flag) an email (sets the \\\\Flagged flag) via IMAP — works with Gmail, Outlook, and custom domains. Simpler alternative to modify_labels.',
+        annotations: { readOnlyHint: false, destructiveHint: true },
+        inputSchema: {
+          type: 'object',
+          properties: {
+            accountId: { type: 'string', description: 'The ID of the account to use' },
+            uid: { type: 'string', description: 'The UID of the email to star' },
+            folder: { type: 'string', description: 'The folder containing the email (default: INBOX)' },
+          },
+          required: ['accountId', 'uid'],
+        },
+      },
+      {
+        name: 'unstar',
+        description: 'Unstar (unflag) an email (removes the \\\\Flagged flag) via IMAP — works with Gmail, Outlook, and custom domains. Simpler alternative to modify_labels.',
+        annotations: { readOnlyHint: false, destructiveHint: true },
+        inputSchema: {
+          type: 'object',
+          properties: {
+            accountId: { type: 'string', description: 'The ID of the account to use' },
+            uid: { type: 'string', description: 'The UID of the email to unstar' },
+            folder: { type: 'string', description: 'The folder containing the email (default: INBOX)' },
+          },
+          required: ['accountId', 'uid'],
+        },
+      },
+      {
+        name: 'list_filters',
+        description: 'List SIEVE filter scripts on the server via ManageSieve (RFC 5804). Returns script names and which one is active. Only available on self-hosted mail servers — Gmail and Outlook do not support ManageSieve.',
+        annotations: { readOnlyHint: true, destructiveHint: false },
+        inputSchema: {
+          type: 'object',
+          properties: {
+            accountId: { type: 'string', description: 'The ID of the account to use' },
+          },
+          required: ['accountId'],
+        },
+      },
+      {
+        name: 'get_filter',
+        description: 'Retrieve the content of a SIEVE filter script by name via ManageSieve. Only available on self-hosted mail servers — Gmail and Outlook do not support ManageSieve.',
+        annotations: { readOnlyHint: true, destructiveHint: false },
+        inputSchema: {
+          type: 'object',
+          properties: {
+            accountId: { type: 'string', description: 'The ID of the account to use' },
+            name: { type: 'string', description: 'The name of the SIEVE script to retrieve' },
+          },
+          required: ['accountId', 'name'],
+        },
+      },
+      {
+        name: 'set_filter',
+        description: 'Create or replace a SIEVE filter script on the server via ManageSieve. The script content should be valid SIEVE syntax. Only available on self-hosted mail servers — Gmail and Outlook do not support ManageSieve.',
+        annotations: { readOnlyHint: false, destructiveHint: true },
+        inputSchema: {
+          type: 'object',
+          properties: {
+            accountId: { type: 'string', description: 'The ID of the account to use' },
+            name: { type: 'string', description: 'The name for the SIEVE script (e.g. "spam-filter")' },
+            content: { type: 'string', description: 'Valid SIEVE script content' },
+          },
+          required: ['accountId', 'name', 'content'],
+        },
+      },
+      {
+        name: 'delete_filter',
+        description: 'Delete a SIEVE filter script by name via ManageSieve. Cannot delete the currently active script. Only available on self-hosted mail servers — Gmail and Outlook do not support ManageSieve.',
+        annotations: { readOnlyHint: false, destructiveHint: true },
+        inputSchema: {
+          type: 'object',
+          properties: {
+            accountId: { type: 'string', description: 'The ID of the account to use' },
+            name: { type: 'string', description: 'The name of the SIEVE script to delete' },
+          },
+          required: ['accountId', 'name'],
         },
       },
     ];
@@ -634,6 +764,96 @@ export class MailMCPServer {
         return {
           content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
         };
+      }
+
+      if (name === 'delete_email') {
+        const service = await this.getService(args.accountId as string);
+        const folder = (args.folder as string | undefined) ?? 'INBOX';
+        await service.deleteEmail(args.uid as string, folder);
+        return {
+          content: [{ type: 'text', text: `Email ${args.uid as string} deleted from ${folder}.` }],
+        };
+      }
+
+      if (name === 'mark_read') {
+        const service = await this.getService(args.accountId as string);
+        const folder = (args.folder as string | undefined) ?? 'INBOX';
+        await service.modifyLabels(args.uid as string, folder, ['\\Seen'], []);
+        return {
+          content: [{ type: 'text', text: `Email ${args.uid as string} marked as read in ${folder}.` }],
+        };
+      }
+
+      if (name === 'mark_unread') {
+        const service = await this.getService(args.accountId as string);
+        const folder = (args.folder as string | undefined) ?? 'INBOX';
+        await service.modifyLabels(args.uid as string, folder, [], ['\\Seen']);
+        return {
+          content: [{ type: 'text', text: `Email ${args.uid as string} marked as unread in ${folder}.` }],
+        };
+      }
+
+      if (name === 'star') {
+        const service = await this.getService(args.accountId as string);
+        const folder = (args.folder as string | undefined) ?? 'INBOX';
+        await service.modifyLabels(args.uid as string, folder, ['\\Flagged'], []);
+        return {
+          content: [{ type: 'text', text: `Email ${args.uid as string} starred in ${folder}.` }],
+        };
+      }
+
+      if (name === 'unstar') {
+        const service = await this.getService(args.accountId as string);
+        const folder = (args.folder as string | undefined) ?? 'INBOX';
+        await service.modifyLabels(args.uid as string, folder, [], ['\\Flagged']);
+        return {
+          content: [{ type: 'text', text: `Email ${args.uid as string} unstarred in ${folder}.` }],
+        };
+      }
+
+      if (name === 'list_filters' || name === 'get_filter' || name === 'set_filter' || name === 'delete_filter') {
+        const accountId = args.accountId as string;
+        const accounts = await getAccounts();
+        const account = accounts.find(a => a.id === accountId);
+        if (!account) {
+          throw new Error(`Account ${accountId} not found in configuration.`);
+        }
+        const { loadCredentials } = await import('./security/keychain.js');
+        const password = await loadCredentials(accountId);
+        if (!password) {
+          throw new Error(`Credentials not found for account: ${accountId}`);
+        }
+        const sievePort = account.manageSievePort ?? 4190;
+        const sieve = new SieveClient(account.host, sievePort, account.user, password);
+        await sieve.connect();
+        try {
+          if (name === 'list_filters') {
+            const scripts = await sieve.listScripts();
+            return {
+              content: [{ type: 'text', text: JSON.stringify(scripts, null, 2) }],
+            };
+          }
+          if (name === 'get_filter') {
+            const content = await sieve.getScript(args.name as string);
+            return {
+              content: [{ type: 'text', text: content }],
+            };
+          }
+          if (name === 'set_filter') {
+            await sieve.putScript(args.name as string, args.content as string);
+            return {
+              content: [{ type: 'text', text: `Filter "${args.name as string}" saved successfully.` }],
+            };
+          }
+          if (name === 'delete_filter') {
+            await sieve.deleteScript(args.name as string);
+            return {
+              content: [{ type: 'text', text: `Filter "${args.name as string}" deleted.` }],
+            };
+          }
+        } finally {
+          await sieve.disconnect();
+        }
       }
 
       // Tools beyond list_accounts require an account connection.
@@ -856,6 +1076,46 @@ export class MailMCPServer {
           };
         }
 
+        if (request.params.name === 'mark_read') {
+          const args = request.params.arguments as { accountId: string; uid: string; folder?: string };
+          const folder = args.folder || 'INBOX';
+          const service = await this.getService(args.accountId);
+          await service.modifyLabels(args.uid, folder, ['\\Seen'], []);
+          return {
+            content: [{ type: 'text', text: `Email ${args.uid} marked as read in ${folder}.` }]
+          };
+        }
+
+        if (request.params.name === 'mark_unread') {
+          const args = request.params.arguments as { accountId: string; uid: string; folder?: string };
+          const folder = args.folder || 'INBOX';
+          const service = await this.getService(args.accountId);
+          await service.modifyLabels(args.uid, folder, [], ['\\Seen']);
+          return {
+            content: [{ type: 'text', text: `Email ${args.uid} marked as unread in ${folder}.` }]
+          };
+        }
+
+        if (request.params.name === 'star') {
+          const args = request.params.arguments as { accountId: string; uid: string; folder?: string };
+          const folder = args.folder || 'INBOX';
+          const service = await this.getService(args.accountId);
+          await service.modifyLabels(args.uid, folder, ['\\Flagged'], []);
+          return {
+            content: [{ type: 'text', text: `Email ${args.uid} starred in ${folder}.` }]
+          };
+        }
+
+        if (request.params.name === 'unstar') {
+          const args = request.params.arguments as { accountId: string; uid: string; folder?: string };
+          const folder = args.folder || 'INBOX';
+          const service = await this.getService(args.accountId);
+          await service.modifyLabels(args.uid, folder, [], ['\\Flagged']);
+          return {
+            content: [{ type: 'text', text: `Email ${args.uid} unstarred in ${folder}.` }]
+          };
+        }
+
         if (request.params.name === 'get_thread') {
           const args = request.params.arguments as { accountId: string; threadId: string; folder?: string };
           const service = await this.getService(args.accountId);
@@ -990,6 +1250,63 @@ export class MailMCPServer {
               },
             ],
           };
+        }
+
+        if (request.params.name === 'delete_email') {
+          const args = request.params.arguments as { accountId: string; uid: string; folder?: string };
+          const service = await this.getService(args.accountId);
+          const folder = args.folder ?? 'INBOX';
+          await service.deleteEmail(args.uid, folder);
+          return {
+            content: [
+              {
+                type: 'text',
+                text: `Email ${args.uid} deleted from ${folder}.`
+              }
+            ]
+          };
+        }
+
+        if (
+          request.params.name === 'list_filters' ||
+          request.params.name === 'get_filter' ||
+          request.params.name === 'set_filter' ||
+          request.params.name === 'delete_filter'
+        ) {
+          const args = request.params.arguments as { accountId: string; name?: string; content?: string };
+          const accounts = await getAccounts();
+          const account = accounts.find(a => a.id === args.accountId);
+          if (!account) {
+            throw new Error(`Account ${args.accountId} not found in configuration.`);
+          }
+          const { loadCredentials } = await import('./security/keychain.js');
+          const password = await loadCredentials(args.accountId);
+          if (!password) {
+            throw new Error(`Credentials not found for account: ${args.accountId}`);
+          }
+          const sievePort = account.manageSievePort ?? 4190;
+          const sieve = new SieveClient(account.host, sievePort, account.user, password);
+          await sieve.connect();
+          try {
+            if (request.params.name === 'list_filters') {
+              const scripts = await sieve.listScripts();
+              return { content: [{ type: 'text', text: JSON.stringify(scripts, null, 2) }] };
+            }
+            if (request.params.name === 'get_filter') {
+              const content = await sieve.getScript(args.name!);
+              return { content: [{ type: 'text', text: content }] };
+            }
+            if (request.params.name === 'set_filter') {
+              await sieve.putScript(args.name!, args.content!);
+              return { content: [{ type: 'text', text: `Filter "${args.name}" saved successfully.` }] };
+            }
+            if (request.params.name === 'delete_filter') {
+              await sieve.deleteScript(args.name!);
+              return { content: [{ type: 'text', text: `Filter "${args.name}" deleted.` }] };
+            }
+          } finally {
+            await sieve.disconnect();
+          }
         }
 
         throw new McpError(ErrorCode.MethodNotFound, `Tool not found: ${request.params.name}`);
