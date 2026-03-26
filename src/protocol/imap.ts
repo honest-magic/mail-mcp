@@ -313,6 +313,16 @@ export class ImapClient {
     }
   }
 
+  async deleteMessage(uid: string, folder: string): Promise<void> {
+    if (!this.client) throw new Error('Not connected');
+    const lock = await this.client.getMailboxLock(folder);
+    try {
+      await this.client.messageDelete(uid, { uid: true });
+    } finally {
+      lock.release();
+    }
+  }
+
   async batchDeleteMessages(uids: string[], folder: string): Promise<void> {
     if (!this.client) throw new Error('Not connected');
     const sequence = uids.join(',');
