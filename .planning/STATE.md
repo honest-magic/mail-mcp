@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.4.0
 milestone_name: AI Mail Assistant Features
 status: roadmap_ready
-stopped_at: Completed 29-01-PLAN.md (Confirmation Mode — --confirm flag with two-step write gate)
-last_updated: "2026-03-26T19:57:00Z"
+stopped_at: Completed 33-01-PLAN.md (Send Recipient Allowlist — allowedRecipients field + validateRecipients enforcement)
+last_updated: "2026-03-26T20:03:36.755Z"
 progress:
   total_phases: 16
-  completed_phases: 12
-  total_plans: 13
+  completed_phases: 13
+  total_plans: 16
   completed_plans: 13
 ---
 
@@ -67,6 +67,10 @@ Carried from v1.2.0 — see PROJECT.md Key Decisions table for full history.
 - **28-01**: `auditLogger` awaited in `dispatchTool` (test-safe), fire-and-forget in `setupToolHandlers` MCP path
 - **28-01**: `AuditLogger` with `enabled=false` is a no-op — default off per `--audit-log` flag
 - **28-01**: `SENSITIVE_FIELD_PATTERN` covers password/refreshToken/clientSecret/token/secret/key/auth case-insensitively
+- **33-01**: `validateRecipients` receives `Array<string|undefined>` — mirrors variadic pattern of `validateEmailAddresses`
+- **33-01**: Domain pattern match uses `@domain` prefix (e.g. `@example.com` matches any address at that domain)
+- **33-01**: `reply_email` skips `to` validation — AI cannot control auto-determined reply-to address from original sender
+- **33-01**: Empty `allowedRecipients` (absent or []) means no restriction — fully backward compatible
 
 ### Critical Blockers
 
@@ -88,9 +92,10 @@ Carried from v1.2.0 — see PROJECT.md Key Decisions table for full history.
 | Phase 25 P01 | 583 | 6 tasks | 7 files |
 | Phase 30 P01 | 411 | 3 tasks | 2 files |
 | Phase 28 P01 | 1080 | 4 tasks | 5 files |
+| Phase 33 P01 | 251 | 3 tasks | 4 files |
 
 ## Session Continuity
 
 **Last Action:** Completed Phase 26 Plan 01 — Mark Read/Star Tools (mark_read, mark_unread, star, unstar).
-**Stopped At:** Completed 28-01-PLAN.md (Audit Logging — JSONL audit log with --audit-log flag)
+**Stopped At:** Completed 33-01-PLAN.md (Send Recipient Allowlist — allowedRecipients field + validateRecipients enforcement)
 **Next Step:** Run `/gsd:execute-phase` to continue with next phase.
