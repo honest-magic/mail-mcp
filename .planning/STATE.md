@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.4.0
 milestone_name: AI Mail Assistant Features
 status: roadmap_ready
-stopped_at: Completed 30-01-PLAN.md (per-tool allow-listing with --allow-tools flag)
-last_updated: "2026-03-26T19:45:52.900Z"
+stopped_at: Completed 29-01-PLAN.md (Confirmation Mode — --confirm flag with two-step write gate)
+last_updated: "2026-03-26T19:57:00Z"
 progress:
   total_phases: 16
-  completed_phases: 10
-  total_plans: 12
-  completed_plans: 10
+  completed_phases: 12
+  total_plans: 13
+  completed_plans: 13
 ---
 
 # Project State: Mail MCP Server
@@ -17,11 +17,11 @@ progress:
 ## Project Reference
 
 **Core Value:** Empower AI agents to act as a personal mail assistant by providing structured, tool-based access to existing email accounts through standard protocols.
-**Current Focus:** Phase 26 — Mark Read/Star Tools (complete)
+**Current Focus:** Phase 29 — Confirmation Mode (complete)
 
 ## Current Position
 
-Phase: 26 (complete)
+Phase: 29 (complete)
 Plan: 01 (complete)
 
 ## Accumulated Context
@@ -60,6 +60,10 @@ Carried from v1.2.0 — see PROJECT.md Key Decisions table for full history.
 - **30-01**: `allowedTools` stored as instance field on `MailMCPServer`; constructor throws if both `readOnly=true` and `allowedTools` provided
 - **30-01**: `getTools()` extended with optional `allowedTools?: Set<string>` — read tools always pass, write tools filtered by Set membership
 - **30-01**: `--allow-tools` CLI flag is comma-split string → `Set<string>`; mutually exclusive with `--read-only` enforced at CLI and constructor
+- **29-01**: `confirmMode` as 4th MailMCPServer constructor param (after readOnly, allowedTools, auditLogger) for backward compatibility
+- **29-01**: `ConfirmationStore.consume()` is single-use and removes entry on call; prevents replay attacks
+- **29-01**: `buildConfirmationDescription()` is module-level function — human-readable action summary for all 15 write tools
+- **29-01**: `confirmationId` stripped from args before replay on second call
 
 ### Critical Blockers
 
@@ -80,9 +84,10 @@ Carried from v1.2.0 — see PROJECT.md Key Decisions table for full history.
 | 26 | 01 | 389 | 2 | 2 |
 | Phase 25 P01 | 583 | 6 tasks | 7 files |
 | Phase 30 P01 | 411 | 3 tasks | 2 files |
+| Phase 28 P01 | 1080 | 4 tasks | 5 files |
 
 ## Session Continuity
 
 **Last Action:** Completed Phase 26 Plan 01 — Mark Read/Star Tools (mark_read, mark_unread, star, unstar).
-**Stopped At:** Completed 30-01-PLAN.md (per-tool allow-listing with --allow-tools flag)
+**Stopped At:** Completed 28-01-PLAN.md (Audit Logging — JSONL audit log with --audit-log flag)
 **Next Step:** Run `/gsd:execute-phase` to continue with next phase.

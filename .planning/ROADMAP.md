@@ -89,8 +89,8 @@ Full archive: `.planning/milestones/v1.3.0-ROADMAP.md`
 | 25. SIEVE Folder Rules | v1.4.0 | 1/1 | Complete   | 2026-03-26 |
 | 26. Mark Read/Star Tools | v1.4.0 | 0/? | Not started | - |
 | 27. Delete Email Tool | v1.4.0 | 1/1 | Complete   | 2026-03-26 |
-| 28. Audit Logging | v1.4.0 | 0/? | Not started | - |
-| 29. Confirmation Mode | v1.4.0 | 0/? | Not started | - |
+| 28. Audit Logging | v1.4.0 | 1/1 | Complete   | 2026-03-26 |
+| 29. Confirmation Mode | v1.4.0 | 1/1 | Complete   | 2026-03-26 |
 | 30. Per-Tool Allow-Listing | v1.4.0 | 1/1 | Complete   | 2026-03-26 |
 | 31. Content Redaction | v1.4.0 | 0/? | Not started | - |
 | 32. Tool-Type Rate Limits | v1.4.0 | 0/? | Not started | - |
@@ -108,8 +108,8 @@ Full archive: `.planning/milestones/v1.3.0-ROADMAP.md`
 - [x] **Phase 25: SIEVE Folder Rules** - Server-side mail filters via AI (completed 2026-03-26)
 - [x] **Phase 26: Mark Read/Star Tools** - Simple tools instead of IMAP flag syntax (completed 2026-03-26)
 - [x] **Phase 27: Delete Email Tool** - Single-message delete without batch workaround (completed 2026-03-26)
-- [ ] **Phase 28: Audit Logging** - Log all AI tool calls to local file
-- [ ] **Phase 29: Confirmation Mode** - Human-in-the-loop for destructive operations
+- [x] **Phase 28: Audit Logging** - Log all AI tool calls to local file (completed 2026-03-26)
+- [x] **Phase 29: Confirmation Mode** - Human-in-the-loop for destructive operations (completed 2026-03-26)
 - [x] **Phase 30: Per-Tool Allow-Listing** - Granular permissions beyond read-only (completed 2026-03-26)
 - [ ] **Phase 31: Sensitive Content Redaction** - Mask PII before returning to AI
 - [ ] **Phase 32: Per-Tool-Type Rate Limits** - Separate read vs write rate limits
