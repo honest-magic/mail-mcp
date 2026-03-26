@@ -4,6 +4,14 @@ import { loadCredentials } from '../security/keychain.js';
 import { getValidAccessToken } from '../security/oauth2.js';
 import { simpleParser, ParsedMail } from 'mailparser';
 
+export interface MailboxStatus {
+  name: string;
+  total: number | null;
+  unread: number | null;
+  recent: number | null;
+  error?: string;
+}
+
 export interface MessageMetadata {
   id: string;
   uid: number;
@@ -353,5 +361,34 @@ export class ImapClient {
     } finally {
       lock.release();
     }
+  }
+
+  async getMailboxStatus(folders: string[]): Promise<MailboxStatus[]> {
+    if (!this.client) throw new Error('Not connected');
+    return Promise.all(
+      folders.map(async (folder): Promise<MailboxStatus> => {
+        try {
+          const info = await (this.client as any).status(folder, {
+            messages: true,
+            unseen: true,
+            recent: true,
+          });
+          return {
+            name: folder,
+            total: info.messages ?? null,
+            unread: info.unseen ?? null,
+            recent: info.recent ?? null,
+          };
+        } catch (err) {
+          return {
+            name: folder,
+            total: null,
+            unread: null,
+            recent: null,
+            error: err instanceof Error ? err.message : String(err),
+          };
+        }
+      })
+    );
   }
 }

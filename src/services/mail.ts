@@ -1,4 +1,4 @@
-import { ImapClient, MessageMetadata, SenderEnvelope } from '../protocol/imap.js';
+import { ImapClient, MessageMetadata, MailboxStatus, SenderEnvelope } from '../protocol/imap.js';
 import { SmtpClient } from '../protocol/smtp.js';
 import { htmlToMarkdown } from '../utils/markdown.js';
 import { EmailAccount } from '../types/index.js';
@@ -422,6 +422,13 @@ export class MailService {
 
   async listFolders(): Promise<string[]> {
     return this.imapClient.listFolders();
+  }
+
+  async getMailboxStats(folders?: string[]): Promise<MailboxStatus[]> {
+    const targetFolders = (!folders || folders.length === 0)
+      ? await this.imapClient.listFolders()
+      : folders;
+    return this.imapClient.getMailboxStatus(targetFolders);
   }
 
   async moveMessage(uid: string, sourceFolder: string, targetFolder: string): Promise<void> {
