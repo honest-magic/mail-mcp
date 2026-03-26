@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.4.0
 milestone_name: AI Mail Assistant Features
 status: roadmap_ready
-stopped_at: Completed 31-01-PLAN.md (Sensitive Content Redaction — --redact flag with regex-based PII masking)
-last_updated: "2026-03-26T20:04:33.905Z"
+stopped_at: Completed 32-01-PLAN.md (Per-Tool-Type Rate Limits — TieredRateLimiter with read/write tiers)
+last_updated: "2026-03-26T21:05:00Z"
 progress:
   total_phases: 16
-  completed_phases: 14
-  total_plans: 16
-  completed_plans: 14
+  completed_phases: 15
+  total_plans: 17
+  completed_plans: 15
 ---
 
 # Project State: Mail MCP Server
@@ -17,11 +17,11 @@ progress:
 ## Project Reference
 
 **Core Value:** Empower AI agents to act as a personal mail assistant by providing structured, tool-based access to existing email accounts through standard protocols.
-**Current Focus:** Phase 29 — Confirmation Mode (complete)
+**Current Focus:** Phase 32 — Per-Tool-Type Rate Limits (complete)
 
 ## Current Position
 
-Phase: 29 (complete)
+Phase: 32 (complete)
 Plan: 01 (complete)
 
 ## Accumulated Context
@@ -71,6 +71,9 @@ Carried from v1.2.0 — see PROJECT.md Key Decisions table for full history.
 - **33-01**: Domain pattern match uses `@domain` prefix (e.g. `@example.com` matches any address at that domain)
 - **33-01**: `reply_email` skips `to` validation — AI cannot control auto-determined reply-to address from original sender
 - **33-01**: Empty `allowedRecipients` (absent or []) means no restriction — fully backward compatible
+- **32-01**: `TieredRateLimiter` wraps two `AccountRateLimiter` instances (one read, one write) — composition over extension keeps AccountRateLimiter unchanged
+- **32-01**: DEFAULT_READ_RATE_LIMIT_POINTS=100, DEFAULT_WRITE_RATE_LIMIT_POINTS=20 at 60s window
+- **32-01**: Dispatch routing uses existing WRITE_TOOLS set — no new set needed; both dispatchTool and MCP request handler updated
 
 ### Critical Blockers
 
@@ -94,9 +97,10 @@ Carried from v1.2.0 — see PROJECT.md Key Decisions table for full history.
 | Phase 28 P01 | 1080 | 4 tasks | 5 files |
 | Phase 33 P01 | 251 | 3 tasks | 4 files |
 | Phase 31 P01 | 305 | 4 tasks | 4 files |
+| 32 | 01 | 420 | 3 | 4 |
 
 ## Session Continuity
 
-**Last Action:** Completed Phase 26 Plan 01 — Mark Read/Star Tools (mark_read, mark_unread, star, unstar).
-**Stopped At:** Completed 31-01-PLAN.md (Sensitive Content Redaction — --redact flag with regex-based PII masking)
+**Last Action:** Completed Phase 32 Plan 01 — Per-Tool-Type Rate Limits (TieredRateLimiter, read 100/60s, write 20/60s).
+**Stopped At:** Completed 32-01-PLAN.md (Per-Tool-Type Rate Limits — TieredRateLimiter with read/write tiers)
 **Next Step:** Run `/gsd:execute-phase` to continue with next phase.
