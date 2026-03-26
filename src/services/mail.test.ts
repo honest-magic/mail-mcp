@@ -733,3 +733,53 @@ describe('MailService createDraft with signature', () => {
     expect(rawMessage).toContain('Body text');
   });
 });
+
+describe('STATS-01: MailService.getMailboxStats', () => {
+  const account = { id: 'test', name: 'Test', user: 'test@example.com', imap: {} as any, smtp: {} as any };
+
+  beforeEach(() => {
+    mockGetMailboxStatus.mockClear();
+    mockListFolders.mockClear();
+    mockGetMailboxStatus.mockResolvedValue([
+      { name: 'INBOX', total: 100, unread: 5, recent: 2 },
+      { name: 'Sent', total: 200, unread: 0, recent: 0 },
+    ]);
+    mockListFolders.mockResolvedValue(['INBOX', 'Sent', 'Drafts']);
+  });
+
+  it('calls getMailboxStatus with provided folders', async () => {
+    const service = new MailService(account, false);
+    await service.connect();
+    const result = await service.getMailboxStats(['INBOX', 'Sent']);
+    expect(mockGetMailboxStatus).toHaveBeenCalledWith(['INBOX', 'Sent']);
+    expect(result).toHaveLength(2);
+  });
+
+  it('calls listFolders then getMailboxStatus with all folders when no folders provided', async () => {
+    const service = new MailService(account, false);
+    await service.connect();
+    mockGetMailboxStatus.mockResolvedValue([
+      { name: 'INBOX', total: 100, unread: 5, recent: 2 },
+      { name: 'Sent', total: 200, unread: 0, recent: 0 },
+      { name: 'Drafts', total: 3, unread: 3, recent: 0 },
+    ]);
+    await service.getMailboxStats();
+    expect(mockListFolders).toHaveBeenCalledOnce();
+    expect(mockGetMailboxStatus).toHaveBeenCalledWith(['INBOX', 'Sent', 'Drafts']);
+  });
+
+  it('calls listFolders when empty array provided', async () => {
+    const service = new MailService(account, false);
+    await service.connect();
+    await service.getMailboxStats([]);
+    expect(mockListFolders).toHaveBeenCalledOnce();
+  });
+
+  it('returns status results from ImapClient', async () => {
+    const service = new MailService(account, false);
+    await service.connect();
+    const result = await service.getMailboxStats(['INBOX', 'Sent']);
+    expect(result[0]).toMatchObject({ name: 'INBOX', total: 100, unread: 5, recent: 2 });
+    expect(result[1]).toMatchObject({ name: 'Sent', total: 200, unread: 0, recent: 0 });
+  });
+});

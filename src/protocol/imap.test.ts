@@ -692,4 +692,59 @@ describe('ImapClient', () => {
       expect(size).toBeNull();
     });
   });
+
+  describe('STATS-01: getMailboxStatus', () => {
+    it('returns status for a single folder', async () => {
+      const client = new ImapClient(account);
+      await client.connect();
+      const result = await client.getMailboxStatus(['INBOX']);
+      expect(result).toHaveLength(1);
+      expect(result[0].name).toBe('INBOX');
+      expect(result[0].total).toBe(100);
+      expect(result[0].unread).toBe(5);
+      expect(result[0].recent).toBe(2);
+    });
+
+    it('returns status for multiple folders in parallel', async () => {
+      const client = new ImapClient(account);
+      await client.connect();
+      const result = await client.getMailboxStatus(['INBOX', 'Sent', 'Drafts']);
+      expect(result).toHaveLength(3);
+      const names = result.map(r => r.name);
+      expect(names).toContain('INBOX');
+      expect(names).toContain('Sent');
+      expect(names).toContain('Drafts');
+    });
+
+    it('isolates per-folder errors — other folders still return data', async () => {
+      const { ImapFlow } = await import('imapflow');
+      const MockImapFlow = ImapFlow as any;
+      MockImapFlow.mockImplementationOnce(function () {
+        return {
+          connect: vi.fn().mockResolvedValue(undefined),
+          once: vi.fn(),
+          logout: vi.fn().mockResolvedValue(undefined),
+          usable: true,
+          status: vi.fn().mockImplementation((folder: string) => {
+            if (folder === 'Broken') return Promise.reject(new Error('Folder not found'));
+            return Promise.resolve({ messages: 10, unseen: 1, recent: 0, path: folder });
+          }),
+        };
+      });
+      const client = new ImapClient(account);
+      await client.connect();
+      const result = await client.getMailboxStatus(['INBOX', 'Broken']);
+      expect(result).toHaveLength(2);
+      const inbox = result.find(r => r.name === 'INBOX');
+      const broken = result.find(r => r.name === 'Broken');
+      expect(inbox?.total).toBe(10);
+      expect(broken?.total).toBeNull();
+      expect(broken?.error).toContain('Folder not found');
+    });
+
+    it('throws when client is not connected', async () => {
+      const client = new ImapClient(account);
+      await expect(client.getMailboxStatus(['INBOX'])).rejects.toThrow('Not connected');
+    });
+  });
 });

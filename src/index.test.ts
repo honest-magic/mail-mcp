@@ -989,3 +989,55 @@ describe('THREAD-05: reply_email and forward_email handler dispatch', () => {
     expect(result.content[0].text).toContain('[ValidationError]');
   });
 });
+
+describe('STATS-01: mailbox_stats tool', () => {
+  it('mailbox_stats is in getTools(false) list', () => {
+    const server = new MailMCPServer(false);
+    const tools = (server as any).getTools(false);
+    const names = tools.map((t: any) => t.name);
+    expect(names).toContain('mailbox_stats');
+  });
+
+  it('mailbox_stats has readOnlyHint: true and destructiveHint: false', () => {
+    const server = new MailMCPServer(false);
+    const tools = (server as any).getTools(false);
+    const tool = tools.find((t: any) => t.name === 'mailbox_stats');
+    expect(tool).toBeDefined();
+    expect(tool.annotations.readOnlyHint).toBe(true);
+    expect(tool.annotations.destructiveHint).toBe(false);
+  });
+
+  it('mailbox_stats is also present in getTools(true) (read-only mode)', () => {
+    const server = new MailMCPServer(true);
+    const tools = (server as any).getTools(true);
+    const names = tools.map((t: any) => t.name);
+    expect(names).toContain('mailbox_stats');
+  });
+
+  it('dispatchTool mailbox_stats calls service.getMailboxStats and returns formatted output', async () => {
+    const server = new MailMCPServer(false);
+    const getMailboxStatsMock = vi.fn().mockResolvedValue([
+      { name: 'INBOX', total: 50, unread: 3, recent: 1 },
+      { name: 'Sent', total: 120, unread: 0, recent: 0 },
+    ]);
+    vi.spyOn(server as any, 'getService').mockResolvedValue({ getMailboxStats: getMailboxStatsMock });
+    const result = await (server as any).dispatchTool('mailbox_stats', false, {
+      accountId: 'test',
+      folders: ['INBOX', 'Sent'],
+    });
+    expect(getMailboxStatsMock).toHaveBeenCalledWith(['INBOX', 'Sent']);
+    expect(result.isError).not.toBe(true);
+    expect(result.content[0].text).toContain('INBOX');
+    expect(result.content[0].text).toContain('50');
+    expect(result.content[0].text).toContain('3');
+  });
+
+  it('dispatchTool mailbox_stats without folders calls service.getMailboxStats with undefined', async () => {
+    const server = new MailMCPServer(false);
+    const getMailboxStatsMock = vi.fn().mockResolvedValue([]);
+    vi.spyOn(server as any, 'getService').mockResolvedValue({ getMailboxStats: getMailboxStatsMock });
+    const result = await (server as any).dispatchTool('mailbox_stats', false, { accountId: 'test' });
+    expect(getMailboxStatsMock).toHaveBeenCalledWith(undefined);
+    expect(result.isError).not.toBe(true);
+  });
+});
