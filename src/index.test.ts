@@ -80,6 +80,8 @@ const READ_TOOL_NAMES = [
   'extract_attachment_text',
   'extract_contacts',
   'mailbox_stats',
+  'list_templates',
+  'use_template',
 ];
 
 describe('ROM-01: readOnly constructor field', () => {
@@ -95,16 +97,16 @@ describe('ROM-01: readOnly constructor field', () => {
 });
 
 describe('ROM-05: list-time filtering', () => {
-  it('Test C: getTools(false) returns array of length 18', () => {
+  it('Test C: getTools(false) returns array of length 20', () => {
     const server = new MailMCPServer(false);
     const tools = (server as any).getTools(false);
-    expect(tools).toHaveLength(18);
+    expect(tools).toHaveLength(20);
   });
 
-  it('Test D: getTools(true) returns array of length 10', () => {
+  it('Test D: getTools(true) returns array of length 12', () => {
     const server = new MailMCPServer(true);
     const tools = (server as any).getTools(true);
-    expect(tools).toHaveLength(10);
+    expect(tools).toHaveLength(12);
   });
 
   it('Test E: getTools(true) does NOT include send_email', () => {
@@ -155,16 +157,16 @@ describe('ROM-03: read tools unaffected in read-only mode', () => {
 });
 
 describe('ROM-06: tool annotations', () => {
-  it('Test J: all 18 tools have annotations.readOnlyHint defined', () => {
+  it('Test J: all 20 tools have annotations.readOnlyHint defined', () => {
     const server = new MailMCPServer(false);
     const tools = (server as any).getTools(false);
-    expect(tools).toHaveLength(18);
+    expect(tools).toHaveLength(20);
     for (const tool of tools) {
       expect(tool.annotations?.readOnlyHint).toBeDefined();
     }
   });
 
-  it('Test K: all 18 tools have annotations.destructiveHint defined', () => {
+  it('Test K: all 20 tools have annotations.destructiveHint defined', () => {
     const server = new MailMCPServer(false);
     const tools = (server as any).getTools(false);
     for (const tool of tools) {
@@ -187,7 +189,7 @@ describe('ROM-06: tool annotations', () => {
     const server = new MailMCPServer(false);
     const tools = (server as any).getTools(false);
     const readTools = tools.filter((t: any) => READ_TOOL_NAMES.includes(t.name));
-    expect(readTools).toHaveLength(10);
+    expect(readTools).toHaveLength(12);
     for (const tool of readTools) {
       expect(tool.annotations.readOnlyHint).toBe(true);
       expect(tool.annotations.destructiveHint).toBe(false);
@@ -1084,5 +1086,149 @@ describe('STATS-01: mailbox_stats tool', () => {
     const result = await (server as any).dispatchTool('mailbox_stats', false, { accountId: 'test' });
     expect(getMailboxStatsMock).toHaveBeenCalledWith(undefined);
     expect(result.isError).not.toBe(true);
+  });
+});
+
+describe('TPL-01: list_templates MCP tool', () => {
+  it('list_templates appears in getTools(false) as a read-only tool', () => {
+    const server = new MailMCPServer(false);
+    const tools = (server as any).getTools(false);
+    const tool = tools.find((t: any) => t.name === 'list_templates');
+    expect(tool).toBeDefined();
+    expect(tool.annotations.readOnlyHint).toBe(true);
+    expect(tool.annotations.destructiveHint).toBe(false);
+  });
+
+  it('list_templates appears in getTools(true) (read-only server includes it)', () => {
+    const server = new MailMCPServer(true);
+    const tools = (server as any).getTools(true);
+    const names = tools.map((t: any) => t.name);
+    expect(names).toContain('list_templates');
+  });
+
+  it('list_templates is NOT in WRITE_TOOLS set (not blocked in read-only mode)', async () => {
+    const server = new MailMCPServer(true);
+    const result = await (server as any).dispatchTool('list_templates', true, {});
+    expect(result.isError).not.toBe(true);
+  });
+
+  it('dispatchTool list_templates returns JSON array of all templates when no accountId filter', async () => {
+    const server = new MailMCPServer(false);
+    const result = await (server as any).dispatchTool('list_templates', false, {});
+    expect(result.isError).not.toBe(true);
+    const parsed = JSON.parse(result.content[0].text);
+    expect(Array.isArray(parsed)).toBe(true);
+    expect(parsed).toHaveLength(2);
+  });
+
+  it('dispatchTool list_templates with accountId filter returns only global + matching templates', async () => {
+    const server = new MailMCPServer(false);
+    const result = await (server as any).dispatchTool('list_templates', false, { accountId: 'work' });
+    expect(result.isError).not.toBe(true);
+    const parsed = JSON.parse(result.content[0].text);
+    expect(Array.isArray(parsed)).toBe(true);
+    // Should include global template (no accountId) + work-scoped template
+    const ids = parsed.map((t: any) => t.id);
+    expect(ids).toContain('ack');   // global
+    expect(ids).toContain('oof');   // accountId: 'work'
+  });
+
+  it('dispatchTool list_templates with accountId filter excludes templates for other accounts', async () => {
+    const { getTemplates } = await import('./utils/templates.js');
+    vi.mocked(getTemplates).mockResolvedValueOnce([
+      { id: 'ack', name: 'Acknowledgement', body: 'Got it.' },
+      { id: 'oof-work', name: 'OOF Work', body: 'Away.', accountId: 'work' },
+      { id: 'oof-personal', name: 'OOF Personal', body: 'On vacation.', accountId: 'personal' },
+    ]);
+    const server = new MailMCPServer(false);
+    const result = await (server as any).dispatchTool('list_templates', false, { accountId: 'work' });
+    const parsed = JSON.parse(result.content[0].text);
+    const ids = parsed.map((t: any) => t.id);
+    expect(ids).toContain('ack');
+    expect(ids).toContain('oof-work');
+    expect(ids).not.toContain('oof-personal');
+  });
+});
+
+describe('TPL-02: use_template MCP tool', () => {
+  it('use_template appears in getTools(false) as a read-only tool', () => {
+    const server = new MailMCPServer(false);
+    const tools = (server as any).getTools(false);
+    const tool = tools.find((t: any) => t.name === 'use_template');
+    expect(tool).toBeDefined();
+    expect(tool.annotations.readOnlyHint).toBe(true);
+    expect(tool.annotations.destructiveHint).toBe(false);
+  });
+
+  it('use_template appears in getTools(true) (read-only server includes it)', () => {
+    const server = new MailMCPServer(true);
+    const tools = (server as any).getTools(true);
+    const names = tools.map((t: any) => t.name);
+    expect(names).toContain('use_template');
+  });
+
+  it('use_template is NOT in WRITE_TOOLS set (not blocked in read-only mode)', async () => {
+    const server = new MailMCPServer(true);
+    const result = await (server as any).dispatchTool('use_template', true, {
+      templateId: 'ack',
+      variables: { name: 'Alice' },
+    });
+    expect(result.isError).not.toBe(true);
+  });
+
+  it('dispatchTool use_template with valid templateId returns body with variables applied', async () => {
+    const server = new MailMCPServer(false);
+    const result = await (server as any).dispatchTool('use_template', false, {
+      templateId: 'ack',
+      variables: { name: 'Alice' },
+    });
+    expect(result.isError).not.toBe(true);
+    const parsed = JSON.parse(result.content[0].text);
+    expect(parsed.body).toBe('Got your message, Alice.');
+  });
+
+  it('dispatchTool use_template with subject template applies variables to subject', async () => {
+    const server = new MailMCPServer(false);
+    const result = await (server as any).dispatchTool('use_template', false, {
+      templateId: 'oof',
+      variables: { subject: 'Hello', date: 'Monday' },
+    });
+    expect(result.isError).not.toBe(true);
+    const parsed = JSON.parse(result.content[0].text);
+    expect(parsed.subject).toBe('Re: Hello');
+    expect(parsed.body).toBe('I am away until Monday.');
+  });
+
+  it('dispatchTool use_template with unknown templateId returns isError: true', async () => {
+    const server = new MailMCPServer(false);
+    const result = await (server as any).dispatchTool('use_template', false, {
+      templateId: 'nonexistent',
+      variables: {},
+    });
+    expect(result.isError).toBe(true);
+    expect(result.content[0].text).toContain('nonexistent');
+  });
+
+  it('dispatchTool use_template includes optional to, cc, bcc, accountId in output when provided', async () => {
+    const server = new MailMCPServer(false);
+    const result = await (server as any).dispatchTool('use_template', false, {
+      templateId: 'ack',
+      variables: { name: 'Carol' },
+      to: 'carol@example.com',
+      cc: 'boss@example.com',
+      accountId: 'work',
+    });
+    expect(result.isError).not.toBe(true);
+    const parsed = JSON.parse(result.content[0].text);
+    expect(parsed.to).toBe('carol@example.com');
+    expect(parsed.cc).toBe('boss@example.com');
+    expect(parsed.accountId).toBe('work');
+  });
+
+  it('use_template tool schema requires templateId', () => {
+    const server = new MailMCPServer(false);
+    const tools = (server as any).getTools(false);
+    const tool = tools.find((t: any) => t.name === 'use_template');
+    expect(tool.inputSchema.required).toContain('templateId');
   });
 });
