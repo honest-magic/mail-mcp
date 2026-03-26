@@ -74,7 +74,7 @@ export class ImapClient {
     }
   }
 
-  async listMessages(folder: string = 'INBOX', count: number = 10, offset: number = 0): Promise<MessageMetadata[]> {
+  async listMessages(folder: string = 'INBOX', count: number = 10, offset: number = 0, headerOnly: boolean = false): Promise<MessageMetadata[]> {
     if (!this.client) {
       throw new Error('Not connected');
     }
@@ -90,9 +90,14 @@ export class ImapClient {
       if (end < 1) return [];
       const start = Math.max(1, end - count + 1);
       const range = `${start}:${end}`;
-      
-      for await (const msg of this.client.fetch(range, { envelope: true, flags: true, internalDate: true, bodyParts: ['TEXT'] })) {
-        const textBuf = (msg as any).bodyParts?.get('TEXT');
+
+      const fetchOptions: any = { envelope: true, flags: true, internalDate: true };
+      if (!headerOnly) {
+        fetchOptions.bodyParts = ['TEXT'];
+      }
+
+      for await (const msg of this.client.fetch(range, fetchOptions)) {
+        const textBuf = headerOnly ? null : (msg as any).bodyParts?.get('TEXT');
         const snippet = textBuf
           ? textBuf.toString('utf-8').replace(/\s+/g, ' ').slice(0, 200).trim()
           : '';
