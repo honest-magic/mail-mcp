@@ -99,6 +99,62 @@ export class MailService {
     return info;
   }
 
+  async replyEmail(uid: string, folder: string = 'INBOX', body: string, isHtml: boolean = false, cc?: string, bcc?: string, includeSignature: boolean = true): Promise<any> {
+    const parsed = await this._cachedFetchBody(uid, folder);
+
+    const originalMessageId = parsed.messageId;
+    const existingReferences = parsed.headers.get('references') as string | undefined;
+
+    // Build RFC 2822 threading headers only when we have a Message-ID
+    const extraHeaders: Record<string, string> = {};
+    if (originalMessageId) {
+      extraHeaders['In-Reply-To'] = originalMessageId;
+      if (existingReferences) {
+        extraHeaders['References'] = `${existingReferences} ${originalMessageId}`;
+      } else {
+        extraHeaders['References'] = originalMessageId;
+      }
+    }
+
+    // Determine reply-to address (original sender)
+    const originalFrom = Array.isArray(parsed.from?.value)
+      ? parsed.from!.value[0]?.address
+      : (parsed.from as any)?.address;
+    const replyTo = originalFrom || 'unknown@example.com';
+
+    // Build subject with "Re: " prefix
+    const originalSubject = parsed.subject || '';
+    const replySubject = originalSubject.startsWith('Re: ')
+      ? originalSubject
+      : `Re: ${originalSubject}`;
+
+    const effectiveBody = applySignature(body, this.account.signature, isHtml, includeSignature);
+
+    // Build raw message for Sent folder append
+    const rawMessage = [
+      `From: ${this.account.user}`,
+      `To: ${replyTo}`,
+      ...(cc ? [`Cc: ${cc}`] : []),
+      ...(bcc ? [`Bcc: ${bcc}`] : []),
+      `Subject: ${replySubject}`,
+      ...(extraHeaders['In-Reply-To'] ? [`In-Reply-To: ${extraHeaders['In-Reply-To']}`] : []),
+      ...(extraHeaders['References'] ? [`References: ${extraHeaders['References']}`] : []),
+      'MIME-Version: 1.0',
+      `Content-Type: ${isHtml ? 'text/html' : 'text/plain'}; charset=utf-8`,
+      '',
+      effectiveBody,
+    ].join('\r\n');
+
+    await this.ensureSmtp();
+    const info = await this.smtpClient.send(replyTo, replySubject, effectiveBody, isHtml, cc, bcc, Object.keys(extraHeaders).length > 0 ? extraHeaders : undefined);
+    try {
+      await this.imapClient.appendMessage('Sent', rawMessage, ['\\Seen']);
+    } catch (e) {
+      console.error('Failed to append reply to Sent folder:', e);
+    }
+    return info;
+  }
+
   async createDraft(to: string, subject: string, body: string, isHtml: boolean = false, cc?: string, bcc?: string, includeSignature: boolean = true): Promise<void> {
     const effectiveBody = applySignature(body, this.account.signature, isHtml, includeSignature);
 
