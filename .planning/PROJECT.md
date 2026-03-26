@@ -10,13 +10,15 @@ Empower AI agents to act as a personal mail assistant by providing structured, t
 
 ## Current State
 
-**v1.3.0 shipped 2026-03-24.** Per-account email signatures (auto-appended via RFC 3676 separator, opt-out per message), in-memory message body cache (5 min TTL, 100 entries), improved MCP tool descriptions for IMAP routing, CI upgraded to Node.js 22.
+**v1.4.0 shipped 2026-03-26.** Full AI mail assistant toolkit — reply/forward with threading, List-Unsubscribe extraction, contact frequency analysis, email templates, SIEVE filter management, mailbox stats, header-only fetch, mark/star/delete convenience tools. Security: audit logging, confirmation mode, per-tool allow-listing, content redaction, tiered rate limits, recipient allowlist. Developer UX: `--install-claude` one-command setup.
 
-**v1.2.0 shipped 2026-03-23.** Homebrew install, `--version`/`--help` CLI flags, README update guide, GitHub Release auto-creation, Homebrew formula auto-update via CI.
+**v1.3.0 shipped 2026-03-24.** Email signatures, message body cache, improved tool descriptions, CI Node.js 22.
 
-**v1.1.0 shipped 2026-03-22.** Production hardening — typed errors, Zod validation, rate limiting, graceful shutdown, auto-reconnect, pagination, integration tests.
+**v1.2.0 shipped 2026-03-23.** Homebrew install, CLI flags, README guide, GitHub Releases, auto-publish.
 
-- 2,132 TypeScript LOC (src), 2,588 test LOC, 206 unit tests + 6 integration tests
+**v1.1.0 shipped 2026-03-22.** Production hardening — typed errors, validation, rate limiting, reconnect.
+
+- 4,097 TypeScript LOC (src), 6,448 test LOC, 494 unit tests + 6 integration tests
 - Stack: imapflow, nodemailer, mailparser, pdf-parse, zod, rate-limiter-flexible, @modelcontextprotocol/sdk
 - Repo: `github.com/honest-magic/mail-mcp`
 
@@ -87,11 +89,9 @@ Empower AI agents to act as a personal mail assistant by providing structured, t
 | onClose callback (not EventEmitter) for reconnect | Zero new base class, minimal test churn, simple invalidation | ✓ Good |
 | smtp-server for integration tests (not Docker) | In-process, zero CI infrastructure, Nodemailer org maintained | ✓ Good |
 
-## Current Milestone: v1.4.0 AI Mail Assistant Features
+## Current Milestone: None (planning next)
 
-**Goal:** Transform mail-mcp from a basic IMAP/SMTP gateway into a full AI mail assistant toolkit — threading, contacts, templates, security controls, and developer UX improvements.
-
-**16 phases:** Reply/forward threading, List-Unsubscribe, contact extraction, mailbox stats, header-only fetch, email templates, SIEVE filters, mark/star/delete tools, audit logging, confirmation mode, per-tool permissions, content redaction, rate limits, recipient allowlist, install CLI command.
+**Last shipped:** v1.4.0 AI Mail Assistant Features (2026-03-26)
 
 ## Deferred (v2+)
 
@@ -118,4 +118,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-03-24 — v1.4.0 milestone created from promoted backlog*
+*Last updated: 2026-03-26 — v1.4.0 milestone shipped*

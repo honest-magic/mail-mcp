@@ -6,7 +6,7 @@
 - ✅ **v1.1.0 Hardening & Reliability** — Phases 10–13 (shipped 2026-03-22)
 - ✅ **v1.2.0 Distribution & Documentation** — Phase 14 (shipped 2026-03-23)
 - ✅ **v1.3.0 Signature Support & Performance Improvements** — Phases 15–18 (shipped 2026-03-24)
-- **v1.4.0 AI Mail Assistant Features** — Phases 19–34 (active)
+- ✅ **v1.4.0 AI Mail Assistant Features** — Phases 19–34 (shipped 2026-03-26)
 
 ## Phases
 
@@ -82,12 +82,12 @@ Full archive: `.planning/milestones/v1.3.0-ROADMAP.md`
 | 18. Performance & Caching | v1.3.0 | 2/2 | Complete    | 2026-03-24 |
 | 19. List-Unsubscribe | v1.4.0 | 1/1 | Complete   | 2026-03-26 |
 | 20. Reply/Forward Threading | v1.4.0 | 1/1 | Complete | 2026-03-26 |
-| 21. Contact Extraction | v1.4.0 | 0/? | Not started | - |
+| 21. Contact Extraction | v1.4.0 | 1/1 | Complete   | 2026-03-26 |
 | 22. Mailbox Stats | v1.4.0 | 1/1 | Complete   | 2026-03-26 |
 | 23. Header-Only Fetch | v1.4.0 | 1/1 | Complete   | 2026-03-26 |
 | 24. Email Templates | v1.4.0 | 1/1 | Complete   | 2026-03-26 |
 | 25. SIEVE Folder Rules | v1.4.0 | 1/1 | Complete   | 2026-03-26 |
-| 26. Mark Read/Star Tools | v1.4.0 | 0/? | Not started | - |
+| 26. Mark Read/Star Tools | v1.4.0 | 1/1 | Complete   | 2026-03-26 |
 | 27. Delete Email Tool | v1.4.0 | 1/1 | Complete   | 2026-03-26 |
 | 28. Audit Logging | v1.4.0 | 1/1 | Complete   | 2026-03-26 |
 | 29. Confirmation Mode | v1.4.0 | 1/1 | Complete   | 2026-03-26 |
@@ -97,123 +97,29 @@ Full archive: `.planning/milestones/v1.3.0-ROADMAP.md`
 | 33. Recipient Allowlist | v1.4.0 | 1/1 | Complete   | 2026-03-26 |
 | 34. Install Claude CLI | v1.4.0 | 1/1 | Complete   | 2026-03-26 |
 
-### v1.4.0 AI Mail Assistant Features (Phases 19–34)
+<details>
+<summary>✅ v1.4.0 AI Mail Assistant Features (Phases 19–34) — SHIPPED 2026-03-26</summary>
 
-- [x] **Phase 19: List-Unsubscribe Headers** - Extract RFC 2369 headers for automated mailing list management (completed 2026-03-26)
-- [x] **Phase 20: Reply & Forward Threading** - In-Reply-To/References headers for proper conversation threading (completed 2026-03-26)
-- [ ] **Phase 21: Contact Extraction** - Structured contact data with frequency analysis
-- [x] **Phase 22: Mailbox Stats** - Unread count, folder sizes without listing emails (completed 2026-03-26)
-- [x] **Phase 23: Header-Only Fetch** - Fast metadata-only triage at scale (completed 2026-03-26)
-- [x] **Phase 24: Email Templates** - Reusable reply/compose patterns for AI agents (completed 2026-03-26)
-- [x] **Phase 25: SIEVE Folder Rules** - Server-side mail filters via AI (completed 2026-03-26)
-- [x] **Phase 26: Mark Read/Star Tools** - Simple tools instead of IMAP flag syntax (completed 2026-03-26)
-- [x] **Phase 27: Delete Email Tool** - Single-message delete without batch workaround (completed 2026-03-26)
-- [x] **Phase 28: Audit Logging** - Log all AI tool calls to local file (completed 2026-03-26)
-- [x] **Phase 29: Confirmation Mode** - Human-in-the-loop for destructive operations (completed 2026-03-26)
-- [x] **Phase 30: Per-Tool Allow-Listing** - Granular permissions beyond read-only (completed 2026-03-26)
-- [x] **Phase 31: Sensitive Content Redaction** - Mask PII before returning to AI (completed 2026-03-26)
-- [x] **Phase 32: Per-Tool-Type Rate Limits** - Separate read vs write rate limits (completed 2026-03-26)
-- [x] **Phase 33: Send Recipient Allowlist** - Only allow sending to approved addresses (completed 2026-03-26)
-- [x] **Phase 34: Install Claude CLI Command** - `mail-mcp --install-claude` for one-command setup (completed 2026-03-26)
+- [x] Phase 19: List-Unsubscribe Headers (1/1 plans) — completed 2026-03-26
+- [x] Phase 20: Reply & Forward Threading (1/1 plans) — completed 2026-03-26
+- [x] Phase 21: Contact Extraction (1/1 plans) — completed 2026-03-26
+- [x] Phase 22: Mailbox Stats (1/1 plans) — completed 2026-03-26
+- [x] Phase 23: Header-Only Fetch (1/1 plans) — completed 2026-03-26
+- [x] Phase 24: Email Templates (1/1 plans) — completed 2026-03-26
+- [x] Phase 25: SIEVE Folder Rules (1/1 plans) — completed 2026-03-26
+- [x] Phase 26: Mark Read/Star Tools (1/1 plans) — completed 2026-03-26
+- [x] Phase 27: Delete Email Tool (1/1 plans) — completed 2026-03-26
+- [x] Phase 28: Audit Logging (1/1 plans) — completed 2026-03-26
+- [x] Phase 29: Confirmation Mode (1/1 plans) — completed 2026-03-26
+- [x] Phase 30: Per-Tool Allow-Listing (1/1 plans) — completed 2026-03-26
+- [x] Phase 31: Sensitive Content Redaction (1/1 plans) — completed 2026-03-26
+- [x] Phase 32: Per-Tool-Type Rate Limits (1/1 plans) — completed 2026-03-26
+- [x] Phase 33: Send Recipient Allowlist (1/1 plans) — completed 2026-03-26
+- [x] Phase 34: Install Claude CLI Command (1/1 plans) — completed 2026-03-26
 
-## Phase Details
+Full archive: `.planning/milestones/v1.4.0-ROADMAP.md`
 
-### Phase 19: List-Unsubscribe Headers
-**Goal**: Surface RFC 2369 List-Unsubscribe headers (mailto: and https: URLs) as structured data in read_email output
-**Depends on**: Nothing
-**Requirements**: TBD
-**Plans**: TBD
-
-### Phase 20: Reply & Forward Threading
-**Goal**: Add reply_email and forward_email tools with correct In-Reply-To and References headers
-**Depends on**: Nothing
-**Requirements**: TBD
-**Plans**: TBD
-
-### Phase 21: Contact Extraction
-**Goal**: Extract structured contact data (name, email, frequency) from mailbox
-**Depends on**: Nothing
-**Requirements**: TBD
-**Plans**: TBD
-
-### Phase 22: Mailbox Stats
-**Goal**: Return mailbox statistics (unread count per folder, message counts) without listing emails
-**Depends on**: Nothing
-**Requirements**: TBD
-**Plans**: TBD
-
-### Phase 23: Header-Only Fetch
-**Goal**: Lightweight fetch returning email metadata (subject, from, date, flags) without body
-**Depends on**: Nothing
-**Requirements**: TBD
-**Plans**: TBD
-
-### Phase 24: Email Templates
-**Goal**: Reusable email templates (per-account or global) that AI agents can fill in
-**Depends on**: Nothing
-**Requirements**: TBD
-**Plans**: TBD
-
-### Phase 25: SIEVE Folder Rules
-**Goal**: Create and manage server-side IMAP filters via SIEVE scripts
-**Depends on**: Nothing
-**Requirements**: TBD
-**Plans**: TBD
-
-### Phase 26: Mark Read/Star Tools
-**Goal**: Simple mark_read, mark_unread, star, unstar tools without IMAP flag syntax
-**Depends on**: Nothing
-**Requirements**: None
-**Plans**: 1/1 complete
-**Status**: COMPLETE (2026-03-26)
-
-### Phase 27: Delete Email Tool
-**Goal**: Single-message delete_email tool without batch_operations workaround
-**Depends on**: Nothing
-**Requirements**: TBD
-**Plans**: TBD
-
-### Phase 28: Audit Logging
-**Goal**: Log every tool invocation (tool name, accountId, key args, timestamp) to local audit file
-**Depends on**: Nothing
-**Requirements**: TBD
-**Plans**: TBD
-
-### Phase 29: Confirmation Mode
-**Goal**: Optional mode where destructive operations return a confirmation prompt before executing
-**Depends on**: Nothing
-**Requirements**: TBD
-**Plans**: TBD
-
-### Phase 30: Per-Tool Allow-Listing
-**Goal**: Granular tool permissions (e.g., allow send_email but not delete) instead of binary read-only
-**Depends on**: Nothing
-**Requirements**: TBD
-**Plans**: TBD
-
-### Phase 31: Sensitive Content Redaction
-**Goal**: Detect and mask credit card numbers, SSNs, passwords, PII in email content before returning to AI
-**Depends on**: Nothing
-**Requirements**: TBD
-**Plans**: TBD
-
-### Phase 32: Per-Tool-Type Rate Limits
-**Goal**: Separate rate limit tiers for read operations (higher) vs write operations (stricter)
-**Depends on**: Nothing
-**Requirements**: TBD
-**Plans**: TBD
-
-### Phase 33: Send Recipient Allowlist
-**Goal**: Optional allowlist of permitted recipient domains/addresses for send_email
-**Depends on**: Nothing
-**Requirements**: TBD
-**Plans**: TBD
-
-### Phase 34: Install Claude CLI Command
-**Goal**: `mail-mcp --install-claude` writes MCP server config to Claude Code settings for one-command setup
-**Depends on**: Nothing
-**Requirements**: TBD
-**Plans**: TBD
+</details>
 
 ---
-*Last updated: 2026-03-24 — All backlog promoted to v1.4.0 (Phases 19–34)*
+*Last updated: 2026-03-26 — v1.4.0 milestone shipped*
