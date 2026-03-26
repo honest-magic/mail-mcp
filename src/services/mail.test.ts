@@ -304,6 +304,148 @@ describe('readEmail List-Unsubscribe header extraction', () => {
   });
 });
 
+// ---------------------------------------------------------------------------
+// replyEmail tests
+// ---------------------------------------------------------------------------
+
+describe('MailService replyEmail', () => {
+  const baseAccount = {
+    id: 'test',
+    name: 'Test',
+    user: 'reply-sender@example.com',
+    authType: 'login' as const,
+    host: 'imap.example.com',
+    port: 993,
+    useTLS: true,
+  };
+
+  beforeEach(() => {
+    mockSmtpConnect.mockClear();
+    mockSmtpSend.mockClear();
+    mockImapAppendMessage.mockClear();
+    mockFetchMessageBody.mockClear();
+  });
+
+  function makeOriginalMail(overrides: Partial<any> = {}): any {
+    const headersMap = new Map<string, string>();
+    headersMap.set('message-id', '<original-123@example.com>');
+    return {
+      messageId: '<original-123@example.com>',
+      from: { value: [{ address: 'original-sender@example.com' }], text: 'original-sender@example.com' },
+      to: { text: 'reply-sender@example.com' },
+      subject: 'Original Subject',
+      date: new Date('2026-01-01T00:00:00Z'),
+      text: 'Original body text',
+      headers: headersMap,
+      attachments: [],
+      ...overrides,
+    };
+  }
+
+  it('fetches the original message body', async () => {
+    mockFetchMessageBody.mockResolvedValue(makeOriginalMail());
+    const service = new MailService(baseAccount, false);
+    await service.connect();
+    await service.replyEmail('42', 'INBOX', 'My reply');
+    expect(mockFetchMessageBody).toHaveBeenCalledWith('42', 'INBOX');
+  });
+
+  it('sends to the original sender address', async () => {
+    mockFetchMessageBody.mockResolvedValue(makeOriginalMail());
+    const service = new MailService(baseAccount, false);
+    await service.connect();
+    await service.replyEmail('42', 'INBOX', 'My reply');
+    expect(mockSmtpSend.mock.calls[0][0]).toBe('original-sender@example.com');
+  });
+
+  it('prepends "Re: " to subject when not already present', async () => {
+    mockFetchMessageBody.mockResolvedValue(makeOriginalMail());
+    const service = new MailService(baseAccount, false);
+    await service.connect();
+    await service.replyEmail('42', 'INBOX', 'My reply');
+    expect(mockSmtpSend.mock.calls[0][1]).toBe('Re: Original Subject');
+  });
+
+  it('does not double-prepend "Re: " when subject already starts with "Re: "', async () => {
+    mockFetchMessageBody.mockResolvedValue(makeOriginalMail({ subject: 'Re: Original Subject' }));
+    const service = new MailService(baseAccount, false);
+    await service.connect();
+    await service.replyEmail('42', 'INBOX', 'My reply');
+    expect(mockSmtpSend.mock.calls[0][1]).toBe('Re: Original Subject');
+  });
+
+  it('sets In-Reply-To header to original Message-ID', async () => {
+    mockFetchMessageBody.mockResolvedValue(makeOriginalMail());
+    const service = new MailService(baseAccount, false);
+    await service.connect();
+    await service.replyEmail('42', 'INBOX', 'My reply');
+    // extraHeaders is 7th argument to send()
+    const extraHeaders = mockSmtpSend.mock.calls[0][6];
+    expect(extraHeaders['In-Reply-To']).toBe('<original-123@example.com>');
+  });
+
+  it('sets References header to original Message-ID when no prior references', async () => {
+    mockFetchMessageBody.mockResolvedValue(makeOriginalMail());
+    const service = new MailService(baseAccount, false);
+    await service.connect();
+    await service.replyEmail('42', 'INBOX', 'My reply');
+    const extraHeaders = mockSmtpSend.mock.calls[0][6];
+    expect(extraHeaders['References']).toBe('<original-123@example.com>');
+  });
+
+  it('appends original Message-ID to existing references chain', async () => {
+    const headersMap = new Map<string, string>();
+    headersMap.set('message-id', '<msg-2@example.com>');
+    headersMap.set('references', '<msg-1@example.com>');
+    const mail = makeOriginalMail({ messageId: '<msg-2@example.com>', headers: headersMap });
+    mockFetchMessageBody.mockResolvedValue(mail);
+    const service = new MailService(baseAccount, false);
+    await service.connect();
+    await service.replyEmail('42', 'INBOX', 'My reply');
+    const extraHeaders = mockSmtpSend.mock.calls[0][6];
+    expect(extraHeaders['References']).toBe('<msg-1@example.com> <msg-2@example.com>');
+  });
+
+  it('appends message to Sent folder via IMAP', async () => {
+    mockFetchMessageBody.mockResolvedValue(makeOriginalMail());
+    const service = new MailService(baseAccount, false);
+    await service.connect();
+    await service.replyEmail('42', 'INBOX', 'My reply');
+    expect(mockImapAppendMessage).toHaveBeenCalledWith('Sent', expect.any(String), ['\\Seen']);
+  });
+
+  it('applies signature when account has one and includeSignature is true', async () => {
+    mockFetchMessageBody.mockResolvedValue(makeOriginalMail());
+    const account = { ...baseAccount, signature: 'Best, Me' };
+    const service = new MailService(account, false);
+    await service.connect();
+    await service.replyEmail('42', 'INBOX', 'My reply');
+    // body passed to send (3rd arg) should contain signature
+    expect(mockSmtpSend.mock.calls[0][2]).toContain('My reply\n-- \nBest, Me');
+  });
+
+  it('does not append signature when includeSignature is false', async () => {
+    mockFetchMessageBody.mockResolvedValue(makeOriginalMail());
+    const account = { ...baseAccount, signature: 'Best, Me' };
+    const service = new MailService(account, false);
+    await service.connect();
+    await service.replyEmail('42', 'INBOX', 'My reply', false, undefined, undefined, false);
+    expect(mockSmtpSend.mock.calls[0][2]).toBe('My reply');
+  });
+
+  it('handles missing messageId gracefully — sends without threading headers', async () => {
+    const headersMap = new Map<string, string>();
+    const mail = makeOriginalMail({ messageId: undefined, headers: headersMap });
+    mockFetchMessageBody.mockResolvedValue(mail);
+    const service = new MailService(baseAccount, false);
+    await service.connect();
+    await expect(service.replyEmail('42', 'INBOX', 'My reply')).resolves.not.toThrow();
+    // extraHeaders should be empty or absent
+    const extraHeaders = mockSmtpSend.mock.calls[0][6];
+    expect(extraHeaders === undefined || Object.keys(extraHeaders).length === 0).toBe(true);
+  });
+});
+
 describe('MailService createDraft with signature', () => {
   const baseAccount = { id: 'test', name: 'Test', user: 'test@example.com', authType: 'login' as const, host: 'imap.example.com', port: 993, useTLS: true };
 
