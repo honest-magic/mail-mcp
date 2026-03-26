@@ -81,7 +81,7 @@ Full archive: `.planning/milestones/v1.3.0-ROADMAP.md`
 | 17. Email Signatures | v1.3.0 | 2/2 | Complete    | 2026-03-23 |
 | 18. Performance & Caching | v1.3.0 | 2/2 | Complete    | 2026-03-24 |
 | 19. List-Unsubscribe | v1.4.0 | 1/1 | Complete   | 2026-03-26 |
-| 20. Reply/Forward Threading | v1.4.0 | 0/? | Not started | - |
+| 20. Reply/Forward Threading | v1.4.0 | 1/1 | Complete | 2026-03-26 |
 | 21. Contact Extraction | v1.4.0 | 0/? | Not started | - |
 | 22. Mailbox Stats | v1.4.0 | 0/? | Not started | - |
 | 23. Header-Only Fetch | v1.4.0 | 0/? | Not started | - |
@@ -100,7 +100,7 @@ Full archive: `.planning/milestones/v1.3.0-ROADMAP.md`
 ### v1.4.0 AI Mail Assistant Features (Phases 19–34)
 
 - [x] **Phase 19: List-Unsubscribe Headers** - Extract RFC 2369 headers for automated mailing list management (completed 2026-03-26)
-- [ ] **Phase 20: Reply & Forward Threading** - In-Reply-To/References headers for proper conversation threading
+- [x] **Phase 20: Reply & Forward Threading** - In-Reply-To/References headers for proper conversation threading (completed 2026-03-26)
 - [ ] **Phase 21: Contact Extraction** - Structured contact data with frequency analysis
 - [ ] **Phase 22: Mailbox Stats** - Unread count, folder sizes without listing emails
 - [ ] **Phase 23: Header-Only Fetch** - Fast metadata-only triage at scale
