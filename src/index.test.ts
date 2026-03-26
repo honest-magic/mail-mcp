@@ -871,6 +871,123 @@ const ALL_WRITE_TOOL_NAMES_20 = [
   'forward_email',
 ];
 
+// ---------------------------------------------------------------------------
+// Phase 26: mark_read, mark_unread, star, unstar tools
+// ---------------------------------------------------------------------------
+
+const MARK_TOOL_NAMES = ['mark_read', 'mark_unread', 'star', 'unstar'];
+
+describe('MARK-01: mark_read/unread/star/unstar tool registration', () => {
+  it('getTools(false) includes mark_read, mark_unread, star, unstar', () => {
+    const server = new MailMCPServer(false);
+    const names = (server as any).getTools(false).map((t: any) => t.name);
+    for (const name of MARK_TOOL_NAMES) {
+      expect(names).toContain(name);
+    }
+  });
+
+  it('getTools(true) excludes all 4 mark/star tools (write tools filtered)', () => {
+    const server = new MailMCPServer(true);
+    const names = (server as any).getTools(true).map((t: any) => t.name);
+    for (const name of MARK_TOOL_NAMES) {
+      expect(names).not.toContain(name);
+    }
+  });
+
+  it('all 4 tools have readOnlyHint=false and destructiveHint=true', () => {
+    const server = new MailMCPServer(false);
+    const tools = (server as any).getTools(false);
+    for (const name of MARK_TOOL_NAMES) {
+      const tool = tools.find((t: any) => t.name === name);
+      expect(tool).toBeDefined();
+      expect(tool.annotations.readOnlyHint).toBe(false);
+      expect(tool.annotations.destructiveHint).toBe(true);
+    }
+  });
+
+  it('getTools(false) now returns 24 tools (was 20, +4 mark/star)', () => {
+    const server = new MailMCPServer(false);
+    const tools = (server as any).getTools(false);
+    expect(tools).toHaveLength(24);
+  });
+
+  it('getTools(true) now returns 16 tools (was 12, write tools still hidden)', () => {
+    const server = new MailMCPServer(true);
+    const tools = (server as any).getTools(true);
+    expect(tools).toHaveLength(16);
+  });
+
+  it('each mark/star tool requires accountId and uid', () => {
+    const server = new MailMCPServer(false);
+    const tools = (server as any).getTools(false);
+    for (const name of MARK_TOOL_NAMES) {
+      const tool = tools.find((t: any) => t.name === name);
+      expect(tool.inputSchema.required).toContain('accountId');
+      expect(tool.inputSchema.required).toContain('uid');
+    }
+  });
+});
+
+describe('MARK-02: mark_read/unread/star/unstar blocked in read-only mode', () => {
+  it('all 4 tools return isError: true in read-only mode', async () => {
+    const server = new MailMCPServer(true);
+    for (const name of MARK_TOOL_NAMES) {
+      const result = await (server as any).dispatchTool(name, true, {});
+      expect(result.isError).toBe(true);
+    }
+  });
+});
+
+describe('MARK-03: mark_read/unread/star/unstar dispatch — correct flags', () => {
+  it('mark_read calls modifyLabels with addLabels=[\\Seen], removeLabels=[]', async () => {
+    const server = new MailMCPServer(false);
+    const modifyLabelsMock = vi.fn().mockResolvedValue(undefined);
+    vi.spyOn(server as any, 'getService').mockResolvedValue({ modifyLabels: modifyLabelsMock });
+    await (server as any).dispatchTool('mark_read', false, { accountId: 'test', uid: '42', folder: 'INBOX' });
+    expect(modifyLabelsMock).toHaveBeenCalledWith('42', 'INBOX', ['\\Seen'], []);
+  });
+
+  it('mark_unread calls modifyLabels with addLabels=[], removeLabels=[\\Seen]', async () => {
+    const server = new MailMCPServer(false);
+    const modifyLabelsMock = vi.fn().mockResolvedValue(undefined);
+    vi.spyOn(server as any, 'getService').mockResolvedValue({ modifyLabels: modifyLabelsMock });
+    await (server as any).dispatchTool('mark_unread', false, { accountId: 'test', uid: '42', folder: 'INBOX' });
+    expect(modifyLabelsMock).toHaveBeenCalledWith('42', 'INBOX', [], ['\\Seen']);
+  });
+
+  it('star calls modifyLabels with addLabels=[\\Flagged], removeLabels=[]', async () => {
+    const server = new MailMCPServer(false);
+    const modifyLabelsMock = vi.fn().mockResolvedValue(undefined);
+    vi.spyOn(server as any, 'getService').mockResolvedValue({ modifyLabels: modifyLabelsMock });
+    await (server as any).dispatchTool('star', false, { accountId: 'test', uid: '42', folder: 'INBOX' });
+    expect(modifyLabelsMock).toHaveBeenCalledWith('42', 'INBOX', ['\\Flagged'], []);
+  });
+
+  it('unstar calls modifyLabels with addLabels=[], removeLabels=[\\Flagged]', async () => {
+    const server = new MailMCPServer(false);
+    const modifyLabelsMock = vi.fn().mockResolvedValue(undefined);
+    vi.spyOn(server as any, 'getService').mockResolvedValue({ modifyLabels: modifyLabelsMock });
+    await (server as any).dispatchTool('unstar', false, { accountId: 'test', uid: '42', folder: 'INBOX' });
+    expect(modifyLabelsMock).toHaveBeenCalledWith('42', 'INBOX', [], ['\\Flagged']);
+  });
+
+  it('mark_read defaults folder to INBOX when not provided', async () => {
+    const server = new MailMCPServer(false);
+    const modifyLabelsMock = vi.fn().mockResolvedValue(undefined);
+    vi.spyOn(server as any, 'getService').mockResolvedValue({ modifyLabels: modifyLabelsMock });
+    await (server as any).dispatchTool('mark_read', false, { accountId: 'test', uid: '42' });
+    expect(modifyLabelsMock).toHaveBeenCalledWith('42', 'INBOX', ['\\Seen'], []);
+  });
+
+  it('mark_read response text confirms action', async () => {
+    const server = new MailMCPServer(false);
+    const modifyLabelsMock = vi.fn().mockResolvedValue(undefined);
+    vi.spyOn(server as any, 'getService').mockResolvedValue({ modifyLabels: modifyLabelsMock });
+    const result = await (server as any).dispatchTool('mark_read', false, { accountId: 'test', uid: '42', folder: 'INBOX' });
+    expect(result.content[0].text).toContain('42');
+  });
+});
+
 describe('THREAD-01: reply_email and forward_email in tool list', () => {
   it('getTools(false) includes reply_email and forward_email', () => {
     const server = new MailMCPServer(false);
