@@ -67,6 +67,10 @@ const WRITE_TOOL_NAMES = [
   'batch_operations',
   'reply_email',
   'forward_email',
+  'mark_read',
+  'mark_unread',
+  'star',
+  'unstar',
 ];
 
 const READ_TOOL_NAMES = [
@@ -97,16 +101,16 @@ describe('ROM-01: readOnly constructor field', () => {
 });
 
 describe('ROM-05: list-time filtering', () => {
-  it('Test C: getTools(false) returns array of length 20', () => {
+  it('Test C: getTools(false) returns array of length 29', () => {
     const server = new MailMCPServer(false);
     const tools = (server as any).getTools(false);
-    expect(tools).toHaveLength(20);
+    expect(tools).toHaveLength(29);
   });
 
-  it('Test D: getTools(true) returns array of length 12', () => {
+  it('Test D: getTools(true) returns array of length 14', () => {
     const server = new MailMCPServer(true);
     const tools = (server as any).getTools(true);
-    expect(tools).toHaveLength(12);
+    expect(tools).toHaveLength(14);
   });
 
   it('Test E: getTools(true) does NOT include send_email', () => {
@@ -116,7 +120,7 @@ describe('ROM-05: list-time filtering', () => {
     expect(names).not.toContain('send_email');
   });
 
-  it('Test F: getTools(true) does NOT include any of the 8 write tools', () => {
+  it('Test F: getTools(true) does NOT include any of the 12 write tools', () => {
     const server = new MailMCPServer(true);
     const tools = (server as any).getTools(true);
     const names: string[] = tools.map((t: any) => t.name);
@@ -157,16 +161,16 @@ describe('ROM-03: read tools unaffected in read-only mode', () => {
 });
 
 describe('ROM-06: tool annotations', () => {
-  it('Test J: all 20 tools have annotations.readOnlyHint defined', () => {
+  it('Test J: all 29 tools have annotations.readOnlyHint defined', () => {
     const server = new MailMCPServer(false);
     const tools = (server as any).getTools(false);
-    expect(tools).toHaveLength(20);
+    expect(tools).toHaveLength(29);
     for (const tool of tools) {
       expect(tool.annotations?.readOnlyHint).toBeDefined();
     }
   });
 
-  it('Test K: all 20 tools have annotations.destructiveHint defined', () => {
+  it('Test K: all 29 tools have annotations.destructiveHint defined', () => {
     const server = new MailMCPServer(false);
     const tools = (server as any).getTools(false);
     for (const tool of tools) {
@@ -905,16 +909,16 @@ describe('MARK-01: mark_read/unread/star/unstar tool registration', () => {
     }
   });
 
-  it('getTools(false) now returns 24 tools (was 20, +4 mark/star)', () => {
+  it('getTools(false) now returns 25 tools (was 25, +4 mark/star tools)', () => {
     const server = new MailMCPServer(false);
     const tools = (server as any).getTools(false);
-    expect(tools).toHaveLength(24);
+    expect(tools).toHaveLength(29);
   });
 
-  it('getTools(true) now returns 16 tools (was 12, write tools still hidden)', () => {
+  it('getTools(true) now returns 16 tools (now 14, write tools hidden)', () => {
     const server = new MailMCPServer(true);
     const tools = (server as any).getTools(true);
-    expect(tools).toHaveLength(16);
+    expect(tools).toHaveLength(14);
   });
 
   it('each mark/star tool requires accountId and uid', () => {
