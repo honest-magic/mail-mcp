@@ -33,6 +33,11 @@ vi.mock('./services/mail.js', () => {
     listFolders: vi.fn().mockResolvedValue(['INBOX', 'Sent', 'Drafts', 'Trash']),
     moveMessage: vi.fn().mockResolvedValue(undefined),
     modifyLabels: vi.fn().mockResolvedValue(undefined),
+    extractContacts: vi.fn().mockResolvedValue([
+      { name: 'Alice', email: 'alice@example.com', count: 5, lastSeen: '2024-01-15T10:00:00.000Z' },
+      { name: 'Bob', email: 'bob@example.com', count: 2, lastSeen: '2024-01-10T10:00:00.000Z' },
+    ]),
+    imap: { onClose: null },
   }));
   return { MailService: MockMailService };
 });
@@ -61,6 +66,7 @@ const READ_TOOL_NAMES = [
   'get_thread',
   'get_attachment',
   'extract_attachment_text',
+  'extract_contacts',
 ];
 
 describe('ROM-01: readOnly constructor field', () => {
@@ -76,16 +82,16 @@ describe('ROM-01: readOnly constructor field', () => {
 });
 
 describe('ROM-05: list-time filtering', () => {
-  it('Test C: getTools(false) returns array of length 16', () => {
+  it('Test C: getTools(false) returns array of length 17', () => {
     const server = new MailMCPServer(false);
     const tools = (server as any).getTools(false);
-    expect(tools).toHaveLength(16);
+    expect(tools).toHaveLength(17);
   });
 
-  it('Test D: getTools(true) returns array of length 8', () => {
+  it('Test D: getTools(true) returns array of length 9', () => {
     const server = new MailMCPServer(true);
     const tools = (server as any).getTools(true);
-    expect(tools).toHaveLength(8);
+    expect(tools).toHaveLength(9);
   });
 
   it('Test E: getTools(true) does NOT include send_email', () => {
@@ -136,16 +142,16 @@ describe('ROM-03: read tools unaffected in read-only mode', () => {
 });
 
 describe('ROM-06: tool annotations', () => {
-  it('Test J: all 16 tools have annotations.readOnlyHint defined', () => {
+  it('Test J: all 17 tools have annotations.readOnlyHint defined', () => {
     const server = new MailMCPServer(false);
     const tools = (server as any).getTools(false);
-    expect(tools).toHaveLength(16);
+    expect(tools).toHaveLength(17);
     for (const tool of tools) {
       expect(tool.annotations?.readOnlyHint).toBeDefined();
     }
   });
 
-  it('Test K: all 16 tools have annotations.destructiveHint defined', () => {
+  it('Test K: all 17 tools have annotations.destructiveHint defined', () => {
     const server = new MailMCPServer(false);
     const tools = (server as any).getTools(false);
     for (const tool of tools) {
@@ -168,11 +174,35 @@ describe('ROM-06: tool annotations', () => {
     const server = new MailMCPServer(false);
     const tools = (server as any).getTools(false);
     const readTools = tools.filter((t: any) => READ_TOOL_NAMES.includes(t.name));
-    expect(readTools).toHaveLength(8);
+    expect(readTools).toHaveLength(9);
     for (const tool of readTools) {
       expect(tool.annotations.readOnlyHint).toBe(true);
       expect(tool.annotations.destructiveHint).toBe(false);
     }
+  });
+});
+
+describe('CE-03: extract_contacts MCP tool', () => {
+  it('extract_contacts appears in getTools(false) output as a read-only tool', () => {
+    const server = new MailMCPServer(false);
+    const tools = (server as any).getTools(false);
+    const tool = tools.find((t: any) => t.name === 'extract_contacts');
+    expect(tool).toBeDefined();
+    expect(tool.annotations.readOnlyHint).toBe(true);
+  });
+
+  it('extract_contacts appears in getTools(true) output (read-only server also shows it)', () => {
+    const server = new MailMCPServer(true);
+    const tools = (server as any).getTools(true);
+    const names = tools.map((t: any) => t.name);
+    expect(names).toContain('extract_contacts');
+  });
+
+  it('extract_contacts tool has accountId as required parameter', () => {
+    const server = new MailMCPServer(false);
+    const tools = (server as any).getTools(false);
+    const tool = tools.find((t: any) => t.name === 'extract_contacts');
+    expect(tool.inputSchema.required).toContain('accountId');
   });
 });
 
