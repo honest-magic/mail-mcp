@@ -1,4 +1,4 @@
-import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { vi, describe, it, expect, beforeEach } from 'vitest';
 
 const mockImapConnect = vi.fn().mockResolvedValue(undefined);
 const mockImapAppendMessage = vi.fn().mockResolvedValue(undefined);
@@ -222,6 +222,87 @@ describe('MailService sendEmail with signature', () => {
 // ---------------------------------------------------------------------------
 // createDraft with signature tests
 // ---------------------------------------------------------------------------
+
+// ---------------------------------------------------------------------------
+// readEmail List-Unsubscribe header extraction tests
+// ---------------------------------------------------------------------------
+
+describe('readEmail List-Unsubscribe header extraction', () => {
+  const account = { id: 'test', name: 'Test', user: 'test@example.com', imap: {} as any, smtp: {} as any };
+
+  beforeEach(() => {
+    mockFetchMessageBody.mockClear();
+  });
+
+  function makeParsedMail(headers: Record<string, string>, extra: Partial<any> = {}): any {
+    const map = new Map(Object.entries(headers).map(([k, v]) => [k.toLowerCase(), v]));
+    return {
+      from: { text: 'sender@example.com' },
+      to: { text: 'recipient@example.com' },
+      subject: 'Test Email',
+      date: new Date('2026-01-01T00:00:00Z'),
+      text: 'Hello world',
+      headers: map,
+      attachments: [],
+      ...extra,
+    };
+  }
+
+  it('outputs Unsubscribe https line when List-Unsubscribe contains an https URL', async () => {
+    mockFetchMessageBody.mockResolvedValue(
+      makeParsedMail({ 'list-unsubscribe': '<https://example.com/unsub?token=abc>' })
+    );
+    const service = new MailService(account, false);
+    await service.connect();
+    const result = await service.readEmail('1');
+    expect(result).toContain('**Unsubscribe:** https://example.com/unsub?token=abc');
+  });
+
+  it('outputs Unsubscribe mailto line when List-Unsubscribe contains a mailto URL', async () => {
+    mockFetchMessageBody.mockResolvedValue(
+      makeParsedMail({ 'list-unsubscribe': '<mailto:unsub@list.example.com>' })
+    );
+    const service = new MailService(account, false);
+    await service.connect();
+    const result = await service.readEmail('1');
+    expect(result).toContain('**Unsubscribe (mailto):** unsub@list.example.com');
+  });
+
+  it('outputs both https and mailto lines when List-Unsubscribe contains both', async () => {
+    mockFetchMessageBody.mockResolvedValue(
+      makeParsedMail({
+        'list-unsubscribe': '<mailto:unsub@list.example.com>, <https://example.com/unsub?token=xyz>',
+      })
+    );
+    const service = new MailService(account, false);
+    await service.connect();
+    const result = await service.readEmail('1');
+    expect(result).toContain('**Unsubscribe:** https://example.com/unsub?token=xyz');
+    expect(result).toContain('**Unsubscribe (mailto):** unsub@list.example.com');
+  });
+
+  it('does not output any Unsubscribe line when List-Unsubscribe header is absent', async () => {
+    mockFetchMessageBody.mockResolvedValue(makeParsedMail({}));
+    const service = new MailService(account, false);
+    await service.connect();
+    const result = await service.readEmail('1');
+    expect(result).not.toContain('Unsubscribe');
+  });
+
+  it('outputs one-click line when List-Unsubscribe-Post is present', async () => {
+    mockFetchMessageBody.mockResolvedValue(
+      makeParsedMail({
+        'list-unsubscribe': '<https://example.com/unsub>',
+        'list-unsubscribe-post': 'List-Unsubscribe=One-Click',
+      })
+    );
+    const service = new MailService(account, false);
+    await service.connect();
+    const result = await service.readEmail('1');
+    expect(result).toContain('**Unsubscribe:** https://example.com/unsub');
+    expect(result).toContain('**Unsubscribe (one-click):** yes');
+  });
+});
 
 describe('MailService createDraft with signature', () => {
   const baseAccount = { id: 'test', name: 'Test', user: 'test@example.com', authType: 'login' as const, host: 'imap.example.com', port: 993, useTLS: true };
