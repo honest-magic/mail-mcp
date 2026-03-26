@@ -33,6 +33,7 @@ export const emailAccountSchema = z.object({
   useTLS: z.boolean(),
   signature: z.string().optional(),
   manageSievePort: z.number().int().positive().optional(),
+  allowedRecipients: z.array(z.string()).optional(),
 });
 
 export type EmailAccount = z.infer<typeof emailAccountSchema>;

@@ -16,7 +16,7 @@ import { MailMCPError, NetworkError } from './errors.js';
 import { AccountRateLimiter } from './utils/rate-limiter.js';
 import { ImapClient } from './protocol/imap.js';
 import { SmtpClient } from './protocol/smtp.js';
-import { validateEmailAddresses } from './utils/validation.js';
+import { validateEmailAddresses, validateRecipients } from './utils/validation.js';
 import { getTemplates, applyVariables } from './utils/templates.js';
 import { SieveClient } from './protocol/sieve.js';
 import { AuditLogger } from './utils/audit-logger.js';
@@ -95,12 +95,14 @@ export class MailMCPServer {
   private readonly confirmMode: boolean;
   private readonly confirmStore: ConfirmationStore;
   private readonly auditLogger?: AuditLogger;
+  private readonly redact: boolean;
 
   constructor(
     private readonly readOnly: boolean = false,
     allowedTools?: Set<string>,
     auditLogger?: AuditLogger,
-    confirmMode: boolean = false
+    confirmMode: boolean = false,
+    redact: boolean = false
   ) {
     if (readOnly && allowedTools !== undefined) {
       throw new Error(
@@ -112,6 +114,7 @@ export class MailMCPServer {
     this.auditLogger = auditLogger;
     this.confirmMode = confirmMode;
     this.confirmStore = new ConfirmationStore();
+    this.redact = redact;
 
     const instructionsSuffix = (() => {
       if (readOnly) {
@@ -168,7 +171,7 @@ export class MailMCPServer {
     if (!account) {
       throw new Error(`Account ${accountId} not found in configuration.`);
     }
-    const service = new MailService(account, this.readOnly);
+    const service = new MailService(account, this.readOnly, this.redact);
     await service.connect();
     this.services.set(accountId, service);
 
@@ -791,6 +794,41 @@ export class MailMCPServer {
             args.cc as string | undefined,
             args.bcc as string | undefined
           );
+        }
+      }
+
+      // Allowlist guard — validate recipients against per-account allowedRecipients when set
+      if (
+        name === 'send_email' ||
+        name === 'create_draft' ||
+        name === 'forward_email' ||
+        name === 'reply_email'
+      ) {
+        const sendAccountId = args.accountId as string | undefined;
+        if (sendAccountId) {
+          const allAccounts = await getAccounts();
+          const sendAccount = allAccounts.find((a) => a.id === sendAccountId);
+          if (sendAccount?.allowedRecipients && sendAccount.allowedRecipients.length > 0) {
+            const allowlist = sendAccount.allowedRecipients;
+            if (name === 'reply_email') {
+              // to is auto-determined from original sender — only validate cc/bcc
+              validateRecipients(
+                [args.cc as string | undefined, args.bcc as string | undefined],
+                allowlist,
+                sendAccountId
+              );
+            } else {
+              validateRecipients(
+                [
+                  args.to as string | undefined,
+                  args.cc as string | undefined,
+                  args.bcc as string | undefined,
+                ],
+                allowlist,
+                sendAccountId
+              );
+            }
+          }
         }
       }
 
@@ -1622,6 +1660,7 @@ async function main() {
       'confirm': { type: 'boolean', default: false },
       'audit-log': { type: 'boolean', default: false },
       'validate-accounts': { type: 'boolean', default: false },
+      'install-claude': { type: 'boolean', default: false },
       'version': { type: 'boolean', default: false },
       'help': { type: 'boolean', short: 'h', default: false },
     },
@@ -1655,6 +1694,7 @@ Options:
   --confirm                   Enable confirmation mode — write tools require a two-step call (first returns confirmationId, second executes)
   --audit-log                 Append a JSONL entry for every tool call to ~/.config/mail-mcp/audit.log
   --validate-accounts         Probe IMAP/SMTP connections and exit
+  --install-claude            Write mail-mcp to Claude Desktop config and exit (one-command setup)
   --version                   Show version number
   -h, --help                  Show this help message`);
     process.exit(0);
