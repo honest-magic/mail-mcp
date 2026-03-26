@@ -435,6 +435,11 @@ export class MailService {
     return this.imapClient.moveMessage(uid, sourceFolder, targetFolder);
   }
 
+  async deleteEmail(uid: string, folder: string = 'INBOX'): Promise<void> {
+    await this.imapClient.deleteMessage(uid, folder);
+    this.invalidateBodyCache(folder, uid);
+  }
+
   async modifyLabels(uid: string, folder: string, addLabels: string[], removeLabels: string[]): Promise<void> {
     return this.imapClient.modifyLabels(uid, folder, addLabels, removeLabels);
   }
