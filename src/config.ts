@@ -5,6 +5,7 @@ import * as path from 'node:path';
 import * as os from 'node:os';
 
 export const ACCOUNTS_PATH = path.join(os.homedir(), '.config', 'mail-mcp', 'accounts.json');
+export const AUDIT_LOG_PATH = path.join(os.homedir(), '.config', 'mail-mcp', 'audit.log');
 
 const configSchema = z.object({
   serviceName: z.string().default('ch.honest-magic.config.mail-server'),
