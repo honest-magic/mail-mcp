@@ -18,6 +18,8 @@ import { SmtpClient } from './protocol/smtp.js';
 import { validateEmailAddresses } from './utils/validation.js';
 import { getTemplates, applyVariables } from './utils/templates.js';
 import { SieveClient } from './protocol/sieve.js';
+import { AuditLogger } from './utils/audit-logger.js';
+import { AUDIT_LOG_PATH } from './config.js';
 
 const WRITE_TOOLS = new Set<string>([
   'send_email',
@@ -43,8 +45,31 @@ export class MailMCPServer {
   private shuttingDown = false;
   private inFlightCount = 0;
   private readonly rateLimiter = new AccountRateLimiter();
+  private readonly allowedTools?: Set<string>;
 
-  constructor(private readonly readOnly: boolean = false) {
+  constructor(
+    private readonly readOnly: boolean = false,
+    allowedTools?: Set<string>
+  ) {
+    if (readOnly && allowedTools !== undefined) {
+      throw new Error(
+        '--read-only and --allow-tools are mutually exclusive. Use --read-only to disable all write tools, or --allow-tools to enable specific ones.'
+      );
+    }
+
+    this.allowedTools = allowedTools;
+
+    const instructionsSuffix = (() => {
+      if (readOnly) {
+        return ' This server is running in read-only mode. Write operations (send_email, create_draft, move_email, modify_labels, batch_operations, register_oauth2_account, reply_email, forward_email, delete_email, mark_read, mark_unread, star, unstar) are disabled.';
+      }
+      if (allowedTools !== undefined) {
+        const list = [...allowedTools].join(', ') || 'none';
+        return ` This server is running with allow-listed tools. Only these write operations are enabled: ${list}. All other write tools are disabled.`;
+      }
+      return '';
+    })();
+
     this.server = new Server(
       {
         name: 'mail-mcp-server',
@@ -54,7 +79,7 @@ export class MailMCPServer {
         capabilities: {
           tools: {},
         },
-        instructions: `Use mail-mcp for IMAP-based email accounts — works with any provider including Gmail, Outlook, and custom domains. Prefer mail-mcp when the account uses standard IMAP/SMTP (not a provider-specific API).${this.readOnly ? ' This server is running in read-only mode. Write operations (send_email, create_draft, move_email, modify_labels, batch_operations, register_oauth2_account, reply_email, forward_email, delete_email, mark_read, mark_unread, star, unstar) are disabled.' : ''}`,
+        instructions: `Use mail-mcp for IMAP-based email accounts — works with any provider including Gmail, Outlook, and custom domains. Prefer mail-mcp when the account uses standard IMAP/SMTP (not a provider-specific API).${instructionsSuffix}`,
       }
     );
 
@@ -120,7 +145,7 @@ export class MailMCPServer {
     }
   }
 
-  getTools(readOnly: boolean) {
+  getTools(readOnly: boolean, allowedTools?: Set<string>) {
     const allTools = [
       {
         name: 'list_accounts',
@@ -478,6 +503,7 @@ export class MailMCPServer {
             accountId: { type: 'string', description: 'The ID of the account to use' },
             uid: { type: 'string', description: 'The UID of the email to mark as read' },
             folder: { type: 'string', description: 'The folder containing the email (default: INBOX)' },
+            confirmationId: { type: 'string', description: 'Confirmation token from a prior confirmation-required response. Required to execute write operations when server is in --confirm mode.' }
           },
           required: ['accountId', 'uid'],
         },
@@ -492,6 +518,7 @@ export class MailMCPServer {
             accountId: { type: 'string', description: 'The ID of the account to use' },
             uid: { type: 'string', description: 'The UID of the email to mark as unread' },
             folder: { type: 'string', description: 'The folder containing the email (default: INBOX)' },
+            confirmationId: { type: 'string', description: 'Confirmation token from a prior confirmation-required response. Required to execute write operations when server is in --confirm mode.' }
           },
           required: ['accountId', 'uid'],
         },
@@ -506,6 +533,7 @@ export class MailMCPServer {
             accountId: { type: 'string', description: 'The ID of the account to use' },
             uid: { type: 'string', description: 'The UID of the email to star' },
             folder: { type: 'string', description: 'The folder containing the email (default: INBOX)' },
+            confirmationId: { type: 'string', description: 'Confirmation token from a prior confirmation-required response. Required to execute write operations when server is in --confirm mode.' }
           },
           required: ['accountId', 'uid'],
         },
@@ -520,6 +548,7 @@ export class MailMCPServer {
             accountId: { type: 'string', description: 'The ID of the account to use' },
             uid: { type: 'string', description: 'The UID of the email to unstar' },
             folder: { type: 'string', description: 'The folder containing the email (default: INBOX)' },
+            confirmationId: { type: 'string', description: 'Confirmation token from a prior confirmation-required response. Required to execute write operations when server is in --confirm mode.' }
           },
           required: ['accountId', 'uid'],
         },
@@ -559,6 +588,7 @@ export class MailMCPServer {
             accountId: { type: 'string', description: 'The ID of the account to use' },
             name: { type: 'string', description: 'The name for the SIEVE script (e.g. "spam-filter")' },
             content: { type: 'string', description: 'Valid SIEVE script content' },
+            confirmationId: { type: 'string', description: 'Confirmation token from a prior confirmation-required response. Required to execute write operations when server is in --confirm mode.' }
           },
           required: ['accountId', 'name', 'content'],
         },
@@ -572,12 +602,19 @@ export class MailMCPServer {
           properties: {
             accountId: { type: 'string', description: 'The ID of the account to use' },
             name: { type: 'string', description: 'The name of the SIEVE script to delete' },
+            confirmationId: { type: 'string', description: 'Confirmation token from a prior confirmation-required response. Required to execute write operations when server is in --confirm mode.' }
           },
           required: ['accountId', 'name'],
         },
       },
     ];
-    return readOnly ? allTools.filter(t => !WRITE_TOOLS.has(t.name)) : allTools;
+    if (readOnly) {
+      return allTools.filter(t => !WRITE_TOOLS.has(t.name));
+    }
+    if (allowedTools !== undefined) {
+      return allTools.filter(t => !WRITE_TOOLS.has(t.name) || allowedTools.has(t.name));
+    }
+    return allTools;
   }
 
   async dispatchTool(name: string, readOnly: boolean, args: Record<string, unknown>) {
@@ -590,6 +627,56 @@ export class MailMCPServer {
           }],
           isError: true,
         };
+      }
+
+      if (this.allowedTools !== undefined && WRITE_TOOLS.has(name) && !this.allowedTools.has(name)) {
+        const list = [...this.allowedTools].join(', ') || 'none';
+        return {
+          content: [{
+            type: 'text',
+            text: `Tool '${name}' is not available: not in the allowed tools list. Allowed write tools: ${list}. Use --allow-tools to change the list.`,
+          }],
+          isError: true,
+        };
+      }
+
+      // Confirmation mode gate — intercept write tools when --confirm is active
+      if (this.confirmMode && WRITE_TOOLS.has(name)) {
+        const confirmationId = args.confirmationId as string | undefined;
+        if (confirmationId) {
+          // Second call: validate and consume the token
+          const pending = this.confirmStore.consume(confirmationId);
+          if (!pending) {
+            return {
+              content: [{
+                type: 'text',
+                text: 'Confirmation token invalid or expired. Call the tool again without confirmationId to get a new token.',
+              }],
+              isError: true,
+            };
+          }
+          // Token valid — strip confirmationId from args and fall through to execute
+          const { confirmationId: _removed, ...cleanArgs } = args;
+          args = cleanArgs;
+        } else {
+          // First call: create confirmation token and return prompt
+          const argsWithoutId = { ...args };
+          delete argsWithoutId.confirmationId;
+          const id = this.confirmStore.create(name, argsWithoutId);
+          const description = buildConfirmationDescription(name, args);
+          return {
+            content: [{
+              type: 'text',
+              text: JSON.stringify({
+                confirmationRequired: true,
+                action: name,
+                description,
+                confirmationId: id,
+                expiresIn: '5 minutes',
+              }, null, 2),
+            }],
+          };
+        }
       }
 
       // Rate limit guard — before any I/O (list_accounts has no accountId, skip it)
@@ -875,7 +962,7 @@ export class MailMCPServer {
 
   private setupToolHandlers() {
     this.server.setRequestHandler(ListToolsRequestSchema, async () => ({
-      tools: this.getTools(this.readOnly),
+      tools: this.getTools(this.readOnly, this.allowedTools),
     }));
 
     this.server.setRequestHandler(CallToolRequestSchema, async (request) => {
@@ -894,6 +981,17 @@ export class MailMCPServer {
             content: [{
               type: 'text',
               text: `Tool '${toolName}' is not available: server is running in read-only mode. Use a server without --read-only to perform write operations.`,
+            }],
+            isError: true,
+          };
+        }
+
+        if (this.allowedTools !== undefined && WRITE_TOOLS.has(toolName) && !this.allowedTools.has(toolName)) {
+          const list = [...this.allowedTools].join(', ') || 'none';
+          return {
+            content: [{
+              type: 'text',
+              text: `Tool '${toolName}' is not available: not in the allowed tools list. Allowed write tools: ${list}. Use --allow-tools to change the list.`,
             }],
             isError: true,
           };
@@ -1380,6 +1478,7 @@ async function main() {
     args,
     options: {
       'read-only': { type: 'boolean', default: false },
+      'allow-tools': { type: 'string' },
       'validate-accounts': { type: 'boolean', default: false },
       'version': { type: 'boolean', default: false },
       'help': { type: 'boolean', short: 'h', default: false },
@@ -1409,10 +1508,11 @@ Commands:
   accounts remove ID  Remove an account
 
 Options:
-  --read-only           Start in read-only mode (no send/move/label tools)
-  --validate-accounts   Probe IMAP/SMTP connections and exit
-  --version             Show version number
-  -h, --help            Show this help message`);
+  --read-only                 Start in read-only mode (no send/move/label tools)
+  --allow-tools t1,t2,...     Allow only specific write tools (comma-separated). Mutually exclusive with --read-only.
+  --validate-accounts         Probe IMAP/SMTP connections and exit
+  --version                   Show version number
+  -h, --help                  Show this help message`);
     process.exit(0);
   }
 
@@ -1421,7 +1521,19 @@ Options:
     process.exit(0);
   }
 
-  const server = new MailMCPServer((values['read-only'] as boolean | undefined) ?? false);
+  const readOnly = (values['read-only'] as boolean | undefined) ?? false;
+  const allowToolsRaw = values['allow-tools'] as string | undefined;
+
+  if (readOnly && allowToolsRaw !== undefined) {
+    console.error('Error: --read-only and --allow-tools are mutually exclusive.');
+    process.exit(1);
+  }
+
+  const allowedTools = allowToolsRaw !== undefined
+    ? new Set(allowToolsRaw.split(',').map(t => t.trim()).filter(t => t.length > 0))
+    : undefined;
+
+  const server = new MailMCPServer(readOnly, allowedTools);
 
   const shutdown = async () => {
     const timer = setTimeout(() => {
