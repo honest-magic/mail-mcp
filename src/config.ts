@@ -31,6 +31,7 @@ export const emailAccountSchema = z.object({
   authType: z.enum(['login', 'oauth2']),
   useTLS: z.boolean(),
   signature: z.string().optional(),
+  manageSievePort: z.number().int().positive().optional(),
 });
 
 export type EmailAccount = z.infer<typeof emailAccountSchema>;
