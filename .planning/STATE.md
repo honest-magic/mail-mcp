@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.4.0
 milestone_name: AI Mail Assistant Features
 status: roadmap_ready
-stopped_at: Completed 27-01-PLAN.md (delete_email tool)
-last_updated: "2026-03-26T19:32:44.983Z"
+stopped_at: Completed 26-01-PLAN.md (mark_read, mark_unread, star, unstar tools)
+last_updated: "2026-03-26T19:31:39Z"
 progress:
   total_phases: 16
-  completed_phases: 8
+  completed_phases: 9
   total_plans: 9
-  completed_plans: 8
+  completed_plans: 9
 ---
 
 # Project State: Mail MCP Server
@@ -54,6 +54,9 @@ Carried from v1.2.0 — see PROJECT.md Key Decisions table for full history.
 - **24-01**: `use_template` is read-only — resolves template to args only; AI calls `send_email`/`create_draft` separately
 - **24-01**: `{{variable}}` regex replaces all occurrences globally; unknown placeholders left intact for AI awareness
 - **24-01**: `list_templates` with `accountId` returns global (no accountId) + account-scoped templates; omit returns all
+- **26-01**: mark_read/unread/star/unstar are thin wrappers calling service.modifyLabels() with \Seen/\Flagged flags
+- **26-01**: All 4 are write tools (readOnlyHint:false, destructiveHint:true), folder defaults to INBOX
+- **26-01**: Dispatch handlers placed in dispatchTool() using name param (not request.params.name)
 
 ### Critical Blockers
 
@@ -71,10 +74,10 @@ Carried from v1.2.0 — see PROJECT.md Key Decisions table for full history.
 | 21 | 01 | 345 | 6 | 6 |
 | 23 | 01 | 156 | 4 | 5 |
 | 24 | 01 | 25 | 3 | 4 |
-| Phase 27 P01 | 7 | 4 tasks | 6 files |
+| 26 | 01 | 389 | 2 | 2 |
 
 ## Session Continuity
 
-**Last Action:** Completed Phase 24 Plan 01 — Email Templates (list_templates, use_template tools).
-**Stopped At:** Completed 27-01-PLAN.md (delete_email tool)
+**Last Action:** Completed Phase 26 Plan 01 — Mark Read/Star Tools (mark_read, mark_unread, star, unstar).
+**Stopped At:** Completed 26-01-PLAN.md (mark_read, mark_unread, star, unstar tools)
 **Next Step:** Run `/gsd:execute-phase` to continue with next phase.

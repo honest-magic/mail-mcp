@@ -106,7 +106,7 @@ Full archive: `.planning/milestones/v1.3.0-ROADMAP.md`
 - [x] **Phase 23: Header-Only Fetch** - Fast metadata-only triage at scale (completed 2026-03-26)
 - [x] **Phase 24: Email Templates** - Reusable reply/compose patterns for AI agents (completed 2026-03-26)
 - [ ] **Phase 25: SIEVE Folder Rules** - Server-side mail filters via AI
-- [ ] **Phase 26: Mark Read/Star Tools** - Simple tools instead of IMAP flag syntax
+- [x] **Phase 26: Mark Read/Star Tools** - Simple tools instead of IMAP flag syntax (completed 2026-03-26)
 - [x] **Phase 27: Delete Email Tool** - Single-message delete without batch workaround (completed 2026-03-26)
 - [ ] **Phase 28: Audit Logging** - Log all AI tool calls to local file
 - [ ] **Phase 29: Confirmation Mode** - Human-in-the-loop for destructive operations
@@ -163,8 +163,9 @@ Full archive: `.planning/milestones/v1.3.0-ROADMAP.md`
 ### Phase 26: Mark Read/Star Tools
 **Goal**: Simple mark_read, mark_unread, star, unstar tools without IMAP flag syntax
 **Depends on**: Nothing
-**Requirements**: TBD
-**Plans**: TBD
+**Requirements**: None
+**Plans**: 1/1 complete
+**Status**: COMPLETE (2026-03-26)
 
 ### Phase 27: Delete Email Tool
 **Goal**: Single-message delete_email tool without batch_operations workaround
