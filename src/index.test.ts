@@ -48,6 +48,8 @@ const WRITE_TOOL_NAMES = [
   'modify_labels',
   'register_oauth2_account',
   'batch_operations',
+  'reply_email',
+  'forward_email',
 ];
 
 const READ_TOOL_NAMES = [
@@ -74,10 +76,10 @@ describe('ROM-01: readOnly constructor field', () => {
 });
 
 describe('ROM-05: list-time filtering', () => {
-  it('Test C: getTools(false) returns array of length 14', () => {
+  it('Test C: getTools(false) returns array of length 16', () => {
     const server = new MailMCPServer(false);
     const tools = (server as any).getTools(false);
-    expect(tools).toHaveLength(14);
+    expect(tools).toHaveLength(16);
   });
 
   it('Test D: getTools(true) returns array of length 8', () => {
@@ -93,7 +95,7 @@ describe('ROM-05: list-time filtering', () => {
     expect(names).not.toContain('send_email');
   });
 
-  it('Test F: getTools(true) does NOT include any of the 6 write tools', () => {
+  it('Test F: getTools(true) does NOT include any of the 8 write tools', () => {
     const server = new MailMCPServer(true);
     const tools = (server as any).getTools(true);
     const names: string[] = tools.map((t: any) => t.name);
@@ -116,7 +118,7 @@ describe('ROM-02: call-time guard for write tools', () => {
     expect(result.content[0].text).toContain("Tool 'send_email' is not available");
   });
 
-  it('Test I: all 6 write tool names return isError: true in read-only mode', async () => {
+  it('Test I: all 8 write tool names return isError: true in read-only mode', async () => {
     const server = new MailMCPServer(true);
     for (const toolName of WRITE_TOOL_NAMES) {
       const result = await (server as any).dispatchTool(toolName, true, {});
@@ -134,16 +136,16 @@ describe('ROM-03: read tools unaffected in read-only mode', () => {
 });
 
 describe('ROM-06: tool annotations', () => {
-  it('Test J: all 14 tools have annotations.readOnlyHint defined', () => {
+  it('Test J: all 16 tools have annotations.readOnlyHint defined', () => {
     const server = new MailMCPServer(false);
     const tools = (server as any).getTools(false);
-    expect(tools).toHaveLength(14);
+    expect(tools).toHaveLength(16);
     for (const tool of tools) {
       expect(tool.annotations?.readOnlyHint).toBeDefined();
     }
   });
 
-  it('Test K: all 14 tools have annotations.destructiveHint defined', () => {
+  it('Test K: all 16 tools have annotations.destructiveHint defined', () => {
     const server = new MailMCPServer(false);
     const tools = (server as any).getTools(false);
     for (const tool of tools) {
@@ -155,7 +157,7 @@ describe('ROM-06: tool annotations', () => {
     const server = new MailMCPServer(false);
     const tools = (server as any).getTools(false);
     const writeTools = tools.filter((t: any) => WRITE_TOOL_NAMES.includes(t.name));
-    expect(writeTools).toHaveLength(6);
+    expect(writeTools).toHaveLength(WRITE_TOOL_NAMES.length);
     for (const tool of writeTools) {
       expect(tool.annotations.readOnlyHint).toBe(false);
       expect(tool.annotations.destructiveHint).toBe(true);
@@ -956,7 +958,7 @@ describe('THREAD-05: reply_email and forward_email handler dispatch', () => {
     });
     expect(replyEmailMock).toHaveBeenCalledOnce();
     expect(result.isError).not.toBe(true);
-    expect(result.content[0].text).toContain('reply');
+    expect(result.content[0].text.toLowerCase()).toContain('reply');
   });
 
   it('forward_email handler calls service.forwardEmail and returns success text', async () => {

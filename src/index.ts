@@ -24,6 +24,8 @@ const WRITE_TOOLS = new Set<string>([
   'modify_labels',
   'register_oauth2_account',
   'batch_operations',
+  'reply_email',
+  'forward_email',
 ]);
 
 export class MailMCPServer {
@@ -334,6 +336,51 @@ export class MailMCPServer {
           required: ['accountId', 'uids', 'folder', 'action']
         }
       },
+      {
+        name: 'reply_email',
+        description: 'Reply to an email in-thread via SMTP — sets In-Reply-To and References headers so the reply appears in the original conversation. Works with any IMAP/SMTP provider.',
+        annotations: { readOnlyHint: false, destructiveHint: true },
+        inputSchema: {
+          type: 'object',
+          properties: {
+            accountId: { type: 'string', description: 'The ID of the account to use' },
+            uid: { type: 'string', description: 'The UID of the email to reply to' },
+            folder: { type: 'string', description: 'The folder containing the email (default: INBOX)' },
+            body: { type: 'string', description: 'Reply body content' },
+            isHtml: { type: 'boolean', description: 'Whether the body is HTML (default: false)' },
+            cc: { type: 'string', description: 'CC recipients' },
+            bcc: { type: 'string', description: 'BCC recipients' },
+            includeSignature: {
+              type: 'boolean',
+              description: 'Whether to append the account signature (default: true). Set to false to suppress the signature.'
+            }
+          },
+          required: ['accountId', 'uid', 'body']
+        }
+      },
+      {
+        name: 'forward_email',
+        description: 'Forward an email to a new recipient via SMTP — prepends "Fwd: " to subject and includes the original message body. Works with any IMAP/SMTP provider.',
+        annotations: { readOnlyHint: false, destructiveHint: true },
+        inputSchema: {
+          type: 'object',
+          properties: {
+            accountId: { type: 'string', description: 'The ID of the account to use' },
+            uid: { type: 'string', description: 'The UID of the email to forward' },
+            folder: { type: 'string', description: 'The folder containing the email (default: INBOX)' },
+            to: { type: 'string', description: 'Recipient email address to forward to' },
+            body: { type: 'string', description: 'Optional preamble to include before the forwarded message' },
+            isHtml: { type: 'boolean', description: 'Whether the body is HTML (default: false)' },
+            cc: { type: 'string', description: 'CC recipients' },
+            bcc: { type: 'string', description: 'BCC recipients' },
+            includeSignature: {
+              type: 'boolean',
+              description: 'Whether to append the account signature (default: true). Set to false to suppress the signature.'
+            }
+          },
+          required: ['accountId', 'uid', 'to']
+        }
+      },
     ];
     return readOnly ? allTools.filter(t => !WRITE_TOOLS.has(t.name)) : allTools;
   }
@@ -370,13 +417,65 @@ export class MailMCPServer {
         };
       }
 
-      // Email validation guard for send/draft tools — before SMTP/IMAP I/O
+      // Email validation guard for send/draft/reply/forward tools — before SMTP/IMAP I/O
       if (name === 'send_email' || name === 'create_draft') {
         validateEmailAddresses(
           args.to as string,
           args.cc as string | undefined,
           args.bcc as string | undefined
         );
+      }
+      if (name === 'forward_email') {
+        validateEmailAddresses(
+          args.to as string,
+          args.cc as string | undefined,
+          args.bcc as string | undefined
+        );
+      }
+      if (name === 'reply_email') {
+        // to is determined from original message; validate optional cc/bcc only
+        if (args.cc || args.bcc) {
+          validateEmailAddresses(
+            'placeholder@example.com', // dummy valid to — real to is set from original message
+            args.cc as string | undefined,
+            args.bcc as string | undefined
+          );
+        }
+      }
+
+      if (name === 'reply_email') {
+        const service = await this.getService(args.accountId as string);
+        const includeSignature = (args.includeSignature as boolean | undefined) !== false;
+        await (service as any).replyEmail(
+          args.uid as string,
+          (args.folder as string | undefined) || 'INBOX',
+          args.body as string,
+          args.isHtml as boolean | undefined,
+          args.cc as string | undefined,
+          args.bcc as string | undefined,
+          includeSignature
+        );
+        return {
+          content: [{ type: 'text', text: `Reply sent and saved to Sent folder.` }],
+        };
+      }
+
+      if (name === 'forward_email') {
+        const service = await this.getService(args.accountId as string);
+        const includeSignature = (args.includeSignature as boolean | undefined) !== false;
+        await (service as any).forwardEmail(
+          args.uid as string,
+          (args.folder as string | undefined) || 'INBOX',
+          args.to as string,
+          (args.body as string | undefined) || '',
+          args.isHtml as boolean | undefined,
+          args.cc as string | undefined,
+          args.bcc as string | undefined,
+          includeSignature
+        );
+        return {
+          content: [{ type: 'text', text: `Email forwarded to ${args.to as string} and saved to Sent folder.` }],
+        };
       }
 
       if (name === 'list_emails') {
@@ -537,6 +636,27 @@ export class MailMCPServer {
                 text: content
               }
             ]
+          };
+        }
+
+        if (request.params.name === 'reply_email') {
+          const args = request.params.arguments as { accountId: string; uid: string; folder?: string; body: string; isHtml?: boolean; cc?: string; bcc?: string; includeSignature?: boolean };
+          const includeSignature = args.includeSignature !== false;
+          const service = await this.getService(args.accountId);
+          await service.replyEmail(args.uid, args.folder || 'INBOX', args.body, args.isHtml, args.cc, args.bcc, includeSignature);
+          return {
+            content: [{ type: 'text', text: `Reply sent and saved to Sent folder.` }],
+          };
+        }
+
+        if (request.params.name === 'forward_email') {
+          const args = request.params.arguments as { accountId: string; uid: string; folder?: string; to: string; body?: string; isHtml?: boolean; cc?: string; bcc?: string; includeSignature?: boolean };
+          validateEmailAddresses(args.to, args.cc, args.bcc);
+          const includeSignature = args.includeSignature !== false;
+          const service = await this.getService(args.accountId);
+          await service.forwardEmail(args.uid, args.folder || 'INBOX', args.to, args.body || '', args.isHtml, args.cc, args.bcc, includeSignature);
+          return {
+            content: [{ type: 'text', text: `Email forwarded to ${args.to} and saved to Sent folder.` }],
           };
         }
 
