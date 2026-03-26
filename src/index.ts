@@ -13,7 +13,7 @@ import { handleAccountsCommand } from './cli/accounts.js';
 import { installClaude } from './cli/install-claude.js';
 import { MailService } from './services/mail.js';
 import { MailMCPError, NetworkError } from './errors.js';
-import { AccountRateLimiter } from './utils/rate-limiter.js';
+import { TieredRateLimiter } from './utils/rate-limiter.js';
 import { ImapClient } from './protocol/imap.js';
 import { SmtpClient } from './protocol/smtp.js';
 import { validateEmailAddresses, validateRecipients } from './utils/validation.js';
@@ -90,7 +90,7 @@ export class MailMCPServer {
   private services: Map<string, MailService> = new Map();
   private shuttingDown = false;
   private inFlightCount = 0;
-  private readonly rateLimiter = new AccountRateLimiter();
+  private readonly rateLimiter = new TieredRateLimiter();
   private readonly allowedTools?: Set<string>;
   private readonly confirmMode: boolean;
   private readonly confirmStore: ConfirmationStore;
@@ -754,7 +754,11 @@ export class MailMCPServer {
       // Rate limit guard — before any I/O (list_accounts has no accountId, skip it)
       const accountId = (args as Record<string, unknown>)?.accountId as string | undefined;
       if (accountId) {
-        await this.rateLimiter.consume(accountId);
+        if (WRITE_TOOLS.has(name)) {
+          await this.rateLimiter.consumeWrite(accountId);
+        } else {
+          await this.rateLimiter.consumeRead(accountId);
+        }
       }
 
       if (name === 'list_accounts') {
@@ -1161,7 +1165,11 @@ export class MailMCPServer {
         // Rate limit guard — before any I/O
         const reqAccountId = (request.params.arguments as Record<string, unknown>)?.accountId as string | undefined;
         if (reqAccountId) {
-          await this.rateLimiter.consume(reqAccountId);
+          if (WRITE_TOOLS.has(toolName)) {
+            await this.rateLimiter.consumeWrite(reqAccountId);
+          } else {
+            await this.rateLimiter.consumeRead(reqAccountId);
+          }
         }
 
         if (request.params.name === 'list_accounts') {
@@ -1659,6 +1667,7 @@ async function main() {
       'allow-tools': { type: 'string' },
       'confirm': { type: 'boolean', default: false },
       'audit-log': { type: 'boolean', default: false },
+      'redact': { type: 'boolean', default: false },
       'validate-accounts': { type: 'boolean', default: false },
       'install-claude': { type: 'boolean', default: false },
       'version': { type: 'boolean', default: false },
@@ -1693,6 +1702,7 @@ Options:
   --allow-tools t1,t2,...     Allow only specific write tools (comma-separated). Mutually exclusive with --read-only.
   --confirm                   Enable confirmation mode — write tools require a two-step call (first returns confirmationId, second executes)
   --audit-log                 Append a JSONL entry for every tool call to ~/.config/mail-mcp/audit.log
+  --redact                    Mask credit card numbers, SSNs, passwords, and API keys in email content before returning to AI
   --validate-accounts         Probe IMAP/SMTP connections and exit
   --install-claude            Write mail-mcp to Claude Desktop config and exit (one-command setup)
   --version                   Show version number
@@ -1702,6 +1712,39 @@ Options:
 
   if (values['validate-accounts']) {
     await runValidateAccounts();
+    process.exit(0);
+  }
+
+  if (values['install-claude']) {
+    const { join } = await import('node:path');
+    const { homedir } = await import('node:os');
+    const { execSync } = await import('node:child_process');
+
+    // Detect binary path: try `which mail-mcp`, fall back to current script
+    let binaryPath: string;
+    try {
+      binaryPath = execSync('which mail-mcp', { encoding: 'utf8' }).trim();
+    } catch {
+      binaryPath = process.argv[1];
+    }
+
+    const configPath = join(
+      homedir(),
+      'Library',
+      'Application Support',
+      'Claude',
+      'claude_desktop_config.json'
+    );
+
+    try {
+      const writtenPath = await installClaude(configPath, binaryPath);
+      console.log(`mail-mcp configured for Claude Desktop at: ${writtenPath}`);
+      console.log(`Server path: ${binaryPath}`);
+      console.log('Restart Claude Desktop to activate.');
+    } catch (err) {
+      console.error(`Error: ${(err as Error).message}`);
+      process.exit(1);
+    }
     process.exit(0);
   }
 
@@ -1721,7 +1764,8 @@ Options:
 
   const auditLogEnabled = (values['audit-log'] as boolean | undefined) ?? false;
   const auditLogger = new AuditLogger(AUDIT_LOG_PATH, auditLogEnabled);
-  const server = new MailMCPServer(readOnly, allowedTools, auditLogger, confirmMode);
+  const redact = (values['redact'] as boolean | undefined) ?? false;
+  const server = new MailMCPServer(readOnly, allowedTools, auditLogger, confirmMode, redact);
 
   const shutdown = async () => {
     const timer = setTimeout(() => {

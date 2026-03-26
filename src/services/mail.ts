@@ -4,6 +4,7 @@ import { htmlToMarkdown } from '../utils/markdown.js';
 import { EmailAccount } from '../types/index.js';
 import { ValidationError } from '../errors.js';
 import { MessageBodyCache } from '../utils/message-cache.js';
+import { redactSensitiveContent } from '../utils/redact.js';
 import type { ParsedMail } from 'mailparser';
 
 /**
@@ -39,7 +40,7 @@ export class MailService {
   private smtpConnected = false;
   private readonly bodyCache = new MessageBodyCache();
 
-  constructor(account: EmailAccount, private readonly readOnly: boolean = false) {
+  constructor(account: EmailAccount, private readonly readOnly: boolean = false, private readonly redact: boolean = false) {
     this.account = account;
     this.imapClient = new ImapClient(account);
     this.smtpClient = new SmtpClient(account);
@@ -343,7 +344,8 @@ export class MailService {
 
     header += `\n---\n\n`;
 
-    return header + content + attachmentInfo;
+    const body = this.redact ? redactSensitiveContent(content) : content;
+    return header + body + attachmentInfo;
   }
 
   async getThread(threadId: string, folder: string = 'INBOX'): Promise<MessageMetadata[]> {
