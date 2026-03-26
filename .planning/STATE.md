@@ -64,6 +64,9 @@ Carried from v1.2.0 — see PROJECT.md Key Decisions table for full history.
 - **29-01**: `ConfirmationStore.consume()` is single-use and removes entry on call; prevents replay attacks
 - **29-01**: `buildConfirmationDescription()` is module-level function — human-readable action summary for all 15 write tools
 - **29-01**: `confirmationId` stripped from args before replay on second call
+- **28-01**: `auditLogger` awaited in `dispatchTool` (test-safe), fire-and-forget in `setupToolHandlers` MCP path
+- **28-01**: `AuditLogger` with `enabled=false` is a no-op — default off per `--audit-log` flag
+- **28-01**: `SENSITIVE_FIELD_PATTERN` covers password/refreshToken/clientSecret/token/secret/key/auth case-insensitively
 
 ### Critical Blockers
 
