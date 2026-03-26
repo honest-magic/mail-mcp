@@ -27,8 +27,12 @@ class MockSocket extends EventEmitter {
     this.emit('close');
   }
 
+  // tls.TLSSocket methods that SieveClient may call
+  setEncoding(_enc: string): this { return this; }
+  setTimeout(_ms: number): this { return this; }
+
   receive(data: string): void {
-    this.emit('data', Buffer.from(data));
+    this.emit('data', data);
   }
 }
 
