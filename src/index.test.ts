@@ -505,17 +505,17 @@ describe('VAL-02: email validation at dispatch layer', () => {
 });
 
 describe('SAFE-03: rate limiting at dispatch layer', () => {
-  it('returns [QuotaError] after exceeding rate limit for an account', async () => {
-    // Use very low limits (1 request) to trigger quickly in tests
-    const { AccountRateLimiter } = await import('./utils/rate-limiter.js');
+  it('returns [QuotaError] after exceeding write rate limit for an account', async () => {
+    // Use very low write limit (1 request) to trigger quickly in tests
+    const { TieredRateLimiter } = await import('./utils/rate-limiter.js');
     const server = new MailMCPServer(false);
-    // Replace the internal rate limiter with a low-limit one
-    (server as any).rateLimiter = new AccountRateLimiter({ points: 1, duration: 60 });
+    // Replace the internal rate limiter with a low-write-limit one
+    (server as any).rateLimiter = new TieredRateLimiter({ readPoints: 100, writePoints: 1, duration: 60 });
 
     const sendEmailMock = vi.fn().mockResolvedValue(undefined);
     vi.spyOn(server as any, 'getService').mockResolvedValue({ sendEmail: sendEmailMock });
 
-    // First call should succeed (valid email, 1 point consumed)
+    // First call should succeed (valid email, 1 write point consumed)
     const result1 = await (server as any).dispatchTool('send_email', false, {
       accountId: 'test-rate',
       to: 'user@example.com',
@@ -524,7 +524,7 @@ describe('SAFE-03: rate limiting at dispatch layer', () => {
     });
     expect(result1.isError).not.toBe(true);
 
-    // Second call should be rate-limited
+    // Second call should be write-rate-limited
     const result2 = await (server as any).dispatchTool('send_email', false, {
       accountId: 'test-rate',
       to: 'user@example.com',
@@ -537,10 +537,10 @@ describe('SAFE-03: rate limiting at dispatch layer', () => {
   });
 
   it('list_accounts is NOT rate-limited (no accountId)', async () => {
-    const { AccountRateLimiter } = await import('./utils/rate-limiter.js');
+    const { TieredRateLimiter } = await import('./utils/rate-limiter.js');
     const server = new MailMCPServer(false);
     // Replace the internal rate limiter with a 0-point limiter that always fails
-    (server as any).rateLimiter = new AccountRateLimiter({ points: 0, duration: 60 });
+    (server as any).rateLimiter = new TieredRateLimiter({ readPoints: 0, writePoints: 0, duration: 60 });
 
     // list_accounts has no accountId — should NOT be rate-limited
     const result = await (server as any).dispatchTool('list_accounts', false, {});
@@ -548,9 +548,9 @@ describe('SAFE-03: rate limiting at dispatch layer', () => {
   });
 
   it('rate limiter is called BEFORE getService (no IMAP connection for rate-limited requests)', async () => {
-    const { AccountRateLimiter } = await import('./utils/rate-limiter.js');
+    const { TieredRateLimiter } = await import('./utils/rate-limiter.js');
     const server = new MailMCPServer(false);
-    (server as any).rateLimiter = new AccountRateLimiter({ points: 0, duration: 60 });
+    (server as any).rateLimiter = new TieredRateLimiter({ readPoints: 0, writePoints: 0, duration: 60 });
 
     const getServiceSpy = vi.spyOn(server as any, 'getService');
 
@@ -563,6 +563,42 @@ describe('SAFE-03: rate limiting at dispatch layer', () => {
     expect(result.isError).toBe(true);
     expect(result.content[0].text).toContain('[QuotaError]');
     expect(getServiceSpy).not.toHaveBeenCalled();
+  });
+
+  it('write tools use write tier, read tools use read tier', async () => {
+    const { TieredRateLimiter } = await import('./utils/rate-limiter.js');
+    const server = new MailMCPServer(false);
+    // Write exhausted (0), read still open (100)
+    (server as any).rateLimiter = new TieredRateLimiter({ readPoints: 100, writePoints: 0, duration: 60 });
+
+    // A write tool (send_email) should be blocked
+    const writeResult = await (server as any).dispatchTool('send_email', false, {
+      accountId: 'tier-test',
+      to: 'user@example.com',
+      subject: 'Hi',
+      body: 'test',
+    });
+    expect(writeResult.isError).toBe(true);
+    expect(writeResult.content[0].text).toContain('[QuotaError]');
+  });
+
+  it('exhausting write quota does NOT block read tools', async () => {
+    const { TieredRateLimiter } = await import('./utils/rate-limiter.js');
+    const server = new MailMCPServer(false);
+    // Write exhausted (0), read open (100)
+    (server as any).rateLimiter = new TieredRateLimiter({ readPoints: 100, writePoints: 0, duration: 60 });
+
+    const listMessagesMock = vi.fn().mockResolvedValue([]);
+    vi.spyOn(server as any, 'getService').mockResolvedValue({
+      listMessages: listMessagesMock,
+    });
+
+    // A read tool (list_emails) should NOT be blocked by exhausted write quota
+    const readResult = await (server as any).dispatchTool('list_emails', false, {
+      accountId: 'tier-test',
+    });
+    // Should not be a QuotaError
+    expect(readResult.content?.[0]?.text ?? '').not.toContain('[QuotaError]');
   });
 });
 
