@@ -37,7 +37,7 @@ export class SmtpClient {
     await this.transporter.verify();
   }
 
-  async send(to: string, subject: string, body: string, isHtml: boolean = false, cc?: string, bcc?: string): Promise<any> {
+  async send(to: string, subject: string, body: string, isHtml: boolean = false, cc?: string, bcc?: string, extraHeaders?: Record<string, string>): Promise<any> {
     if (!this.transporter) {
       throw new Error('SMTP client not connected');
     }
@@ -49,6 +49,9 @@ export class SmtpClient {
     };
     if (cc) mailOptions.cc = cc;
     if (bcc) mailOptions.bcc = bcc;
+    if (extraHeaders && Object.keys(extraHeaders).length > 0) {
+      mailOptions.headers = extraHeaders;
+    }
 
     if (isHtml) {
       mailOptions.html = body;
