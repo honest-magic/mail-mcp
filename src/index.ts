@@ -10,6 +10,7 @@ import {
 import { parseArgs } from 'node:util';
 import { getAccounts } from './config.js';
 import { handleAccountsCommand } from './cli/accounts.js';
+import { installClaude } from './cli/install-claude.js';
 import { MailService } from './services/mail.js';
 import { MailMCPError, NetworkError } from './errors.js';
 import { AccountRateLimiter } from './utils/rate-limiter.js';
