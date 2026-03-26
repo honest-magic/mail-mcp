@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.4.0
 milestone_name: AI Mail Assistant Features
 status: roadmap_ready
-stopped_at: Completed 21-01-PLAN.md (extract_contacts tool)
-last_updated: "2026-03-26T20:14:00Z"
+stopped_at: Completed 23-01-PLAN.md (header-only fetch)
+last_updated: "2026-03-26T19:20:19.530Z"
 progress:
   total_phases: 16
   completed_phases: 5
-  total_plans: 5
+  total_plans: 6
   completed_plans: 5
 ---
 
@@ -17,7 +17,7 @@ progress:
 ## Project Reference
 
 **Core Value:** Empower AI agents to act as a personal mail assistant by providing structured, tool-based access to existing email accounts through standard protocols.
-**Current Focus:** Phase 22 — Mailbox Stats
+**Current Focus:** Phase 23 — Header-Only Fetch (complete)
 
 ## Current Position
 
@@ -47,6 +47,9 @@ Carried from v1.2.0 — see PROJECT.md Key Decisions table for full history.
 - **21-01**: Aggregation in `MailService.extractContacts`, not `ImapClient` — business logic vs protocol adapter separation
 - **21-01**: Name from most-recent message wins when same email appears with multiple display names
 - **21-01**: Count capped at 500 in ImapClient; output capped at 50 contacts in MailService
+- **23-01**: `headerOnly` defaults to `false` for full backward compatibility — no behavior change for existing callers
+- **23-01**: `ImapClient.listMessages` extended with 4th param (not a new method) to keep API surface minimal
+- **23-01**: `snippet` is always `''` when `headerOnly=true`; no special marker needed
 
 ### Critical Blockers
 
@@ -62,9 +65,10 @@ Carried from v1.2.0 — see PROJECT.md Key Decisions table for full history.
 |-------|------|-------------|-------|-------|
 | 20 | 01 | 415 | 4 | 6 |
 | 21 | 01 | 345 | 6 | 6 |
+| 23 | 01 | 156 | 4 | 5 |
 
 ## Session Continuity
 
-**Last Action:** Completed Phase 21 Plan 01 — Contact Extraction (extract_contacts tool).
-**Stopped At:** Completed 21-01-PLAN.md (extract_contacts tool)
-**Next Step:** Run `/gsd:execute-phase 22` to continue with Mailbox Stats.
+**Last Action:** Completed Phase 23 Plan 01 — Header-Only Fetch (headerOnly flag on list_emails).
+**Stopped At:** Completed 23-01-PLAN.md (header-only fetch)
+**Next Step:** Run `/gsd:execute-phase` to continue with next phase.
