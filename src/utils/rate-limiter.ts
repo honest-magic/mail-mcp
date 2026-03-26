@@ -4,6 +4,9 @@ import { QuotaError } from '../errors.js';
 export const DEFAULT_RATE_LIMIT_POINTS = 100;
 export const DEFAULT_RATE_LIMIT_DURATION = 60;
 
+export const DEFAULT_READ_RATE_LIMIT_POINTS = 100;
+export const DEFAULT_WRITE_RATE_LIMIT_POINTS = 20;
+
 export interface AccountRateLimiterOptions {
   points?: number;
   duration?: number;
@@ -49,5 +52,45 @@ export class AccountRateLimiter {
       // Re-throw unexpected errors
       throw err;
     }
+  }
+}
+
+export interface TieredRateLimiterOptions {
+  readPoints?: number;
+  writePoints?: number;
+  duration?: number;
+}
+
+/**
+ * Per-account tiered rate limiter with separate quotas for read and write operations.
+ * - Read tier: higher limit (default 100 req/60s)
+ * - Write tier: stricter limit (default 20 req/60s)
+ *
+ * Instantiate per MailMCPServer — NOT as a module-level singleton.
+ */
+export class TieredRateLimiter {
+  private readonly readLimiter: AccountRateLimiter;
+  private readonly writeLimiter: AccountRateLimiter;
+
+  constructor(opts: TieredRateLimiterOptions = {}) {
+    const duration = opts.duration ?? DEFAULT_RATE_LIMIT_DURATION;
+    this.readLimiter = new AccountRateLimiter({
+      points: opts.readPoints ?? DEFAULT_READ_RATE_LIMIT_POINTS,
+      duration,
+    });
+    this.writeLimiter = new AccountRateLimiter({
+      points: opts.writePoints ?? DEFAULT_WRITE_RATE_LIMIT_POINTS,
+      duration,
+    });
+  }
+
+  /** Consume one point from the read tier for the given account. */
+  async consumeRead(accountId: string): Promise<void> {
+    await this.readLimiter.consume(accountId);
+  }
+
+  /** Consume one point from the write tier for the given account. */
+  async consumeWrite(accountId: string): Promise<void> {
+    await this.writeLimiter.consume(accountId);
   }
 }
