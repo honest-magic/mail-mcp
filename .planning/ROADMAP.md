@@ -217,5 +217,14 @@ Plans:
 Plans:
 - [ ] TBD (promote with /gsd:review-backlog when ready)
 
+### Phase 999.19: CLI command to install mail-mcp for Claude Code (BACKLOG)
+
+**Goal:** Add `mail-mcp --install-claude` command that writes the MCP server config to `~/.claude/settings.json` (or the appropriate Claude Code config path) so users can set up mail-mcp with a single command
+**Requirements:** TBD
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (promote with /gsd:review-backlog when ready)
+
 ---
-*Last updated: 2026-03-24 — Backlog items 999.13–999.18 added*
+*Last updated: 2026-03-24 — Backlog item 999.19 added*
