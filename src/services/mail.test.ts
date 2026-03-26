@@ -6,6 +6,12 @@ const mockSmtpConnect = vi.fn().mockResolvedValue(undefined);
 const mockSmtpSend = vi.fn().mockResolvedValue({ messageId: 'test' });
 const mockFetchAttachmentSize = vi.fn();
 const mockFetchMessageBody = vi.fn();
+const mockGetMailboxStatus = vi.fn().mockResolvedValue([
+  { name: 'INBOX', total: 100, unread: 5, recent: 2 },
+  { name: 'Sent', total: 200, unread: 0, recent: 0 },
+]);
+const mockListFolders = vi.fn().mockResolvedValue(['INBOX', 'Sent', 'Drafts']);
+const mockScanSenderEnvelopes = vi.fn().mockResolvedValue([]);
 
 vi.mock('../protocol/imap.js', () => {
   return {
@@ -15,6 +21,9 @@ vi.mock('../protocol/imap.js', () => {
         appendMessage: mockImapAppendMessage,
         fetchAttachmentSize: mockFetchAttachmentSize,
         fetchMessageBody: mockFetchMessageBody,
+        getMailboxStatus: mockGetMailboxStatus,
+        listFolders: mockListFolders,
+        scanSenderEnvelopes: mockScanSenderEnvelopes,
       };
     }),
   };
@@ -37,6 +46,9 @@ describe('MailService SMTP connection behavior', () => {
     mockSmtpSend.mockClear();
     mockFetchAttachmentSize.mockClear();
     mockFetchMessageBody.mockClear();
+    mockGetMailboxStatus.mockClear();
+    mockListFolders.mockClear();
+    mockScanSenderEnvelopes.mockClear();
   });
 
   it('connect() does NOT call smtpClient.connect() eagerly', async () => {
@@ -578,6 +590,117 @@ describe('MailService forwardEmail', () => {
     await service.forwardEmail('42', 'INBOX', 'friend@example.com', 'FYI', false, undefined, undefined, false);
     const sentBody: string = mockSmtpSend.mock.calls[0][2];
     expect(sentBody).not.toContain('Cheers');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// extractContacts tests (CE-02)
+// ---------------------------------------------------------------------------
+
+describe('MailService extractContacts', () => {
+  const account = {
+    id: 'test',
+    name: 'Test',
+    user: 'test@example.com',
+    authType: 'login' as const,
+    host: 'imap.example.com',
+    port: 993,
+    useTLS: true,
+  };
+
+  beforeEach(() => {
+    mockScanSenderEnvelopes.mockClear();
+  });
+
+  it('returns empty array when scanSenderEnvelopes returns no messages', async () => {
+    mockScanSenderEnvelopes.mockResolvedValue([]);
+    const service = new MailService(account, false);
+    await service.connect();
+    const result = await service.extractContacts();
+    expect(result).toEqual([]);
+  });
+
+  it('groups messages from the same email address and increments count', async () => {
+    const date1 = new Date('2024-01-10T10:00:00Z');
+    const date2 = new Date('2024-01-15T10:00:00Z');
+    mockScanSenderEnvelopes.mockResolvedValue([
+      { name: 'Alice', email: 'alice@example.com', date: date1 },
+      { name: 'Alice', email: 'alice@example.com', date: date2 },
+      { name: 'Bob', email: 'bob@example.com', date: date1 },
+    ]);
+    const service = new MailService(account, false);
+    await service.connect();
+    const result = await service.extractContacts();
+    const alice = result.find(c => c.email === 'alice@example.com');
+    expect(alice?.count).toBe(2);
+    const bob = result.find(c => c.email === 'bob@example.com');
+    expect(bob?.count).toBe(1);
+  });
+
+  it('returns contacts sorted by count descending', async () => {
+    const date = new Date('2024-01-10T10:00:00Z');
+    mockScanSenderEnvelopes.mockResolvedValue([
+      { name: 'Bob', email: 'bob@example.com', date },
+      { name: 'Alice', email: 'alice@example.com', date },
+      { name: 'Alice', email: 'alice@example.com', date },
+      { name: 'Alice', email: 'alice@example.com', date },
+      { name: 'Bob', email: 'bob@example.com', date },
+      { name: 'Carol', email: 'carol@example.com', date },
+    ]);
+    const service = new MailService(account, false);
+    await service.connect();
+    const result = await service.extractContacts();
+    expect(result[0].email).toBe('alice@example.com');
+    expect(result[0].count).toBe(3);
+    expect(result[1].email).toBe('bob@example.com');
+    expect(result[1].count).toBe(2);
+    expect(result[2].email).toBe('carol@example.com');
+    expect(result[2].count).toBe(1);
+  });
+
+  it('uses the display name from the most recent message', async () => {
+    mockScanSenderEnvelopes.mockResolvedValue([
+      { name: 'Old Name', email: 'alice@example.com', date: new Date('2024-01-01T00:00:00Z') },
+      { name: 'Alice Smith', email: 'alice@example.com', date: new Date('2024-01-15T00:00:00Z') },
+    ]);
+    const service = new MailService(account, false);
+    await service.connect();
+    const result = await service.extractContacts();
+    expect(result[0].name).toBe('Alice Smith');
+  });
+
+  it('sets lastSeen to ISO-8601 string of the most recent message date', async () => {
+    const latestDate = new Date('2024-02-01T12:00:00Z');
+    mockScanSenderEnvelopes.mockResolvedValue([
+      { name: 'Alice', email: 'alice@example.com', date: new Date('2024-01-01T00:00:00Z') },
+      { name: 'Alice', email: 'alice@example.com', date: latestDate },
+    ]);
+    const service = new MailService(account, false);
+    await service.connect();
+    const result = await service.extractContacts();
+    expect(result[0].lastSeen).toBe(latestDate.toISOString());
+  });
+
+  it('caps results to 50 unique contacts', async () => {
+    // Generate 60 unique senders, each with 1 message
+    const envelopes = Array.from({ length: 60 }, (_, i) => ({
+      name: `User ${i}`,
+      email: `user${i}@example.com`,
+      date: new Date('2024-01-01T00:00:00Z'),
+    }));
+    mockScanSenderEnvelopes.mockResolvedValue(envelopes);
+    const service = new MailService(account, false);
+    await service.connect();
+    const result = await service.extractContacts();
+    expect(result.length).toBeLessThanOrEqual(50);
+  });
+
+  it('passes folder and count to scanSenderEnvelopes', async () => {
+    mockScanSenderEnvelopes.mockResolvedValue([]);
+    const service = new MailService(account, false);
+    await service.connect();
+    await service.extractContacts('Sent', 200);
+    expect(mockScanSenderEnvelopes).toHaveBeenCalledWith('Sent', 200);
   });
 });
 
