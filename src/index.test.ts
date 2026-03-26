@@ -808,3 +808,182 @@ describe('CONN-03: --validate-accounts health check', () => {
     expect(output[0]).toBe('No accounts configured.');
   });
 });
+
+// ---------------------------------------------------------------------------
+// Phase 20: reply_email and forward_email tools
+// ---------------------------------------------------------------------------
+
+const ALL_WRITE_TOOL_NAMES_20 = [
+  'send_email',
+  'create_draft',
+  'move_email',
+  'modify_labels',
+  'register_oauth2_account',
+  'batch_operations',
+  'reply_email',
+  'forward_email',
+];
+
+describe('THREAD-01: reply_email and forward_email in tool list', () => {
+  it('getTools(false) returns 16 tools after adding reply_email and forward_email', () => {
+    const server = new MailMCPServer(false);
+    const tools = (server as any).getTools(false);
+    expect(tools).toHaveLength(16);
+  });
+
+  it('getTools(true) still returns 8 tools (new tools are write-only and filtered)', () => {
+    const server = new MailMCPServer(true);
+    const tools = (server as any).getTools(true);
+    expect(tools).toHaveLength(8);
+  });
+
+  it('reply_email is in getTools(false) output', () => {
+    const server = new MailMCPServer(false);
+    const names = (server as any).getTools(false).map((t: any) => t.name);
+    expect(names).toContain('reply_email');
+  });
+
+  it('forward_email is in getTools(false) output', () => {
+    const server = new MailMCPServer(false);
+    const names = (server as any).getTools(false).map((t: any) => t.name);
+    expect(names).toContain('forward_email');
+  });
+
+  it('reply_email is NOT in getTools(true) output', () => {
+    const server = new MailMCPServer(true);
+    const names = (server as any).getTools(true).map((t: any) => t.name);
+    expect(names).not.toContain('reply_email');
+  });
+
+  it('forward_email is NOT in getTools(true) output', () => {
+    const server = new MailMCPServer(true);
+    const names = (server as any).getTools(true).map((t: any) => t.name);
+    expect(names).not.toContain('forward_email');
+  });
+});
+
+describe('THREAD-02: reply_email and forward_email are WRITE tools', () => {
+  it('reply_email is blocked in read-only mode', async () => {
+    const server = new MailMCPServer(true);
+    const result = await (server as any).dispatchTool('reply_email', true, {});
+    expect(result.isError).toBe(true);
+    expect(result.content[0].text).toContain("Tool 'reply_email' is not available");
+  });
+
+  it('forward_email is blocked in read-only mode', async () => {
+    const server = new MailMCPServer(true);
+    const result = await (server as any).dispatchTool('forward_email', true, {});
+    expect(result.isError).toBe(true);
+    expect(result.content[0].text).toContain("Tool 'forward_email' is not available");
+  });
+
+  it('all 8 write tools return isError: true in read-only mode', async () => {
+    const server = new MailMCPServer(true);
+    for (const toolName of ALL_WRITE_TOOL_NAMES_20) {
+      const result = await (server as any).dispatchTool(toolName, true, {});
+      expect(result.isError).toBe(true);
+    }
+  });
+});
+
+describe('THREAD-03: reply_email tool schema', () => {
+  it('reply_email schema has readOnlyHint=false and destructiveHint=true', () => {
+    const server = new MailMCPServer(false);
+    const tool = (server as any).getTools(false).find((t: any) => t.name === 'reply_email');
+    expect(tool.annotations.readOnlyHint).toBe(false);
+    expect(tool.annotations.destructiveHint).toBe(true);
+  });
+
+  it('reply_email schema requires accountId, uid, body', () => {
+    const server = new MailMCPServer(false);
+    const tool = (server as any).getTools(false).find((t: any) => t.name === 'reply_email');
+    expect(tool.inputSchema.required).toContain('accountId');
+    expect(tool.inputSchema.required).toContain('uid');
+    expect(tool.inputSchema.required).toContain('body');
+  });
+
+  it('reply_email schema has optional folder, cc, bcc, isHtml, includeSignature properties', () => {
+    const server = new MailMCPServer(false);
+    const tool = (server as any).getTools(false).find((t: any) => t.name === 'reply_email');
+    const props = tool.inputSchema.properties;
+    expect(props.folder).toBeDefined();
+    expect(props.cc).toBeDefined();
+    expect(props.bcc).toBeDefined();
+    expect(props.isHtml).toBeDefined();
+    expect(props.includeSignature).toBeDefined();
+  });
+});
+
+describe('THREAD-04: forward_email tool schema', () => {
+  it('forward_email schema has readOnlyHint=false and destructiveHint=true', () => {
+    const server = new MailMCPServer(false);
+    const tool = (server as any).getTools(false).find((t: any) => t.name === 'forward_email');
+    expect(tool.annotations.readOnlyHint).toBe(false);
+    expect(tool.annotations.destructiveHint).toBe(true);
+  });
+
+  it('forward_email schema requires accountId, uid, to', () => {
+    const server = new MailMCPServer(false);
+    const tool = (server as any).getTools(false).find((t: any) => t.name === 'forward_email');
+    expect(tool.inputSchema.required).toContain('accountId');
+    expect(tool.inputSchema.required).toContain('uid');
+    expect(tool.inputSchema.required).toContain('to');
+  });
+
+  it('forward_email schema has optional folder, body, cc, bcc, isHtml, includeSignature properties', () => {
+    const server = new MailMCPServer(false);
+    const tool = (server as any).getTools(false).find((t: any) => t.name === 'forward_email');
+    const props = tool.inputSchema.properties;
+    expect(props.folder).toBeDefined();
+    expect(props.body).toBeDefined();
+    expect(props.cc).toBeDefined();
+    expect(props.bcc).toBeDefined();
+    expect(props.isHtml).toBeDefined();
+    expect(props.includeSignature).toBeDefined();
+  });
+});
+
+describe('THREAD-05: reply_email and forward_email handler dispatch', () => {
+  it('reply_email handler calls service.replyEmail and returns success text', async () => {
+    const server = new MailMCPServer(false);
+    const replyEmailMock = vi.fn().mockResolvedValue(undefined);
+    vi.spyOn(server as any, 'getService').mockResolvedValue({ replyEmail: replyEmailMock });
+    const result = await (server as any).dispatchTool('reply_email', false, {
+      accountId: 'test',
+      uid: '42',
+      folder: 'INBOX',
+      body: 'Thanks!',
+    });
+    expect(replyEmailMock).toHaveBeenCalledOnce();
+    expect(result.isError).not.toBe(true);
+    expect(result.content[0].text).toContain('reply');
+  });
+
+  it('forward_email handler calls service.forwardEmail and returns success text', async () => {
+    const server = new MailMCPServer(false);
+    const forwardEmailMock = vi.fn().mockResolvedValue(undefined);
+    vi.spyOn(server as any, 'getService').mockResolvedValue({ forwardEmail: forwardEmailMock });
+    const result = await (server as any).dispatchTool('forward_email', false, {
+      accountId: 'test',
+      uid: '42',
+      folder: 'INBOX',
+      to: 'friend@example.com',
+      body: 'FYI',
+    });
+    expect(forwardEmailMock).toHaveBeenCalledOnce();
+    expect(result.isError).not.toBe(true);
+    expect(result.content[0].text).toContain('forward');
+  });
+
+  it('forward_email with invalid to returns [ValidationError]', async () => {
+    const server = new MailMCPServer(false);
+    const result = await (server as any).dispatchTool('forward_email', false, {
+      accountId: 'test',
+      uid: '42',
+      to: 'notvalid',
+      body: 'FYI',
+    });
+    expect(result.isError).toBe(true);
+    expect(result.content[0].text).toContain('[ValidationError]');
+  });
+});
