@@ -1782,7 +1782,11 @@ Options:
   server.run().catch(console.error);
 }
 
-main().catch((err) => {
-  console.error(err);
-  process.exit(1);
-});
+// Only auto-run when executed directly (not when imported by tests)
+const isDirectRun = !process.env.VITEST && !process.env.NODE_TEST;
+if (isDirectRun) {
+  main().catch((err) => {
+    console.error(err);
+    process.exit(1);
+  });
+}
