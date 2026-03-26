@@ -85,7 +85,7 @@ Full archive: `.planning/milestones/v1.3.0-ROADMAP.md`
 | 21. Contact Extraction | v1.4.0 | 0/? | Not started | - |
 | 22. Mailbox Stats | v1.4.0 | 1/1 | Complete   | 2026-03-26 |
 | 23. Header-Only Fetch | v1.4.0 | 1/1 | Complete   | 2026-03-26 |
-| 24. Email Templates | v1.4.0 | 0/? | Not started | - |
+| 24. Email Templates | v1.4.0 | 1/1 | Complete   | 2026-03-26 |
 | 25. SIEVE Folder Rules | v1.4.0 | 0/? | Not started | - |
 | 26. Mark Read/Star Tools | v1.4.0 | 0/? | Not started | - |
 | 27. Delete Email Tool | v1.4.0 | 0/? | Not started | - |
@@ -104,7 +104,7 @@ Full archive: `.planning/milestones/v1.3.0-ROADMAP.md`
 - [ ] **Phase 21: Contact Extraction** - Structured contact data with frequency analysis
 - [x] **Phase 22: Mailbox Stats** - Unread count, folder sizes without listing emails (completed 2026-03-26)
 - [x] **Phase 23: Header-Only Fetch** - Fast metadata-only triage at scale (completed 2026-03-26)
-- [ ] **Phase 24: Email Templates** - Reusable reply/compose patterns for AI agents
+- [x] **Phase 24: Email Templates** - Reusable reply/compose patterns for AI agents (completed 2026-03-26)
 - [ ] **Phase 25: SIEVE Folder Rules** - Server-side mail filters via AI
 - [ ] **Phase 26: Mark Read/Star Tools** - Simple tools instead of IMAP flag syntax
 - [ ] **Phase 27: Delete Email Tool** - Single-message delete without batch workaround

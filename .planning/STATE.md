@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.4.0
 milestone_name: AI Mail Assistant Features
 status: roadmap_ready
-stopped_at: Completed 23-01-PLAN.md (header-only fetch)
-last_updated: "2026-03-26T19:20:19.530Z"
+stopped_at: Completed 24-01-PLAN.md (list_templates, use_template tools)
+last_updated: "2026-03-26T19:22:41.788Z"
 progress:
   total_phases: 16
-  completed_phases: 5
+  completed_phases: 6
   total_plans: 6
-  completed_plans: 5
+  completed_plans: 6
 ---
 
 # Project State: Mail MCP Server
@@ -17,11 +17,11 @@ progress:
 ## Project Reference
 
 **Core Value:** Empower AI agents to act as a personal mail assistant by providing structured, tool-based access to existing email accounts through standard protocols.
-**Current Focus:** Phase 23 — Header-Only Fetch (complete)
+**Current Focus:** Phase 24 — Email Templates (complete)
 
 ## Current Position
 
-Phase: 21 (complete)
+Phase: 24 (complete)
 Plan: 01 (complete)
 
 ## Accumulated Context
@@ -50,6 +50,10 @@ Carried from v1.2.0 — see PROJECT.md Key Decisions table for full history.
 - **23-01**: `headerOnly` defaults to `false` for full backward compatibility — no behavior change for existing callers
 - **23-01**: `ImapClient.listMessages` extended with 4th param (not a new method) to keep API surface minimal
 - **23-01**: `snippet` is always `''` when `headerOnly=true`; no special marker needed
+- **24-01**: Templates stored in `~/.config/mail-mcp/templates.json` — separate file from accounts.json, same fs.watch cache pattern
+- **24-01**: `use_template` is read-only — resolves template to args only; AI calls `send_email`/`create_draft` separately
+- **24-01**: `{{variable}}` regex replaces all occurrences globally; unknown placeholders left intact for AI awareness
+- **24-01**: `list_templates` with `accountId` returns global (no accountId) + account-scoped templates; omit returns all
 
 ### Critical Blockers
 
@@ -66,9 +70,10 @@ Carried from v1.2.0 — see PROJECT.md Key Decisions table for full history.
 | 20 | 01 | 415 | 4 | 6 |
 | 21 | 01 | 345 | 6 | 6 |
 | 23 | 01 | 156 | 4 | 5 |
+| 24 | 01 | 25 | 3 | 4 |
 
 ## Session Continuity
 
-**Last Action:** Completed Phase 23 Plan 01 — Header-Only Fetch (headerOnly flag on list_emails).
-**Stopped At:** Completed 23-01-PLAN.md (header-only fetch)
+**Last Action:** Completed Phase 24 Plan 01 — Email Templates (list_templates, use_template tools).
+**Stopped At:** Completed 24-01-PLAN.md (list_templates, use_template tools)
 **Next Step:** Run `/gsd:execute-phase` to continue with next phase.
