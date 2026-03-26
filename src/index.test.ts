@@ -54,9 +54,13 @@ vi.mock('./services/mail.js', () => {
   return { MailService: MockMailService };
 });
 
+import * as fs from 'node:fs';
+import * as os from 'node:os';
+import * as path from 'node:path';
 import { MailMCPServer } from './index.js';
 import { MailService } from './services/mail.js';
 import { getAccounts } from './config.js';
+import { AuditLogger } from './utils/audit-logger.js';
 
 const WRITE_TOOL_NAMES = [
   'send_email',
@@ -1356,5 +1360,78 @@ describe('TPL-02: use_template MCP tool', () => {
     const tools = (server as any).getTools(false);
     const tool = tools.find((t: any) => t.name === 'use_template');
     expect(tool.inputSchema.required).toContain('templateId');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Audit logging integration
+// ---------------------------------------------------------------------------
+
+describe('Audit logging integration', () => {
+  const tmpLog = path.join(os.tmpdir(), `audit-integration-test-${Date.now()}.log`);
+
+  afterEach(() => {
+    try { fs.unlinkSync(tmpLog); } catch { /* ignore */ }
+  });
+
+  it('dispatchTool writes a JSONL audit entry to the log file', async () => {
+    const logger = new AuditLogger(tmpLog, true);
+    const server = new MailMCPServer(false, undefined, logger);
+
+    await server.dispatchTool('list_accounts', false, {});
+
+    expect(fs.existsSync(tmpLog)).toBe(true);
+    const lines = fs.readFileSync(tmpLog, 'utf-8').trim().split('\n');
+    expect(lines).toHaveLength(1);
+
+    const entry = JSON.parse(lines[0]);
+    expect(entry.tool).toBe('list_accounts');
+    expect(entry.success).toBe(true);
+    expect(typeof entry.timestamp).toBe('string');
+    expect(typeof entry.durationMs).toBe('number');
+  });
+
+  it('audit log records errors with success=false when tool fails', async () => {
+    const logger = new AuditLogger(tmpLog, true);
+    const server = new MailMCPServer(false, undefined, logger);
+
+    // Calling a tool that requires an account that doesn't exist → error
+    await server.dispatchTool('list_emails', false, { accountId: 'no-such-account' });
+
+    const lines = fs.readFileSync(tmpLog, 'utf-8').trim().split('\n');
+    expect(lines).toHaveLength(1);
+
+    const entry = JSON.parse(lines[0]);
+    expect(entry.tool).toBe('list_emails');
+    expect(entry.accountId).toBe('no-such-account');
+    expect(entry.success).toBe(false);
+    expect(typeof entry.error).toBe('string');
+  });
+
+  it('audit log does not write when logger is disabled', async () => {
+    const logger = new AuditLogger(tmpLog, false);
+    const server = new MailMCPServer(false, undefined, logger);
+
+    await server.dispatchTool('list_accounts', false, {});
+
+    expect(fs.existsSync(tmpLog)).toBe(false);
+  });
+
+  it('sensitive args are stripped from audit log entries', async () => {
+    const logger = new AuditLogger(tmpLog, true);
+    const server = new MailMCPServer(false, undefined, logger);
+
+    // dispatchTool is called directly with sensitive args
+    // register_oauth2_account is a write tool but we're testing arg sanitization via the logger
+    await server.dispatchTool('list_accounts', false, {
+      // list_accounts ignores extra args; logger should still sanitize
+      password: 'SECRET',
+      refreshToken: 'TOKEN',
+    });
+
+    const lines = fs.readFileSync(tmpLog, 'utf-8').trim().split('\n');
+    const entry = JSON.parse(lines[0]);
+    expect(JSON.stringify(entry)).not.toContain('SECRET');
+    expect(JSON.stringify(entry)).not.toContain('TOKEN');
   });
 });

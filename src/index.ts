@@ -683,6 +683,9 @@ export class MailMCPServer {
   }
 
   async dispatchTool(name: string, readOnly: boolean, args: Record<string, unknown>) {
+    const _dispatchStart = Date.now();
+    let _dispatchIsError = false;
+    let _dispatchErrorMsg: string | undefined;
     try {
       if (readOnly && WRITE_TOOLS.has(name)) {
         return {
@@ -1018,13 +1021,27 @@ export class MailMCPServer {
         : error instanceof Error
           ? error.message
           : String(error);
+      _dispatchIsError = true;
+      _dispatchErrorMsg = message;
       return {
         content: [{ type: 'text', text: message }],
         isError: true,
       };
+    } finally {
+      if (this.auditLogger) {
+        const _accountId = (args as Record<string, unknown>)?.accountId as string | undefined;
+        this.auditLogger.log({
+          timestamp: new Date().toISOString(),
+          tool: name,
+          ...(_accountId !== undefined ? { accountId: _accountId } : {}),
+          args,
+          success: !_dispatchIsError,
+          durationMs: Date.now() - _dispatchStart,
+          ...(_dispatchIsError ? { error: _dispatchErrorMsg } : {}),
+        }).catch(() => {});
+      }
     }
   }
-
   private setupToolHandlers() {
     this.server.setRequestHandler(ListToolsRequestSchema, async () => ({
       tools: this.getTools(this.readOnly, this.allowedTools),
