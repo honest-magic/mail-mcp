@@ -1030,7 +1030,7 @@ export class MailMCPServer {
     } finally {
       if (this.auditLogger) {
         const _accountId = (args as Record<string, unknown>)?.accountId as string | undefined;
-        this.auditLogger.log({
+        await this.auditLogger.log({
           timestamp: new Date().toISOString(),
           tool: name,
           ...(_accountId !== undefined ? { accountId: _accountId } : {}),
