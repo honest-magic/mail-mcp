@@ -43,6 +43,10 @@ Carried from v1.2.0 — see PROJECT.md Key Decisions table for full history.
 - **20-01**: `forwardEmail()` does not set In-Reply-To/References — forwards break thread chain per convention
 - **20-01**: `reply_email` `to` address auto-determined from original sender (not a required input param)
 - **20-01**: `forward_email` validates `to` address via `validateEmailAddresses` before calling service
+- **21-01**: `scanSenderEnvelopes` uses envelope-only fetch (no bodyParts) — lighter than `listMessages` for bulk scans
+- **21-01**: Aggregation in `MailService.extractContacts`, not `ImapClient` — business logic vs protocol adapter separation
+- **21-01**: Name from most-recent message wins when same email appears with multiple display names
+- **21-01**: Count capped at 500 in ImapClient; output capped at 50 contacts in MailService
 
 ### Critical Blockers
 
@@ -61,6 +65,6 @@ Carried from v1.2.0 — see PROJECT.md Key Decisions table for full history.
 
 ## Session Continuity
 
-**Last Action:** Completed Phase 20 Plan 01 — Reply & Forward Threading.
-**Stopped At:** Completed 22-01-PLAN.md (mailbox_stats tool)
-**Next Step:** Run `/gsd:execute-phase 21` or `/gsd:autonomous` to continue.
+**Last Action:** Completed Phase 21 Plan 01 — Contact Extraction (extract_contacts tool).
+**Stopped At:** Completed 21-01-PLAN.md (extract_contacts tool)
+**Next Step:** Run `/gsd:execute-phase 22` to continue with Mailbox Stats.
