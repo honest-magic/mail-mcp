@@ -155,6 +155,61 @@ export class MailService {
     return info;
   }
 
+  async forwardEmail(uid: string, folder: string = 'INBOX', to: string, body: string = '', isHtml: boolean = false, cc?: string, bcc?: string, includeSignature: boolean = true): Promise<any> {
+    const parsed = await this._cachedFetchBody(uid, folder);
+
+    // Build subject with "Fwd: " prefix
+    const originalSubject = parsed.subject || '';
+    const fwdSubject = originalSubject.startsWith('Fwd: ')
+      ? originalSubject
+      : `Fwd: ${originalSubject}`;
+
+    // Build forwarded message block (plain-text format)
+    const originalFrom = parsed.from?.text || 'Unknown';
+    const originalDate = parsed.date?.toISOString() || 'Unknown';
+    const originalTo = Array.isArray(parsed.to)
+      ? parsed.to.map((t: any) => t.text).join(', ')
+      : (parsed.to as any)?.text || 'Unknown';
+    const originalBody = parsed.text || '';
+
+    const forwardedBlock = [
+      '',
+      '',
+      '--- Forwarded message ---',
+      `From: ${originalFrom}`,
+      `Date: ${originalDate}`,
+      `Subject: ${originalSubject}`,
+      `To: ${originalTo}`,
+      '',
+      originalBody,
+    ].join('\n');
+
+    const combinedBody = body + forwardedBlock;
+    const effectiveBody = applySignature(combinedBody, this.account.signature, isHtml, includeSignature);
+
+    // Build raw message for Sent folder append
+    const rawMessage = [
+      `From: ${this.account.user}`,
+      `To: ${to}`,
+      ...(cc ? [`Cc: ${cc}`] : []),
+      ...(bcc ? [`Bcc: ${bcc}`] : []),
+      `Subject: ${fwdSubject}`,
+      'MIME-Version: 1.0',
+      `Content-Type: ${isHtml ? 'text/html' : 'text/plain'}; charset=utf-8`,
+      '',
+      effectiveBody,
+    ].join('\r\n');
+
+    await this.ensureSmtp();
+    const info = await this.smtpClient.send(to, fwdSubject, effectiveBody, isHtml, cc, bcc);
+    try {
+      await this.imapClient.appendMessage('Sent', rawMessage, ['\\Seen']);
+    } catch (e) {
+      console.error('Failed to append forward to Sent folder:', e);
+    }
+    return info;
+  }
+
   async createDraft(to: string, subject: string, body: string, isHtml: boolean = false, cc?: string, bcc?: string, includeSignature: boolean = true): Promise<void> {
     const effectiveBody = applySignature(body, this.account.signature, isHtml, includeSignature);
 
