@@ -88,7 +88,7 @@ Full archive: `.planning/milestones/v1.3.0-ROADMAP.md`
 | 24. Email Templates | v1.4.0 | 1/1 | Complete   | 2026-03-26 |
 | 25. SIEVE Folder Rules | v1.4.0 | 0/? | Not started | - |
 | 26. Mark Read/Star Tools | v1.4.0 | 0/? | Not started | - |
-| 27. Delete Email Tool | v1.4.0 | 0/? | Not started | - |
+| 27. Delete Email Tool | v1.4.0 | 1/1 | Complete   | 2026-03-26 |
 | 28. Audit Logging | v1.4.0 | 0/? | Not started | - |
 | 29. Confirmation Mode | v1.4.0 | 0/? | Not started | - |
 | 30. Per-Tool Allow-Listing | v1.4.0 | 0/? | Not started | - |
@@ -107,7 +107,7 @@ Full archive: `.planning/milestones/v1.3.0-ROADMAP.md`
 - [x] **Phase 24: Email Templates** - Reusable reply/compose patterns for AI agents (completed 2026-03-26)
 - [ ] **Phase 25: SIEVE Folder Rules** - Server-side mail filters via AI
 - [ ] **Phase 26: Mark Read/Star Tools** - Simple tools instead of IMAP flag syntax
-- [ ] **Phase 27: Delete Email Tool** - Single-message delete without batch workaround
+- [x] **Phase 27: Delete Email Tool** - Single-message delete without batch workaround (completed 2026-03-26)
 - [ ] **Phase 28: Audit Logging** - Log all AI tool calls to local file
 - [ ] **Phase 29: Confirmation Mode** - Human-in-the-loop for destructive operations
 - [ ] **Phase 30: Per-Tool Allow-Listing** - Granular permissions beyond read-only
