@@ -124,7 +124,7 @@ export class MailMCPServer {
       },
       {
         name: 'list_emails',
-        description: 'List recent emails via IMAP from any folder — works with Gmail, Outlook, and custom domains.',
+        description: 'List recent emails via IMAP from any folder — works with Gmail, Outlook, and custom domains. Use headerOnly=true for fast inbox scanning that returns only subject, sender, date, and flags without downloading message bodies.',
         annotations: { readOnlyHint: true, destructiveHint: false },
         inputSchema: {
           type: 'object',
@@ -132,7 +132,8 @@ export class MailMCPServer {
             accountId: { type: 'string', description: 'The ID of the account to use' },
             folder: { type: 'string', description: 'The folder to list emails from (default: INBOX)' },
             count: { type: 'number', description: 'The number of emails to retrieve (default: 10)' },
-            offset: { type: 'number', description: 'Number of messages to skip from the newest (for pagination, default: 0)' }
+            offset: { type: 'number', description: 'Number of messages to skip from the newest (for pagination, default: 0)' },
+            headerOnly: { type: 'boolean', description: 'When true, skip body download and return only headers (subject, from, date, flags). Much faster for large mailboxes. snippet will be empty. Default: false.' }
           },
           required: ['accountId']
         }
@@ -511,7 +512,7 @@ export class MailMCPServer {
 
       if (name === 'list_emails') {
         const service = await this.getService(args.accountId as string);
-        const messages = await (service as any).listEmails(args.folder, args.count, args.offset);
+        const messages = await (service as any).listEmails(args.folder, args.count, args.offset, args.headerOnly ?? false);
         return {
           content: [{ type: 'text', text: JSON.stringify(messages, null, 2) }],
         };
@@ -630,9 +631,9 @@ export class MailMCPServer {
         }
 
         if (request.params.name === 'list_emails') {
-          const args = request.params.arguments as { accountId: string; folder?: string; count?: number; offset?: number };
+          const args = request.params.arguments as { accountId: string; folder?: string; count?: number; offset?: number; headerOnly?: boolean };
           const service = await this.getService(args.accountId);
-          const messages = await service.listEmails(args.folder, args.count, args.offset);
+          const messages = await service.listEmails(args.folder, args.count, args.offset, args.headerOnly ?? false);
           return {
             content: [
               {

@@ -4,6 +4,18 @@ vi.mock('./config.js', () => ({
   getAccounts: vi.fn().mockResolvedValue([]),
 }));
 
+vi.mock('./utils/templates.js', () => ({
+  getTemplates: vi.fn().mockResolvedValue([
+    { id: 'ack', name: 'Acknowledgement', body: 'Got your message, {{name}}.' },
+    { id: 'oof', name: 'Out of Office', subject: 'Re: {{subject}}', body: 'I am away until {{date}}.', accountId: 'work' },
+  ]),
+  applyVariables: vi.fn().mockImplementation((template: string, vars: Record<string, string>) => {
+    return template.replace(/\{\{([^}]+)\}\}/g, (match: string, key: string) =>
+      Object.prototype.hasOwnProperty.call(vars, key) ? vars[key] : match
+    );
+  }),
+}));
+
 // vi.mock() is hoisted above all variable declarations, so outer-scope variables like
 // mockDisconnect cannot be referenced inside the factory (they'd be in TDZ). Instead,
 // we create all mock functions self-contained inside the factory and keep external
@@ -718,7 +730,7 @@ describe('QUAL-01: pagination offset parameter', () => {
       count: 5,
       offset: 10,
     });
-    expect(listEmailsMock).toHaveBeenCalledWith('INBOX', 5, 10);
+    expect(listEmailsMock).toHaveBeenCalledWith('INBOX', 5, 10, false);
   });
 
   it('dispatchTool search_emails passes offset to service.searchEmails', async () => {

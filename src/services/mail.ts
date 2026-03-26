@@ -65,8 +65,8 @@ export class MailService {
     // nodemailer transporter doesn't strictly need closing, but good practice if pooling
   }
 
-  async listEmails(folder: string = 'INBOX', count: number = 10, offset: number = 0): Promise<MessageMetadata[]> {
-    return this.imapClient.listMessages(folder, count, offset);
+  async listEmails(folder: string = 'INBOX', count: number = 10, offset: number = 0, headerOnly: boolean = false): Promise<MessageMetadata[]> {
+    return this.imapClient.listMessages(folder, count, offset, headerOnly);
   }
 
   async searchEmails(query: { from?: string, subject?: string, since?: string, before?: string, keywords?: string }, folder: string = 'INBOX', count: number = 10, offset: number = 0): Promise<MessageMetadata[]> {
