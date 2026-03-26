@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.4.0
 milestone_name: AI Mail Assistant Features
 status: roadmap_ready
-stopped_at: Completed 25-01-PLAN.md (list_filters, get_filter, set_filter, delete_filter SIEVE tools)
-last_updated: "2026-03-26T19:36:06.147Z"
+stopped_at: Completed 30-01-PLAN.md (per-tool allow-listing with --allow-tools flag)
+last_updated: "2026-03-26T19:45:52.900Z"
 progress:
   total_phases: 16
-  completed_phases: 9
-  total_plans: 9
-  completed_plans: 9
+  completed_phases: 10
+  total_plans: 12
+  completed_plans: 10
 ---
 
 # Project State: Mail MCP Server
@@ -57,6 +57,9 @@ Carried from v1.2.0 — see PROJECT.md Key Decisions table for full history.
 - **26-01**: mark_read/unread/star/unstar are thin wrappers calling service.modifyLabels() with \Seen/\Flagged flags
 - **26-01**: All 4 are write tools (readOnlyHint:false, destructiveHint:true), folder defaults to INBOX
 - **26-01**: Dispatch handlers placed in dispatchTool() using name param (not request.params.name)
+- **30-01**: `allowedTools` stored as instance field on `MailMCPServer`; constructor throws if both `readOnly=true` and `allowedTools` provided
+- **30-01**: `getTools()` extended with optional `allowedTools?: Set<string>` — read tools always pass, write tools filtered by Set membership
+- **30-01**: `--allow-tools` CLI flag is comma-split string → `Set<string>`; mutually exclusive with `--read-only` enforced at CLI and constructor
 
 ### Critical Blockers
 
@@ -76,9 +79,10 @@ Carried from v1.2.0 — see PROJECT.md Key Decisions table for full history.
 | 24 | 01 | 25 | 3 | 4 |
 | 26 | 01 | 389 | 2 | 2 |
 | Phase 25 P01 | 583 | 6 tasks | 7 files |
+| Phase 30 P01 | 411 | 3 tasks | 2 files |
 
 ## Session Continuity
 
 **Last Action:** Completed Phase 26 Plan 01 — Mark Read/Star Tools (mark_read, mark_unread, star, unstar).
-**Stopped At:** Completed 25-01-PLAN.md (list_filters, get_filter, set_filter, delete_filter SIEVE tools)
+**Stopped At:** Completed 30-01-PLAN.md (per-tool allow-listing with --allow-tools flag)
 **Next Step:** Run `/gsd:execute-phase` to continue with next phase.

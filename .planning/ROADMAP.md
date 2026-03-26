@@ -91,7 +91,7 @@ Full archive: `.planning/milestones/v1.3.0-ROADMAP.md`
 | 27. Delete Email Tool | v1.4.0 | 1/1 | Complete   | 2026-03-26 |
 | 28. Audit Logging | v1.4.0 | 0/? | Not started | - |
 | 29. Confirmation Mode | v1.4.0 | 0/? | Not started | - |
-| 30. Per-Tool Allow-Listing | v1.4.0 | 0/? | Not started | - |
+| 30. Per-Tool Allow-Listing | v1.4.0 | 1/1 | Complete   | 2026-03-26 |
 | 31. Content Redaction | v1.4.0 | 0/? | Not started | - |
 | 32. Tool-Type Rate Limits | v1.4.0 | 0/? | Not started | - |
 | 33. Recipient Allowlist | v1.4.0 | 0/? | Not started | - |
@@ -110,7 +110,7 @@ Full archive: `.planning/milestones/v1.3.0-ROADMAP.md`
 - [x] **Phase 27: Delete Email Tool** - Single-message delete without batch workaround (completed 2026-03-26)
 - [ ] **Phase 28: Audit Logging** - Log all AI tool calls to local file
 - [ ] **Phase 29: Confirmation Mode** - Human-in-the-loop for destructive operations
-- [ ] **Phase 30: Per-Tool Allow-Listing** - Granular permissions beyond read-only
+- [x] **Phase 30: Per-Tool Allow-Listing** - Granular permissions beyond read-only (completed 2026-03-26)
 - [ ] **Phase 31: Sensitive Content Redaction** - Mask PII before returning to AI
 - [ ] **Phase 32: Per-Tool-Type Rate Limits** - Separate read vs write rate limits
 - [ ] **Phase 33: Send Recipient Allowlist** - Only allow sending to approved addresses
