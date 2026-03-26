@@ -1,4 +1,4 @@
-import { ImapClient, MessageMetadata } from '../protocol/imap.js';
+import { ImapClient, MessageMetadata, SenderEnvelope } from '../protocol/imap.js';
 import { SmtpClient } from '../protocol/smtp.js';
 import { htmlToMarkdown } from '../utils/markdown.js';
 import { EmailAccount } from '../types/index.js';
@@ -22,6 +22,13 @@ export function applySignature(
     return `${body}<br><br><p style="white-space: pre-line">-- \n${signature}</p>`;
   }
   return `${body}\n-- \n${signature}`;
+}
+
+export interface ContactInfo {
+  name: string;
+  email: string;
+  count: number;
+  lastSeen: string;
 }
 
 export class MailService {
@@ -377,6 +384,40 @@ export class MailService {
     } else {
       throw new Error(`Extraction not supported for content type: ${contentType}`);
     }
+  }
+
+  async extractContacts(folder: string = 'INBOX', count: number = 100): Promise<ContactInfo[]> {
+    const envelopes: SenderEnvelope[] = await this.imapClient.scanSenderEnvelopes(folder, count);
+
+    // Aggregate by email address
+    const map = new Map<string, { name: string; count: number; lastDate: Date }>();
+    for (const env of envelopes) {
+      const existing = map.get(env.email);
+      if (!existing) {
+        map.set(env.email, { name: env.name, count: 1, lastDate: env.date });
+      } else {
+        existing.count++;
+        if (env.date > existing.lastDate) {
+          existing.lastDate = env.date;
+          existing.name = env.name;
+        }
+      }
+    }
+
+    // Build and sort
+    const contacts: ContactInfo[] = Array.from(map.entries()).map(([email, data]) => ({
+      email,
+      name: data.name,
+      count: data.count,
+      lastSeen: data.lastDate.toISOString(),
+    }));
+
+    contacts.sort((a, b) => {
+      if (b.count !== a.count) return b.count - a.count;
+      return b.lastSeen.localeCompare(a.lastSeen);
+    });
+
+    return contacts.slice(0, 50);
   }
 
   async listFolders(): Promise<string[]> {

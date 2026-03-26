@@ -14,6 +14,12 @@ export interface MessageMetadata {
   threadId?: string;
 }
 
+export interface SenderEnvelope {
+  name: string;
+  email: string;
+  date: Date;
+}
+
 export class ImapClient {
   private client: ImapFlow | null = null;
   private account: EmailAccount;
@@ -93,6 +99,41 @@ export class ImapClient {
         });
       }
       return messages.reverse();
+    } finally {
+      lock.release();
+    }
+  }
+
+  async scanSenderEnvelopes(folder: string = 'INBOX', count: number = 100): Promise<SenderEnvelope[]> {
+    if (!this.client) {
+      throw new Error('Not connected');
+    }
+
+    const effectiveCount = Math.min(count, 500);
+
+    const lock = await this.client.getMailboxLock(folder);
+    try {
+      const mailbox = this.client.mailbox;
+      const total = (mailbox && typeof mailbox !== 'boolean') ? mailbox.exists : 0;
+      if (total === 0) return [];
+
+      const end = total;
+      const start = Math.max(1, end - effectiveCount + 1);
+      const range = `${start}:${end}`;
+
+      const envelopes: SenderEnvelope[] = [];
+      for await (const msg of this.client.fetch(range, { envelope: true })) {
+        const fromList = msg.envelope?.from;
+        if (!fromList || fromList.length === 0) continue;
+        const sender = fromList[0];
+        if (!sender?.address) continue;
+        envelopes.push({
+          name: sender.name ?? '',
+          email: sender.address.toLowerCase(),
+          date: msg.envelope?.date ?? new Date(0),
+        });
+      }
+      return envelopes;
     } finally {
       lock.release();
     }
