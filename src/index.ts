@@ -381,6 +381,37 @@ export class MailMCPServer {
           required: ['accountId', 'uid', 'to']
         }
       },
+      {
+        name: 'mailbox_stats',
+        description: 'Return mailbox statistics (total messages, unread count, recent) for one or more IMAP folders — without listing individual emails. Works with any provider (Gmail, Outlook, custom domains).',
+        annotations: { readOnlyHint: true, destructiveHint: false },
+        inputSchema: {
+          type: 'object',
+          properties: {
+            accountId: { type: 'string', description: 'The ID of the account to use' },
+            folders: {
+              type: 'array',
+              items: { type: 'string' },
+              description: 'Folder names to report stats for (default: all folders)'
+            }
+          },
+          required: ['accountId']
+        }
+      },
+      {
+        name: 'extract_contacts',
+        description: 'Scan recent messages via IMAP and return structured contact data (name, email, frequency) sorted by how often they email you — enables "who emails me most?" queries. Works with any IMAP provider.',
+        annotations: { readOnlyHint: true, destructiveHint: false },
+        inputSchema: {
+          type: 'object',
+          properties: {
+            accountId: { type: 'string', description: 'The ID of the account to use' },
+            folder: { type: 'string', description: 'The folder to scan (default: INBOX)' },
+            count: { type: 'number', description: 'Number of recent messages to scan (default: 100, max: 500)' },
+          },
+          required: ['accountId'],
+        },
+      },
     ];
     return readOnly ? allTools.filter(t => !WRITE_TOOLS.has(t.name)) : allTools;
   }
@@ -513,6 +544,23 @@ export class MailMCPServer {
         await (service as any).createDraft(args.to, args.subject, args.body, args.isHtml, args.cc, args.bcc);
         return {
           content: [{ type: 'text', text: `Draft successfully created in Drafts folder.` }],
+        };
+      }
+
+      if (name === 'mailbox_stats') {
+        const service = await this.getService(args.accountId as string);
+        const stats = await (service as any).getMailboxStats(args.folders as string[] | undefined);
+        const header = `Folder            | Total | Unread | Recent\n` +
+                       `------------------|-------|--------|-------\n`;
+        const rows = stats.map((s: any) => {
+          const total = s.total !== null ? String(s.total) : (s.error ? 'ERR' : '-');
+          const unread = s.unread !== null ? String(s.unread) : (s.error ? 'ERR' : '-');
+          const recent = s.recent !== null ? String(s.recent) : (s.error ? 'ERR' : '-');
+          const folderName = s.name.padEnd(17).slice(0, 17);
+          return `${folderName} | ${total.padStart(5)} | ${unread.padStart(6)} | ${recent.padStart(6)}${s.error ? `  [${s.error}]` : ''}`;
+        }).join('\n');
+        return {
+          content: [{ type: 'text', text: header + rows }],
         };
       }
 
@@ -832,6 +880,43 @@ export class MailMCPServer {
                 text: `Batch ${args.action} completed. ${result.processed} email(s) processed.`
               }
             ]
+          };
+        }
+
+        if (request.params.name === 'mailbox_stats') {
+          const args = request.params.arguments as { accountId: string; folders?: string[] };
+          const service = await this.getService(args.accountId);
+          const stats = await service.getMailboxStats(args.folders);
+          const header = `Folder            | Total | Unread | Recent\n` +
+                         `------------------|-------|--------|-------\n`;
+          const rows = stats.map(s => {
+            const total = s.total !== null ? String(s.total) : (s.error ? 'ERR' : '-');
+            const unread = s.unread !== null ? String(s.unread) : (s.error ? 'ERR' : '-');
+            const recent = s.recent !== null ? String(s.recent) : (s.error ? 'ERR' : '-');
+            const name = s.name.padEnd(17).slice(0, 17);
+            return `${name} | ${total.padStart(5)} | ${unread.padStart(6)} | ${recent.padStart(6)}${s.error ? `  [${s.error}]` : ''}`;
+          }).join('\n');
+          return {
+            content: [
+              {
+                type: 'text',
+                text: header + rows
+              }
+            ]
+          };
+        }
+
+        if (request.params.name === 'extract_contacts') {
+          const args = request.params.arguments as { accountId: string; folder?: string; count?: number };
+          const service = await this.getService(args.accountId);
+          const contacts = await service.extractContacts(args.folder ?? 'INBOX', args.count ?? 100);
+          return {
+            content: [
+              {
+                type: 'text',
+                text: JSON.stringify({ contacts }, null, 2),
+              },
+            ],
           };
         }
 

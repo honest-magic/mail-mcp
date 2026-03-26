@@ -67,6 +67,7 @@ const READ_TOOL_NAMES = [
   'get_attachment',
   'extract_attachment_text',
   'extract_contacts',
+  'mailbox_stats',
 ];
 
 describe('ROM-01: readOnly constructor field', () => {
@@ -82,16 +83,16 @@ describe('ROM-01: readOnly constructor field', () => {
 });
 
 describe('ROM-05: list-time filtering', () => {
-  it('Test C: getTools(false) returns array of length 17', () => {
+  it('Test C: getTools(false) returns array of length 18', () => {
     const server = new MailMCPServer(false);
     const tools = (server as any).getTools(false);
-    expect(tools).toHaveLength(17);
+    expect(tools).toHaveLength(18);
   });
 
-  it('Test D: getTools(true) returns array of length 9', () => {
+  it('Test D: getTools(true) returns array of length 10', () => {
     const server = new MailMCPServer(true);
     const tools = (server as any).getTools(true);
-    expect(tools).toHaveLength(9);
+    expect(tools).toHaveLength(10);
   });
 
   it('Test E: getTools(true) does NOT include send_email', () => {
@@ -142,16 +143,16 @@ describe('ROM-03: read tools unaffected in read-only mode', () => {
 });
 
 describe('ROM-06: tool annotations', () => {
-  it('Test J: all 17 tools have annotations.readOnlyHint defined', () => {
+  it('Test J: all 18 tools have annotations.readOnlyHint defined', () => {
     const server = new MailMCPServer(false);
     const tools = (server as any).getTools(false);
-    expect(tools).toHaveLength(17);
+    expect(tools).toHaveLength(18);
     for (const tool of tools) {
       expect(tool.annotations?.readOnlyHint).toBeDefined();
     }
   });
 
-  it('Test K: all 17 tools have annotations.destructiveHint defined', () => {
+  it('Test K: all 18 tools have annotations.destructiveHint defined', () => {
     const server = new MailMCPServer(false);
     const tools = (server as any).getTools(false);
     for (const tool of tools) {
@@ -174,7 +175,7 @@ describe('ROM-06: tool annotations', () => {
     const server = new MailMCPServer(false);
     const tools = (server as any).getTools(false);
     const readTools = tools.filter((t: any) => READ_TOOL_NAMES.includes(t.name));
-    expect(readTools).toHaveLength(9);
+    expect(readTools).toHaveLength(10);
     for (const tool of readTools) {
       expect(tool.annotations.readOnlyHint).toBe(true);
       expect(tool.annotations.destructiveHint).toBe(false);
@@ -857,16 +858,18 @@ const ALL_WRITE_TOOL_NAMES_20 = [
 ];
 
 describe('THREAD-01: reply_email and forward_email in tool list', () => {
-  it('getTools(false) returns 16 tools after adding reply_email and forward_email', () => {
+  it('getTools(false) includes reply_email and forward_email', () => {
     const server = new MailMCPServer(false);
-    const tools = (server as any).getTools(false);
-    expect(tools).toHaveLength(16);
+    const names = (server as any).getTools(false).map((t: any) => t.name);
+    expect(names).toContain('reply_email');
+    expect(names).toContain('forward_email');
   });
 
-  it('getTools(true) still returns 8 tools (new tools are write-only and filtered)', () => {
+  it('getTools(true) still excludes reply_email and forward_email (write tools filtered)', () => {
     const server = new MailMCPServer(true);
-    const tools = (server as any).getTools(true);
-    expect(tools).toHaveLength(8);
+    const names = (server as any).getTools(true).map((t: any) => t.name);
+    expect(names).not.toContain('reply_email');
+    expect(names).not.toContain('forward_email');
   });
 
   it('reply_email is in getTools(false) output', () => {
